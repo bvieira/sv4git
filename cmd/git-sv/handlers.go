@@ -35,7 +35,7 @@ func nextVersionHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor) f
 			return fmt.Errorf("error getting git log, message: %v", err)
 		}
 
-		nextVer := semverProcessor.NexVersion(currentVer, commits)
+		nextVer := semverProcessor.NextVersion(currentVer, commits)
 		fmt.Printf("%d.%d.%d\n", nextVer.Major(), nextVer.Minor(), nextVer.Patch())
 		return nil
 	}
@@ -76,7 +76,7 @@ func releaseNotesHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, 
 			return fmt.Errorf("error getting git log, message: %v", err)
 		}
 
-		nextVer := semverProcessor.NexVersion(currentVer, commits)
+		nextVer := semverProcessor.NextVersion(currentVer, commits)
 
 		releasenote := rnProcessor.Get(commits)
 		fmt.Println(rnProcessor.Format(releasenote, nextVer))

@@ -26,7 +26,7 @@ const BreakingChangeTag string = "breakingchange"
 
 // SemVerCommitsProcessor interface
 type SemVerCommitsProcessor interface {
-	NexVersion(version semver.Version, commits []GitCommitLog) semver.Version
+	NextVersion(version semver.Version, commits []GitCommitLog) semver.Version
 }
 
 // SemVerCommitsProcessorImpl process versions using commit log
@@ -47,8 +47,8 @@ func NewSemVerCommitsProcessor(unknownAsPatch bool, majorTypes, minorTypes, patc
 	}
 }
 
-// NexVersion calculates next version based on commit log
-func (p SemVerCommitsProcessorImpl) NexVersion(version semver.Version, commits []GitCommitLog) semver.Version {
+// NextVersion calculates next version based on commit log
+func (p SemVerCommitsProcessorImpl) NextVersion(version semver.Version, commits []GitCommitLog) semver.Version {
 	var versionToUpdate = none
 	for _, commit := range commits {
 		if v := p.versionTypeToUpdate(commit); v > versionToUpdate {
