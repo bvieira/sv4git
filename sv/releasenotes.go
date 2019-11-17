@@ -67,7 +67,7 @@ func (p ReleaseNoteProcessorImpl) Get(commits []GitCommitLog) ReleaseNote {
 		}
 	}
 
-	return ReleaseNote{Date: time.Now(), Sections: sections, BreakingChanges: breakingChanges}
+	return ReleaseNote{Date: time.Now().Truncate(time.Minute), Sections: sections, BreakingChanges: breakingChanges}
 }
 
 // Format format a release note.
