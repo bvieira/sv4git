@@ -18,7 +18,10 @@ func ToVersion(value string) (semver.Version, error) {
 		version = "0.0.0"
 	}
 	v, err := semver.NewVersion(version)
-	return *v, err
+	if err != nil {
+		return semver.Version{}, err
+	}
+	return *v, nil
 }
 
 // BreakingChangeTag breaking change tag from commit metadata
