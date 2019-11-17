@@ -57,17 +57,3 @@ func TestToVersion(t *testing.T) {
 		})
 	}
 }
-
-// helpers
-
-func version(v string) semver.Version {
-	r, _ := semver.NewVersion(v)
-	return *r
-}
-
-func commitlog(t string, metadata map[string]string) GitCommitLog {
-	return GitCommitLog{
-		Type:     t,
-		Metadata: metadata,
-	}
-}
