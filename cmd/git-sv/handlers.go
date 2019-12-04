@@ -102,7 +102,7 @@ func tagHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, rnProcess
 		fmt.Printf("%d.%d.%d\n", nextVer.Major(), nextVer.Minor(), nextVer.Patch())
 
 		if err := git.Tag(nextVer); err != nil {
-			return fmt.Errorf("error generate tag version: %s, message: %v", nextVer.String(), err)
+			return fmt.Errorf("error generating tag version: %s, message: %v", nextVer.String(), err)
 		}
 		return nil
 	}
