@@ -8,6 +8,9 @@ import (
 	"github.com/urfave/cli"
 )
 
+// Version for git-sv
+var Version = ""
+
 func main() {
 	cfg := loadConfig()
 
@@ -17,6 +20,7 @@ func main() {
 
 	app := cli.NewApp()
 	app.Name = "sv"
+	app.Version = Version
 	app.Usage = "semantic version for git"
 	app.Commands = []cli.Command{
 		{

@@ -10,10 +10,12 @@ BIN = git-sv
 
 ECHOFLAGS ?=
 
+VERSION ?= 
+
 BUILDOS ?= linux
 BUILDARCH ?= amd64
 BUILDENVS ?= CGO_ENABLED=0 GOOS=$(BUILDOS) GOARCH=$(BUILDARCH)
-BUILDFLAGS ?= -a -installsuffix cgo --ldflags '-extldflags "-lm -lstdc++ -static"'
+BUILDFLAGS ?= -a -installsuffix cgo --ldflags '-X main.Version=$(VERSION) -extldflags "-lm -lstdc++ -static"'
 
 usage: Makefile
 	@echo $(ECHOFLAGS) "to use make call:"
