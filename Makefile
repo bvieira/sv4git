@@ -32,7 +32,7 @@ test:
 	@echo $(ECHOFLAGS) "$(OK_COLOR)==> Running tests...$(NO_COLOR)"
 	@go test $(PKGS)
 
-## run: run gitlabels-cli
+## run: run git-sv
 run:
 	@echo $(ECHOFLAGS) "$(OK_COLOR)==> Running bin/$(BUILDOS)_$(BUILDARCH)/$(BIN)...$(NO_COLOR)"
 	@./bin/$(BUILDOS)_$(BUILDARCH)/$(BIN) $(args)
