@@ -43,3 +43,15 @@ run:
 tidy:
 	@echo $(ECHOFLAGS) "$(OK_COLOR)==> runing tidy"
 	@go mod tidy
+
+## release: prepare binary for release
+release:
+	make build
+	@zip -j bin/git-sv_$(VERSION)_$(BUILDOS)_$(BUILDARCH).zip bin/$(BUILDOS)_$(BUILDARCH)/$(BIN)
+
+## release-all: prepare linux, darwin and windows binary for release
+release-all:
+	@rm -rf bin
+	BUILDOS=linux make release
+	BUILDOS=darwin make release
+	BUILDOS=windows make release
