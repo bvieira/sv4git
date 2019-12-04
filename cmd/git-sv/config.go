@@ -13,7 +13,7 @@ type Config struct {
 	PatchVersionTypes         []string          `envconfig:"PATCH_VERSION_TYPES" default:"build,ci,docs,fix,perf,refactor,style,test"`
 	IncludeUnknownTypeAsPatch bool              `envconfig:"INCLUDE_UNKNOWN_TYPE_AS_PATCH" default:"true"`
 	CommitMessageMetadata     map[string]string `envconfig:"COMMIT_MESSAGE_METADATA" default:"breakingchange:BREAKING CHANGE,issueid:jira"`
-	TagPattern                string            `envconfig:"TAG_PATTERN" default:"v%d.%d.%d"`
+	TagPattern                string            `envconfig:"TAG_PATTERN" default:"%d.%d.%d"`
 	ReleaseNotesTags          map[string]string `envconfig:"RELEASE_NOTES_TAGS" default:"fix:Bug Fixes,feat:Features"`
 }
 
