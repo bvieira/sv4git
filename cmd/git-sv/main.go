@@ -43,6 +43,12 @@ func main() {
 			Usage:   "generate release notes",
 			Action:  releaseNotesHandler(git, semverProcessor, releasenotesProcessor),
 		},
+		{
+			Name:    "tag",
+			Aliases: []string{"tg"},
+			Usage:   "generate tag with version based on git commit messages",
+			Action:  tagHandler(git, semverProcessor, releasenotesProcessor),
+		},
 	}
 
 	apperr := app.Run(os.Args)

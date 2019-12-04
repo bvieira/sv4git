@@ -73,9 +73,16 @@ func (g GitImpl) Log(lastTag string) ([]GitCommitLog, error) {
 
 // Tag create a git tag
 func (g GitImpl) Tag(version semver.Version) error {
+	tag := fmt.Sprintf(g.tagPattern, version.Major(), version.Minor(), version.Patch())
 	tagMsg := fmt.Sprintf("-v \"Version %d.%d.%d\"", version.Major(), version.Minor(), version.Patch())
-	cmd := exec.Command("git", "tag", "-a "+fmt.Sprintf(g.tagPattern, version.Major(), version.Minor(), version.Patch()), tagMsg)
-	return cmd.Run()
+
+	tagCommand := exec.Command("git", "tag", "-a "+tag, tagMsg)
+	if err := tagCommand.Run(); err != nil {
+		return err
+	}
+
+	pushCommand := exec.Command("git", "push", "origin", tag)
+	return pushCommand.Run()
 }
 
 func parseLogOutput(messageMetadata map[string]string, log string) []GitCommitLog {
