@@ -6,7 +6,7 @@ Semantic version for git
 
 ### Installing
 
-Comming soon...
+Download the latest release and add the binary on your path
 
 ## Running
 
@@ -24,6 +24,32 @@ if `git-sv` is configured on your path, you can use it like a git command
 git sv
 git sv current-version
 git sv next-version
+```
+
+### Usage
+
+```bash
+NAME:
+   sv - semantic version for git
+
+USAGE:
+   git-sv [global options] command [command options] [arguments...]
+
+VERSION:
+   1.0.0
+
+COMMANDS:
+   current-version, cv  get last released version from git
+   next-version, nv     generate the next version based on git commit messages
+   commit-log, cl       list all commit logs since last version as jsons
+   release-notes, rn    generate release notes
+   tag, tg              generate tag with version based on git commit messages
+   help, h              Shows a list of commands or help for one command
+
+GLOBAL OPTIONS:
+   --help, -h     show help
+   --version, -v  print the version
+
 ```
 
 ## Development
