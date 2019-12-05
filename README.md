@@ -6,9 +6,23 @@ Semantic version for git
 
 ### Installing
 
-Download the latest release and add the binary on your path
+download the latest release and add the binary on your path
 
-## Running
+### Config
+
+you can config using the environment variables
+
+| Variable | description | default |
+| --------- | ----------| ----------|
+|MAJOR_VERSION_TYPES|types used to bump major version||
+|MINOR_VERSION_TYPES|types used to bump minor version|feat|
+|PATCH_VERSION_TYPES|types used to bump patch version|build,ci,docs,fix,perf,refactor,style,test|
+|INCLUDE_UNKNOWN_TYPE_AS_PATCH|force patch bump on unknown type|true|
+|COMMIT_MESSAGE_METADATA|metadata format on commit message|breakingchange:BREAKING CHANGE,issueid:jira|
+|TAG_PATTERN|tag version pattern|%d.%d.%d|
+|RELEASE_NOTES_TAGS|release notes headers for each visible type|fix:Bug Fixes,feat:Features|
+
+### Running
 
 run `git-sv` to get the list of available parameters
 
@@ -16,7 +30,7 @@ run `git-sv` to get the list of available parameters
 git-sv
 ```
 
-### Run as git command
+#### Run as git command
 
 if `git-sv` is configured on your path, you can use it like a git command
 
@@ -26,7 +40,7 @@ git sv current-version
 git sv next-version
 ```
 
-### Usage
+#### Usage
 
 ```bash
 NAME:
