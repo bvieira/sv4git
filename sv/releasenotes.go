@@ -16,17 +16,17 @@ type releaseNoteTemplate struct {
 	BreakingChanges []string
 }
 
-const markdownTemplate = `# v{{.Version}} ({{.Date}})
+const markdownTemplate = `## v{{.Version}} ({{.Date}})
 
-{{if .Sections.feat}}## {{.Sections.feat.Name}}
+{{if .Sections.feat}}### {{.Sections.feat.Name}}
 {{range $k,$v := .Sections.feat.Items}}
 - {{if $v.Scope}}**{{$v.Scope}}:** {{end}}{{$v.Subject}} ({{$v.Hash}}) {{if $v.Metadata.issueid}}({{$v.Metadata.issueid}}){{end}}{{end}}{{end}}
 
-{{if .Sections.fix}}## {{.Sections.fix.Name}}
+{{if .Sections.fix}}### {{.Sections.fix.Name}}
 {{range $k,$v := .Sections.fix.Items}}
 - {{if $v.Scope}}**{{$v.Scope}}:** {{end}}{{$v.Subject}} ({{$v.Hash}}) {{if $v.Metadata.issueid}}({{$v.Metadata.issueid}}){{end}}{{end}}{{end}}
 
-{{if .BreakingChanges}}## Breaking Changes
+{{if .BreakingChanges}}### Breaking Changes
 {{range $k,$v := .BreakingChanges}}
 - {{$v}}{{end}}
 {{end}}`
