@@ -5,7 +5,7 @@ import (
 	"os"
 	"sv4git/sv"
 
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 // Version for git-sv
@@ -22,7 +22,7 @@ func main() {
 	app.Name = "sv"
 	app.Version = Version
 	app.Usage = "semantic version for git"
-	app.Commands = []cli.Command{
+	app.Commands = []*cli.Command{
 		{
 			Name:    "current-version",
 			Aliases: []string{"cv"},
@@ -40,12 +40,14 @@ func main() {
 			Aliases: []string{"cl"},
 			Usage:   "list all commit logs since last version as jsons",
 			Action:  commitLogHandler(git, semverProcessor),
+			Flags:   []cli.Flag{&cli.StringFlag{Name: "t", Usage: "get commit log from tag"}},
 		},
 		{
 			Name:    "release-notes",
 			Aliases: []string{"rn"},
 			Usage:   "generate release notes",
 			Action:  releaseNotesHandler(git, semverProcessor, releasenotesProcessor),
+			Flags:   []cli.Flag{&cli.StringFlag{Name: "t", Usage: "get release note from tag"}},
 		},
 		{
 			Name:    "tag",

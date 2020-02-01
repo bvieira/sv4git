@@ -16,24 +16,24 @@ type releaseNoteTemplate struct {
 	BreakingChanges []string
 }
 
-const markdownTemplate = `# v{{.Version}} ({{.Date}})
+const markdownTemplate = `## v{{.Version}} ({{.Date}})
 
-{{if .Sections.feat}}## {{.Sections.feat.Name}}
+{{if .Sections.feat}}### {{.Sections.feat.Name}}
 {{range $k,$v := .Sections.feat.Items}}
 - {{if $v.Scope}}**{{$v.Scope}}:** {{end}}{{$v.Subject}} ({{$v.Hash}}) {{if $v.Metadata.issueid}}({{$v.Metadata.issueid}}){{end}}{{end}}{{end}}
 
-{{if .Sections.fix}}## {{.Sections.fix.Name}}
+{{if .Sections.fix}}### {{.Sections.fix.Name}}
 {{range $k,$v := .Sections.fix.Items}}
 - {{if $v.Scope}}**{{$v.Scope}}:** {{end}}{{$v.Subject}} ({{$v.Hash}}) {{if $v.Metadata.issueid}}({{$v.Metadata.issueid}}){{end}}{{end}}{{end}}
 
-{{if .BreakingChanges}}## Breaking Changes
+{{if .BreakingChanges}}### Breaking Changes
 {{range $k,$v := .BreakingChanges}}
 - {{$v}}{{end}}
 {{end}}`
 
 // ReleaseNoteProcessor release note processor interface.
 type ReleaseNoteProcessor interface {
-	Get(commits []GitCommitLog) ReleaseNote
+	Get(date time.Time, commits []GitCommitLog) ReleaseNote
 	Format(releasenote ReleaseNote, version semver.Version) string
 }
 
@@ -50,7 +50,7 @@ func NewReleaseNoteProcessor(tags map[string]string) *ReleaseNoteProcessorImpl {
 }
 
 // Get generate a release note based on commits.
-func (p ReleaseNoteProcessorImpl) Get(commits []GitCommitLog) ReleaseNote {
+func (p ReleaseNoteProcessorImpl) Get(date time.Time, commits []GitCommitLog) ReleaseNote {
 	sections := make(map[string]ReleaseNoteSection)
 	var breakingChanges []string
 	for _, commit := range commits {
@@ -67,7 +67,7 @@ func (p ReleaseNoteProcessorImpl) Get(commits []GitCommitLog) ReleaseNote {
 		}
 	}
 
-	return ReleaseNote{Date: time.Now().Truncate(time.Minute), Sections: sections, BreakingChanges: breakingChanges}
+	return ReleaseNote{Date: date.Truncate(time.Minute), Sections: sections, BreakingChanges: breakingChanges}
 }
 
 // Format format a release note.

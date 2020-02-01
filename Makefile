@@ -1,4 +1,4 @@
-.PHONY: usage build run test
+.PHONY: usage build test run tidy release release-all
 
 OK_COLOR=\033[32;01m
 NO_COLOR=\033[0m
@@ -10,7 +10,8 @@ BIN = git-sv
 
 ECHOFLAGS ?=
 
-VERSION ?= 
+BUILD_TIME = $(shell date +"%Y%m%d%H%M")
+VERSION ?= dev-$(BUILD_TIME)
 
 BUILDOS ?= linux
 BUILDARCH ?= amd64

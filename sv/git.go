@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/Masterminds/semver"
 )
@@ -21,8 +22,9 @@ const (
 // Git commands
 type Git interface {
 	Describe() string
-	Log(lastTag string) ([]GitCommitLog, error)
+	Log(initialTag, endTag string) ([]GitCommitLog, error)
 	Tag(version semver.Version) error
+	Tags() ([]GitTag, error)
 }
 
 // GitCommitLog description of a single commit log
@@ -33,6 +35,12 @@ type GitCommitLog struct {
 	Subject  string            `json:"subject,omitempty"`
 	Body     string            `json:"body,omitempty"`
 	Metadata map[string]string `json:"metadata,omitempty"`
+}
+
+// GitTag git tag info
+type GitTag struct {
+	Name string
+	Date time.Time
 }
 
 // GitImpl git command implementation
@@ -57,11 +65,17 @@ func (GitImpl) Describe() string {
 }
 
 // Log return git log
-func (g GitImpl) Log(lastTag string) ([]GitCommitLog, error) {
+func (g GitImpl) Log(initialTag, endTag string) ([]GitCommitLog, error) {
 	format := "--pretty=format:\"%h" + logSeparator + "%s" + logSeparator + "%b" + endLine + "\""
-	cmd := exec.Command("git", "log", format)
-	if lastTag != "" {
-		cmd = exec.Command("git", "log", lastTag+"..HEAD", format)
+	var cmd *exec.Cmd
+	if initialTag == "" && endTag == "" {
+		cmd = exec.Command("git", "log", format)
+	} else if endTag == "" {
+		cmd = exec.Command("git", "log", initialTag+"..HEAD", format)
+	} else if initialTag == "" {
+		cmd = exec.Command("git", "log", endTag, format)
+	} else {
+		cmd = exec.Command("git", "log", initialTag+".."+endTag, format)
 	}
 
 	out, err := cmd.CombinedOutput()
@@ -83,6 +97,32 @@ func (g GitImpl) Tag(version semver.Version) error {
 
 	pushCommand := exec.Command("git", "push", "origin", tag)
 	return pushCommand.Run()
+}
+
+// Tags list repository tags
+func (g GitImpl) Tags() ([]GitTag, error) {
+	cmd := exec.Command("git", "tag", "-l", "--format", "%(taggerdate:iso8601)#%(refname:short)")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return nil, err
+	}
+	return parseTagsOutput(string(out))
+}
+
+func parseTagsOutput(input string) ([]GitTag, error) {
+	scanner := bufio.NewScanner(strings.NewReader(input))
+	var result []GitTag
+	for scanner.Scan() {
+		if line := strings.TrimSpace(scanner.Text()); line != "" {
+			values := strings.Split(line, "#")
+			date, err := time.Parse("2006-01-02 15:04:05 -0700", values[0])
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse tag data, message: %v", err)
+			}
+			result = append(result, GitTag{Name: values[1], Date: date})
+		}
+	}
+	return result, nil
 }
 
 func parseLogOutput(messageMetadata map[string]string, log string) []GitCommitLog {

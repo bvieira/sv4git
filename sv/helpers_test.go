@@ -19,9 +19,9 @@ func commitlog(t string, metadata map[string]string) GitCommitLog {
 	}
 }
 
-func releaseNote(sections map[string]ReleaseNoteSection, breakingChanges []string) ReleaseNote {
+func releaseNote(date time.Time, sections map[string]ReleaseNoteSection, breakingChanges []string) ReleaseNote {
 	return ReleaseNote{
-		Date:            time.Now().Truncate(time.Minute),
+		Date:            date.Truncate(time.Minute),
 		Sections:        sections,
 		BreakingChanges: breakingChanges,
 	}
