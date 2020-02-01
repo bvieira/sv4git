@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 func currentVersionHandler(git sv.Git) func(c *cli.Context) error {
