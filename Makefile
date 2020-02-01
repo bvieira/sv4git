@@ -10,7 +10,8 @@ BIN = git-sv
 
 ECHOFLAGS ?=
 
-VERSION ?= 
+BUILD_TIME = $(shell date +"%Y%m%d%H%M")
+VERSION ?= dev-$(BUILD_TIME)
 
 BUILDOS ?= linux
 BUILDARCH ?= amd64
