@@ -15,8 +15,8 @@ import (
 const (
 	logSeparator       = "##"
 	endLine            = "~~"
-	breakingChangesTag = "BREAKING CHANGE:"
-	issueIDTag         = "jira:"
+	breakingChangesKey = "breakingchange"
+	issueIDKey         = "issueid"
 )
 
 // Git commands
@@ -45,13 +45,16 @@ type GitTag struct {
 
 // GitImpl git command implementation
 type GitImpl struct {
-	messageMetadata map[string]string
+	messageMetadata map[string][]string
 	tagPattern      string
 }
 
 // NewGit constructor
-func NewGit(messageMetadata map[string]string, tagPattern string) *GitImpl {
-	return &GitImpl{messageMetadata: messageMetadata, tagPattern: tagPattern}
+func NewGit(breakinChangePrefixes, issueIDPrefixes []string, tagPattern string) *GitImpl {
+	return &GitImpl{
+		messageMetadata: map[string][]string{breakingChangesKey: breakinChangePrefixes, issueIDKey: issueIDPrefixes},
+		tagPattern:      tagPattern,
+	}
 }
 
 // Describe runs git describe, it no tag found, return empty
@@ -125,7 +128,7 @@ func parseTagsOutput(input string) ([]GitTag, error) {
 	return result, nil
 }
 
-func parseLogOutput(messageMetadata map[string]string, log string) []GitCommitLog {
+func parseLogOutput(messageMetadata map[string][]string, log string) []GitCommitLog {
 	scanner := bufio.NewScanner(strings.NewReader(log))
 	scanner.Split(splitAt([]byte(endLine)))
 	var logs []GitCommitLog
@@ -137,14 +140,17 @@ func parseLogOutput(messageMetadata map[string]string, log string) []GitCommitLo
 	return logs
 }
 
-func parseCommitLog(messageMetadata map[string]string, commit string) GitCommitLog {
+func parseCommitLog(messageMetadata map[string][]string, commit string) GitCommitLog {
 	content := strings.Split(strings.Trim(commit, "\""), logSeparator)
 	commitType, scope, subject := parseCommitLogMessage(content[1])
 
 	metadata := make(map[string]string)
-	for k, v := range messageMetadata {
-		if tagValue := extractTag(v, content[2]); tagValue != "" {
-			metadata[k] = tagValue
+	for key, prefixes := range messageMetadata {
+		for _, prefix := range prefixes {
+			if tagValue := extractTag(prefix, content[2]); tagValue != "" {
+				metadata[key] = tagValue
+				break
+			}
 		}
 	}
 
@@ -168,7 +174,7 @@ func parseCommitLogMessage(message string) (string, string, string) {
 }
 
 func extractTag(tag, text string) string {
-	regex := regexp.MustCompile(tag + ": (.*)")
+	regex := regexp.MustCompile(tag + " (.*)")
 	result := regex.FindStringSubmatch(text)
 	if len(result) < 2 {
 		return ""
