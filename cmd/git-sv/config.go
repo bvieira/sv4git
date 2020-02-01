@@ -12,7 +12,8 @@ type Config struct {
 	MinorVersionTypes         []string          `envconfig:"MINOR_VERSION_TYPES" default:"feat"`
 	PatchVersionTypes         []string          `envconfig:"PATCH_VERSION_TYPES" default:"build,ci,docs,fix,perf,refactor,style,test"`
 	IncludeUnknownTypeAsPatch bool              `envconfig:"INCLUDE_UNKNOWN_TYPE_AS_PATCH" default:"true"`
-	CommitMessageMetadata     map[string]string `envconfig:"COMMIT_MESSAGE_METADATA" default:"breakingchange:BREAKING CHANGE,issueid:jira"`
+	BreakingChangePrefixes    []string          `envconfig:"BRAKING_CHANGE_PREFIXES" default:"BREAKING CHANGE:,BREAKING CHANGES:"`
+	IssueIDPrefixes           []string          `envconfig:"ISSUEID_PREFIXES" default:"jira:,JIRA:,Jira:"`
 	TagPattern                string            `envconfig:"TAG_PATTERN" default:"%d.%d.%d"`
 	ReleaseNotesTags          map[string]string `envconfig:"RELEASE_NOTES_TAGS" default:"fix:Bug Fixes,feat:Features"`
 }

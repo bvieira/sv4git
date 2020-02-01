@@ -14,7 +14,7 @@ var Version = ""
 func main() {
 	cfg := loadConfig()
 
-	git := sv.NewGit(cfg.CommitMessageMetadata, cfg.TagPattern)
+	git := sv.NewGit(cfg.BreakingChangePrefixes, cfg.IssueIDPrefixes, cfg.TagPattern)
 	semverProcessor := sv.NewSemVerCommitsProcessor(cfg.IncludeUnknownTypeAsPatch, cfg.MajorVersionTypes, cfg.MinorVersionTypes, cfg.PatchVersionTypes)
 	releasenotesProcessor := sv.NewReleaseNoteProcessor(cfg.ReleaseNotesTags)
 

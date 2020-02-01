@@ -18,7 +18,8 @@ you can config using the environment variables
 |MINOR_VERSION_TYPES|types used to bump minor version|feat|
 |PATCH_VERSION_TYPES|types used to bump patch version|build,ci,docs,fix,perf,refactor,style,test|
 |INCLUDE_UNKNOWN_TYPE_AS_PATCH|force patch bump on unknown type|true|
-|COMMIT_MESSAGE_METADATA|metadata format on commit message|breakingchange:BREAKING CHANGE,issueid:jira|
+|BRAKING_CHANGE_PREFIXES|list of prefixes that will be used to identify a breaking change|BREAKING CHANGE:,BREAKING CHANGES:|
+|ISSUEID_PREFIXES|list of prefixes that will be used to identify an issue id|jira:,JIRA:,Jira:|
 |TAG_PATTERN|tag version pattern|%d.%d.%d|
 |RELEASE_NOTES_TAGS|release notes headers for each visible type|fix:Bug Fixes,feat:Features|
 
