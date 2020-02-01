@@ -40,12 +40,14 @@ func main() {
 			Aliases: []string{"cl"},
 			Usage:   "list all commit logs since last version as jsons",
 			Action:  commitLogHandler(git, semverProcessor),
+			Flags:   []cli.Flag{cli.StringFlag{Name: "t", Usage: "get commit log from tag"}},
 		},
 		{
 			Name:    "release-notes",
 			Aliases: []string{"rn"},
 			Usage:   "generate release notes",
 			Action:  releaseNotesHandler(git, semverProcessor, releasenotesProcessor),
+			Flags:   []cli.Flag{cli.StringFlag{Name: "t", Usage: "get release note from tag"}},
 		},
 		{
 			Name:    "tag",

@@ -33,7 +33,7 @@ const markdownTemplate = `# v{{.Version}} ({{.Date}})
 
 // ReleaseNoteProcessor release note processor interface.
 type ReleaseNoteProcessor interface {
-	Get(commits []GitCommitLog) ReleaseNote
+	Get(date time.Time, commits []GitCommitLog) ReleaseNote
 	Format(releasenote ReleaseNote, version semver.Version) string
 }
 
@@ -50,7 +50,7 @@ func NewReleaseNoteProcessor(tags map[string]string) *ReleaseNoteProcessorImpl {
 }
 
 // Get generate a release note based on commits.
-func (p ReleaseNoteProcessorImpl) Get(commits []GitCommitLog) ReleaseNote {
+func (p ReleaseNoteProcessorImpl) Get(date time.Time, commits []GitCommitLog) ReleaseNote {
 	sections := make(map[string]ReleaseNoteSection)
 	var breakingChanges []string
 	for _, commit := range commits {
@@ -67,7 +67,7 @@ func (p ReleaseNoteProcessorImpl) Get(commits []GitCommitLog) ReleaseNote {
 		}
 	}
 
-	return ReleaseNote{Date: time.Now().Truncate(time.Minute), Sections: sections, BreakingChanges: breakingChanges}
+	return ReleaseNote{Date: date.Truncate(time.Minute), Sections: sections, BreakingChanges: breakingChanges}
 }
 
 // Format format a release note.
