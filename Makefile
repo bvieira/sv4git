@@ -1,4 +1,4 @@
-.PHONY: usage build run test
+.PHONY: usage build test run tidy release release-all
 
 OK_COLOR=\033[32;01m
 NO_COLOR=\033[0m
