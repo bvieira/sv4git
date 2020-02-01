@@ -42,29 +42,26 @@ git sv next-version
 
 #### Usage
 
+use `--help` or `-h` to get usage information, dont forget that some commands have unique options too
+
 ```bash
-NAME:
-   sv - semantic version for git
+# sv help
+git-sv -h
 
-USAGE:
-   git-sv [global options] command [command options] [arguments...]
-
-VERSION:
-   1.0.0
-
-COMMANDS:
-   current-version, cv  get last released version from git
-   next-version, nv     generate the next version based on git commit messages
-   commit-log, cl       list all commit logs since last version as jsons
-   release-notes, rn    generate release notes
-   tag, tg              generate tag with version based on git commit messages
-   help, h              Shows a list of commands or help for one command
-
-GLOBAL OPTIONS:
-   --help, -h     show help
-   --version, -v  print the version
-
+# sv release-notes command help
+git-sv rn -h
 ```
+
+##### Available commands
+
+| Variable | description|
+| --------- | ----------|
+| current-version, cv | get last released version from git |
+| next-version, nv | generate the next version based on git commit messages |
+| commit-log, cl | list all commit logs since last version as jsons |
+| release-notes, rn | generate release notes |
+| tag, tg | generate tag with version based on git commit messages |
+| help, h | Shows a list of commands or help for one command |
 
 ## Development
 
