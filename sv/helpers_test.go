@@ -28,7 +28,7 @@ func releaseNote(version semver.Version, date time.Time, sections map[string]Rel
 	}
 }
 
-func rnSection(name string, items []GitCommitLog) ReleaseNoteSection {
+func newReleaseNoteSection(name string, items []GitCommitLog) ReleaseNoteSection {
 	return ReleaseNoteSection{
 		Name:  name,
 		Items: items,

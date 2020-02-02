@@ -13,27 +13,25 @@ type releaseNoteTemplateVariables struct {
 	BreakingChanges []string
 }
 
-const rnTemplate = `## v{{.Version}} ({{.Date}})
-{{- if .Sections.feat}}
+const rnSectionItem = "- {{if .Scope}}**{{.Scope}}:** {{end}}{{.Subject}} ({{.Hash}}){{if .Metadata.issueid}} ({{.Metadata.issueid}}){{end}}"
+const rnSection = `{{- if .}}
 
-### {{.Sections.feat.Name}}
-{{range $k,$v := .Sections.feat.Items}}
-- {{if $v.Scope}}**{{$v.Scope}}:** {{end}}{{$v.Subject}} ({{$v.Hash}}){{if $v.Metadata.issueid}} ({{$v.Metadata.issueid}}){{end}}{{end}}
+### {{.Name}}
+{{range $k,$v := .Items}}
+{{template "rnSectionItem" $v}}
 {{- end}}
-
-{{- if .Sections.fix}}
-
-### {{.Sections.fix.Name}}
-{{range $k,$v := .Sections.fix.Items}}
-- {{if $v.Scope}}**{{$v.Scope}}:** {{end}}{{$v.Subject}} ({{$v.Hash}}){{if $v.Metadata.issueid}} ({{$v.Metadata.issueid}}){{end}}{{end}}
-{{- end}}
-
-{{- if .BreakingChanges}}
+{{- end}}`
+const rnSectionBreakingChanges = `{{- if .}}
 
 ### Breaking Changes
-{{range $k,$v := .BreakingChanges}}
-- {{$v}}{{end}}
+{{range $k,$v := .}}
+- {{$v}}
 {{- end}}
+{{- end}}`
+const rnTemplate = `## v{{.Version}} ({{.Date}})
+{{- template "rnSection" .Sections.feat}}
+{{- template "rnSection" .Sections.fix}}
+{{- template "rnSectionBreakingChanges" .BreakingChanges}}
 `
 
 // OutputFormatter output formatter interface.
@@ -48,8 +46,11 @@ type OutputFormatterImpl struct {
 
 // NewOutputFormatter TemplateProcessor constructor.
 func NewOutputFormatter() *OutputFormatterImpl {
-	template := template.Must(template.New("releasenotes").Parse(rnTemplate))
-	return &OutputFormatterImpl{releasenoteTemplate: template}
+	t := template.Must(template.New("releasenotes").Parse(rnTemplate))
+	template.Must(t.New("rnSectionItem").Parse(rnSectionItem))
+	template.Must(t.New("rnSection").Parse(rnSection))
+	template.Must(t.New("rnSectionBreakingChanges").Parse(rnSectionBreakingChanges))
+	return &OutputFormatterImpl{releasenoteTemplate: t}
 }
 
 // FormatReleaseNote format a release note.
