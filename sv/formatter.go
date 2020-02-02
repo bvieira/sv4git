@@ -14,19 +14,27 @@ type releaseNoteTemplateVariables struct {
 }
 
 const rnTemplate = `## v{{.Version}} ({{.Date}})
+{{- if .Sections.feat}}
 
-{{if .Sections.feat}}### {{.Sections.feat.Name}}
+### {{.Sections.feat.Name}}
 {{range $k,$v := .Sections.feat.Items}}
-- {{if $v.Scope}}**{{$v.Scope}}:** {{end}}{{$v.Subject}} ({{$v.Hash}}) {{if $v.Metadata.issueid}}({{$v.Metadata.issueid}}){{end}}{{end}}{{end}}
+- {{if $v.Scope}}**{{$v.Scope}}:** {{end}}{{$v.Subject}} ({{$v.Hash}}){{if $v.Metadata.issueid}} ({{$v.Metadata.issueid}}){{end}}{{end}}
+{{- end}}
 
-{{if .Sections.fix}}### {{.Sections.fix.Name}}
+{{- if .Sections.fix}}
+
+### {{.Sections.fix.Name}}
 {{range $k,$v := .Sections.fix.Items}}
-- {{if $v.Scope}}**{{$v.Scope}}:** {{end}}{{$v.Subject}} ({{$v.Hash}}) {{if $v.Metadata.issueid}}({{$v.Metadata.issueid}}){{end}}{{end}}{{end}}
+- {{if $v.Scope}}**{{$v.Scope}}:** {{end}}{{$v.Subject}} ({{$v.Hash}}){{if $v.Metadata.issueid}} ({{$v.Metadata.issueid}}){{end}}{{end}}
+{{- end}}
 
-{{if .BreakingChanges}}### Breaking Changes
+{{- if .BreakingChanges}}
+
+### Breaking Changes
 {{range $k,$v := .BreakingChanges}}
 - {{$v}}{{end}}
-{{end}}`
+{{- end}}
+`
 
 // OutputFormatter output formatter interface.
 type OutputFormatter interface {
