@@ -56,7 +56,7 @@ git-sv rn -h
 ##### Available commands
 
 | Variable | description | has options |
-| --------- | ---------- | ---------- |
+| --------- | ---------- | :----------: |
 | current-version, cv | get last released version from git | :x: |
 | next-version, nv | generate the next version based on git commit messages | :x: |
 | commit-log, cl | list all commit logs since last version as jsons | :heavy_check_mark: |
