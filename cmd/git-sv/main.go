@@ -17,6 +17,7 @@ func main() {
 	git := sv.NewGit(cfg.BreakingChangePrefixes, cfg.IssueIDPrefixes, cfg.TagPattern)
 	semverProcessor := sv.NewSemVerCommitsProcessor(cfg.IncludeUnknownTypeAsPatch, cfg.MajorVersionTypes, cfg.MinorVersionTypes, cfg.PatchVersionTypes)
 	releasenotesProcessor := sv.NewReleaseNoteProcessor(cfg.ReleaseNotesTags)
+	outputFormatter := sv.NewOutputFormatter()
 
 	app := cli.NewApp()
 	app.Name = "sv"
@@ -40,20 +41,30 @@ func main() {
 			Aliases: []string{"cl"},
 			Usage:   "list all commit logs since last version as jsons",
 			Action:  commitLogHandler(git, semverProcessor),
-			Flags:   []cli.Flag{&cli.StringFlag{Name: "t", Usage: "get commit log from tag"}},
+			Flags:   []cli.Flag{&cli.StringFlag{Name: "t", Aliases: []string{"tag"}, Usage: "get commit log from tag"}},
 		},
 		{
 			Name:    "release-notes",
 			Aliases: []string{"rn"},
 			Usage:   "generate release notes",
-			Action:  releaseNotesHandler(git, semverProcessor, releasenotesProcessor),
-			Flags:   []cli.Flag{&cli.StringFlag{Name: "t", Usage: "get release note from tag"}},
+			Action:  releaseNotesHandler(git, semverProcessor, releasenotesProcessor, outputFormatter),
+			Flags:   []cli.Flag{&cli.StringFlag{Name: "t", Aliases: []string{"tag"}, Usage: "get release note from tag"}},
+		},
+		{
+			Name:    "changelog",
+			Aliases: []string{"cgl"},
+			Usage:   "generate changelog",
+			Action:  changelogHandler(git, semverProcessor, releasenotesProcessor, outputFormatter),
+			Flags: []cli.Flag{
+				&cli.IntFlag{Name: "size", Value: 10, Aliases: []string{"n"}, Usage: "get changelog from last 'n' tags"},
+				&cli.BoolFlag{Name: "all", Usage: "ignore size parameter, get changelog for every tag"},
+			},
 		},
 		{
 			Name:    "tag",
 			Aliases: []string{"tg"},
 			Usage:   "generate tag with version based on git commit messages",
-			Action:  tagHandler(git, semverProcessor, releasenotesProcessor),
+			Action:  tagHandler(git, semverProcessor),
 		},
 	}
 

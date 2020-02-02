@@ -13,10 +13,13 @@ import (
 )
 
 const (
-	logSeparator       = "##"
-	endLine            = "~~"
-	breakingChangesKey = "breakingchange"
-	issueIDKey         = "issueid"
+	logSeparator = "##"
+	endLine      = "~~"
+
+	// BreakingChangesKey key to breaking change metadata
+	BreakingChangesKey = "breakingchange"
+	// IssueIDKey key to issue id metadata
+	IssueIDKey = "issueid"
 )
 
 // Git commands
@@ -52,7 +55,7 @@ type GitImpl struct {
 // NewGit constructor
 func NewGit(breakinChangePrefixes, issueIDPrefixes []string, tagPattern string) *GitImpl {
 	return &GitImpl{
-		messageMetadata: map[string][]string{breakingChangesKey: breakinChangePrefixes, issueIDKey: issueIDPrefixes},
+		messageMetadata: map[string][]string{BreakingChangesKey: breakinChangePrefixes, IssueIDKey: issueIDPrefixes},
 		tagPattern:      tagPattern,
 	}
 }

@@ -55,14 +55,15 @@ git-sv rn -h
 
 ##### Available commands
 
-| Variable | description |
-| --------- | ---------- |
-| current-version, cv | get last released version from git |
-| next-version, nv | generate the next version based on git commit messages |
-| commit-log, cl | list all commit logs since last version as jsons |
-| release-notes, rn | generate release notes |
-| tag, tg | generate tag with version based on git commit messages |
-| help, h | Shows a list of commands or help for one command |
+| Variable | description | has options |
+| --------- | ---------- | :----------: |
+| current-version, cv | get last released version from git | :x: |
+| next-version, nv | generate the next version based on git commit messages | :x: |
+| commit-log, cl | list all commit logs since last version as jsons | :heavy_check_mark: |
+| release-notes, rn | generate release notes | :heavy_check_mark: |
+| changelog, cgl | generate changelog | :heavy_check_mark: |
+| tag, tg | generate tag with version based on git commit messages | :x: |
+| help, h | Shows a list of commands or help for one command | :x: |
 
 ## Development
 
