@@ -1,52 +1,24 @@
 package sv
 
 import (
-	"bytes"
-	"fmt"
-	"text/template"
 	"time"
 
 	"github.com/Masterminds/semver"
 )
 
-type releaseNoteTemplate struct {
-	Version         string
-	Date            string
-	Sections        map[string]ReleaseNoteSection
-	BreakingChanges []string
-}
-
-const markdownTemplate = `## v{{.Version}} ({{.Date}})
-
-{{if .Sections.feat}}### {{.Sections.feat.Name}}
-{{range $k,$v := .Sections.feat.Items}}
-- {{if $v.Scope}}**{{$v.Scope}}:** {{end}}{{$v.Subject}} ({{$v.Hash}}) {{if $v.Metadata.issueid}}({{$v.Metadata.issueid}}){{end}}{{end}}{{end}}
-
-{{if .Sections.fix}}### {{.Sections.fix.Name}}
-{{range $k,$v := .Sections.fix.Items}}
-- {{if $v.Scope}}**{{$v.Scope}}:** {{end}}{{$v.Subject}} ({{$v.Hash}}) {{if $v.Metadata.issueid}}({{$v.Metadata.issueid}}){{end}}{{end}}{{end}}
-
-{{if .BreakingChanges}}### Breaking Changes
-{{range $k,$v := .BreakingChanges}}
-- {{$v}}{{end}}
-{{end}}`
-
 // ReleaseNoteProcessor release note processor interface.
 type ReleaseNoteProcessor interface {
 	Create(version semver.Version, date time.Time, commits []GitCommitLog) ReleaseNote
-	Format(releasenote ReleaseNote) string
 }
 
 // ReleaseNoteProcessorImpl release note based on commit log.
 type ReleaseNoteProcessorImpl struct {
-	tags     map[string]string
-	template *template.Template
+	tags map[string]string
 }
 
 // NewReleaseNoteProcessor ReleaseNoteProcessor constructor.
 func NewReleaseNoteProcessor(tags map[string]string) *ReleaseNoteProcessorImpl {
-	template := template.Must(template.New("markdown").Parse(markdownTemplate))
-	return &ReleaseNoteProcessorImpl{tags: tags, template: template}
+	return &ReleaseNoteProcessorImpl{tags: tags}
 }
 
 // Create create a release note based on commits.
@@ -68,20 +40,6 @@ func (p ReleaseNoteProcessorImpl) Create(version semver.Version, date time.Time,
 	}
 
 	return ReleaseNote{Version: version, Date: date.Truncate(time.Minute), Sections: sections, BreakingChanges: breakingChanges}
-}
-
-// Format format a release note.
-func (p ReleaseNoteProcessorImpl) Format(releasenote ReleaseNote) string {
-	templateVars := releaseNoteTemplate{
-		Version:         fmt.Sprintf("%d.%d.%d", releasenote.Version.Major(), releasenote.Version.Minor(), releasenote.Version.Patch()),
-		Date:            releasenote.Date.Format("2006-01-02"),
-		Sections:        releasenote.Sections,
-		BreakingChanges: releasenote.BreakingChanges,
-	}
-
-	var b bytes.Buffer
-	p.template.Execute(&b, templateVars)
-	return b.String()
 }
 
 // ReleaseNote release note.

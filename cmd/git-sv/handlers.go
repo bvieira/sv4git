@@ -76,7 +76,7 @@ func getTagCommits(git sv.Git, tag string) ([]sv.GitCommitLog, error) {
 	return git.Log(prev, tag)
 }
 
-func releaseNotesHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, rnProcessor sv.ReleaseNoteProcessor) func(c *cli.Context) error {
+func releaseNotesHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, rnProcessor sv.ReleaseNoteProcessor, outputFormatter sv.OutputFormatter) func(c *cli.Context) error {
 	return func(c *cli.Context) error {
 		var commits []sv.GitCommitLog
 		var rnVersion semver.Version
@@ -94,7 +94,7 @@ func releaseNotesHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, 
 		}
 
 		releasenote := rnProcessor.Create(rnVersion, date, commits)
-		fmt.Println(rnProcessor.Format(releasenote))
+		fmt.Println(outputFormatter.FormatReleaseNote(releasenote))
 		return nil
 	}
 }
@@ -161,7 +161,7 @@ func getNextVersionInfo(git sv.Git, semverProcessor sv.SemVerCommitsProcessor) (
 	return semverProcessor.NextVersion(currentVer, commits), time.Now(), commits, nil
 }
 
-func tagHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, rnProcessor sv.ReleaseNoteProcessor) func(c *cli.Context) error {
+func tagHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor) func(c *cli.Context) error {
 	return func(c *cli.Context) error {
 		describe := git.Describe()
 

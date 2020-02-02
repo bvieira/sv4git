@@ -17,6 +17,7 @@ func main() {
 	git := sv.NewGit(cfg.BreakingChangePrefixes, cfg.IssueIDPrefixes, cfg.TagPattern)
 	semverProcessor := sv.NewSemVerCommitsProcessor(cfg.IncludeUnknownTypeAsPatch, cfg.MajorVersionTypes, cfg.MinorVersionTypes, cfg.PatchVersionTypes)
 	releasenotesProcessor := sv.NewReleaseNoteProcessor(cfg.ReleaseNotesTags)
+	outputFormatter := sv.NewOutputFormatter()
 
 	app := cli.NewApp()
 	app.Name = "sv"
@@ -46,14 +47,14 @@ func main() {
 			Name:    "release-notes",
 			Aliases: []string{"rn"},
 			Usage:   "generate release notes",
-			Action:  releaseNotesHandler(git, semverProcessor, releasenotesProcessor),
+			Action:  releaseNotesHandler(git, semverProcessor, releasenotesProcessor, outputFormatter),
 			Flags:   []cli.Flag{&cli.StringFlag{Name: "t", Usage: "get release note from tag"}},
 		},
 		{
 			Name:    "tag",
 			Aliases: []string{"tg"},
 			Usage:   "generate tag with version based on git commit messages",
-			Action:  tagHandler(git, semverProcessor, releasenotesProcessor),
+			Action:  tagHandler(git, semverProcessor),
 		},
 	}
 
