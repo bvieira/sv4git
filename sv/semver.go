@@ -24,9 +24,6 @@ func ToVersion(value string) (semver.Version, error) {
 	return *v, nil
 }
 
-// BreakingChangeTag breaking change tag from commit metadata
-const BreakingChangeTag string = "breakingchange"
-
 // SemVerCommitsProcessor interface
 type SemVerCommitsProcessor interface {
 	NextVersion(version semver.Version, commits []GitCommitLog) semver.Version
@@ -72,7 +69,7 @@ func (p SemVerCommitsProcessorImpl) NextVersion(version semver.Version, commits 
 }
 
 func (p SemVerCommitsProcessorImpl) versionTypeToUpdate(commit GitCommitLog) versionType {
-	if _, exists := commit.Metadata[BreakingChangeTag]; exists {
+	if _, exists := commit.Metadata[BreakingChangesKey]; exists {
 		return major
 	}
 	if _, exists := p.MajorVersionTypes[commit.Type]; exists {

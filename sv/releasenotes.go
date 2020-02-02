@@ -62,7 +62,7 @@ func (p ReleaseNoteProcessorImpl) Create(version semver.Version, date time.Time,
 			section.Items = append(section.Items, commit)
 			sections[commit.Type] = section
 		}
-		if value, exists := commit.Metadata[BreakingChangeTag]; exists {
+		if value, exists := commit.Metadata[BreakingChangesKey]; exists {
 			breakingChanges = append(breakingChanges, value)
 		}
 	}
