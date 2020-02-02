@@ -33,8 +33,8 @@ const markdownTemplate = `## v{{.Version}} ({{.Date}})
 
 // ReleaseNoteProcessor release note processor interface.
 type ReleaseNoteProcessor interface {
-	Get(date time.Time, commits []GitCommitLog) ReleaseNote
-	Format(releasenote ReleaseNote, version semver.Version) string
+	Create(version semver.Version, date time.Time, commits []GitCommitLog) ReleaseNote
+	Format(releasenote ReleaseNote) string
 }
 
 // ReleaseNoteProcessorImpl release note based on commit log.
@@ -49,8 +49,8 @@ func NewReleaseNoteProcessor(tags map[string]string) *ReleaseNoteProcessorImpl {
 	return &ReleaseNoteProcessorImpl{tags: tags, template: template}
 }
 
-// Get generate a release note based on commits.
-func (p ReleaseNoteProcessorImpl) Get(date time.Time, commits []GitCommitLog) ReleaseNote {
+// Create create a release note based on commits.
+func (p ReleaseNoteProcessorImpl) Create(version semver.Version, date time.Time, commits []GitCommitLog) ReleaseNote {
 	sections := make(map[string]ReleaseNoteSection)
 	var breakingChanges []string
 	for _, commit := range commits {
@@ -67,13 +67,13 @@ func (p ReleaseNoteProcessorImpl) Get(date time.Time, commits []GitCommitLog) Re
 		}
 	}
 
-	return ReleaseNote{Date: date.Truncate(time.Minute), Sections: sections, BreakingChanges: breakingChanges}
+	return ReleaseNote{Version: version, Date: date.Truncate(time.Minute), Sections: sections, BreakingChanges: breakingChanges}
 }
 
 // Format format a release note.
-func (p ReleaseNoteProcessorImpl) Format(releasenote ReleaseNote, version semver.Version) string {
+func (p ReleaseNoteProcessorImpl) Format(releasenote ReleaseNote) string {
 	templateVars := releaseNoteTemplate{
-		Version:         fmt.Sprintf("%d.%d.%d", version.Major(), version.Minor(), version.Patch()),
+		Version:         fmt.Sprintf("%d.%d.%d", releasenote.Version.Major(), releasenote.Version.Minor(), releasenote.Version.Patch()),
 		Date:            releasenote.Date.Format("2006-01-02"),
 		Sections:        releasenote.Sections,
 		BreakingChanges: releasenote.BreakingChanges,
@@ -86,6 +86,7 @@ func (p ReleaseNoteProcessorImpl) Format(releasenote ReleaseNote, version semver
 
 // ReleaseNote release note.
 type ReleaseNote struct {
+	Version         semver.Version
 	Date            time.Time
 	Sections        map[string]ReleaseNoteSection
 	BreakingChanges []string

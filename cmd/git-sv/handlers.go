@@ -93,8 +93,8 @@ func releaseNotesHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, 
 			return err
 		}
 
-		releasenote := rnProcessor.Get(date, commits)
-		fmt.Println(rnProcessor.Format(releasenote, rnVersion))
+		releasenote := rnProcessor.Create(rnVersion, date, commits)
+		fmt.Println(rnProcessor.Format(releasenote))
 		return nil
 	}
 }
