@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"sort"
 	"sv4git/sv"
 	"time"
 
@@ -181,6 +182,49 @@ func tagHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor) func(c *c
 		if err := git.Tag(nextVer); err != nil {
 			return fmt.Errorf("error generating tag version: %s, message: %v", nextVer.String(), err)
 		}
+		return nil
+	}
+}
+
+func changelogHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, rnProcessor sv.ReleaseNoteProcessor, formatter sv.OutputFormatter) func(c *cli.Context) error {
+	return func(c *cli.Context) error {
+
+		tags, err := git.Tags()
+		if err != nil {
+			return err
+		}
+		sort.Slice(tags, func(i, j int) bool {
+			return tags[i].Date.After(tags[j].Date)
+		})
+
+		var releaseNotes []sv.ReleaseNote
+
+		size := c.Int("size")
+		all := c.Bool("all")
+		for i, tag := range tags {
+			if !all && i >= size {
+				break
+			}
+
+			previousTag := ""
+			if i+1 < len(tags) {
+				previousTag = tags[i+1].Name
+			}
+
+			commits, err := git.Log(previousTag, tag.Name)
+			if err != nil {
+				return fmt.Errorf("error getting git log from tag: %s, message: %v", tag.Name, err)
+			}
+
+			currentVer, err := sv.ToVersion(tag.Name)
+			if err != nil {
+				return fmt.Errorf("error parsing version: %s from describe, message: %v", tag.Name, err)
+			}
+			releaseNotes = append(releaseNotes, rnProcessor.Create(currentVer, tag.Date, commits))
+		}
+
+		fmt.Println(formatter.FormatChangelog(releaseNotes))
+
 		return nil
 	}
 }

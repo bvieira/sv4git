@@ -51,6 +51,16 @@ func main() {
 			Flags:   []cli.Flag{&cli.StringFlag{Name: "t", Aliases: []string{"tag"}, Usage: "get release note from tag"}},
 		},
 		{
+			Name:    "changelog",
+			Aliases: []string{"cgl"},
+			Usage:   "generate changelog",
+			Action:  changelogHandler(git, semverProcessor, releasenotesProcessor, outputFormatter),
+			Flags: []cli.Flag{
+				&cli.IntFlag{Name: "size", Value: 10, Aliases: []string{"n"}, Usage: "get changelog from last 'n' tags"},
+				&cli.BoolFlag{Name: "all", Usage: "ignore size parameter, get changelog for every tag"},
+			},
+		},
+		{
 			Name:    "tag",
 			Aliases: []string{"tg"},
 			Usage:   "generate tag with version based on git commit messages",
