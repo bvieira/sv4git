@@ -121,10 +121,7 @@ func parseTagsOutput(input string) ([]GitTag, error) {
 	for scanner.Scan() {
 		if line := strings.TrimSpace(scanner.Text()); line != "" {
 			values := strings.Split(line, "#")
-			date, err := time.Parse("2006-01-02 15:04:05 -0700", values[0])
-			if err != nil {
-				return nil, fmt.Errorf("failed to parse tag data, message: %v", err)
-			}
+			date, _ := time.Parse("2006-01-02 15:04:05 -0700", values[0]) // ignore invalid dates
 			result = append(result, GitTag{Name: values[1], Date: date})
 		}
 	}
