@@ -12,16 +12,18 @@ download the latest release and add the binary on your path
 
 you can config using the environment variables
 
-| Variable | description | default |
-| --------- | ----------| ----------|
-|MAJOR_VERSION_TYPES|types used to bump major version||
-|MINOR_VERSION_TYPES|types used to bump minor version|feat|
-|PATCH_VERSION_TYPES|types used to bump patch version|build,ci,docs,fix,perf,refactor,style,test|
-|INCLUDE_UNKNOWN_TYPE_AS_PATCH|force patch bump on unknown type|true|
-|BRAKING_CHANGE_PREFIXES|list of prefixes that will be used to identify a breaking change|BREAKING CHANGE:,BREAKING CHANGES:|
-|ISSUEID_PREFIXES|list of prefixes that will be used to identify an issue id|jira:,JIRA:,Jira:|
-|TAG_PATTERN|tag version pattern|%d.%d.%d|
-|RELEASE_NOTES_TAGS|release notes headers for each visible type|fix:Bug Fixes,feat:Features|
+| Variable                       | description                                                      | default                                                      |
+| ------------------------------ | ---------------------------------------------------------------- | ------------------------------------------------------------ |
+| MAJOR_VERSION_TYPES            | types used to bump major version                                 |                                                              |
+| MINOR_VERSION_TYPES            | types used to bump minor version                                 | feat                                                         |
+| PATCH_VERSION_TYPES            | types used to bump patch version                                 | build,ci,docs,fix,perf,refactor,style,test                   |
+| INCLUDE_UNKNOWN_TYPE_AS_PATCH  | force patch bump on unknown type                                 | true                                                         |
+| BRAKING_CHANGE_PREFIXES        | list of prefixes that will be used to identify a breaking change | BREAKING CHANGE:,BREAKING CHANGES:                           |
+| ISSUEID_PREFIXES               | list of prefixes that will be used to identify an issue id       | jira:,JIRA:,Jira:                                            |
+| TAG_PATTERN                    | tag version pattern                                              | %d.%d.%d                                                     |
+| RELEASE_NOTES_TAGS             | release notes headers for each visible type                      | fix:Bug Fixes,feat:Features                                  |
+| VALIDATE_MESSAGE_SKIP_BRANCHES | ignore branches from this list on validate commit message        | master,develop                                               |
+| COMMIT_MESSAGE_TYPES           | list of valid commit types for commit message                    | build,ci,chore,docs,feat,fix,perf,refactor,revert,style,test |
 
 ### Running
 
@@ -55,15 +57,16 @@ git-sv rn -h
 
 ##### Available commands
 
-| Variable | description | has options |
-| --------- | ---------- | :----------: |
-| current-version, cv | get last released version from git | :x: |
-| next-version, nv | generate the next version based on git commit messages | :x: |
-| commit-log, cl | list all commit logs since last version as jsons | :heavy_check_mark: |
-| release-notes, rn | generate release notes | :heavy_check_mark: |
-| changelog, cgl | generate changelog | :heavy_check_mark: |
-| tag, tg | generate tag with version based on git commit messages | :x: |
-| help, h | Shows a list of commands or help for one command | :x: |
+| Variable                     | description                                            |    has options     |
+| ---------------------------- | ------------------------------------------------------ | :----------------: |
+| current-version, cv          | get last released version from git                     |        :x:         |
+| next-version, nv             | generate the next version based on git commit messages |        :x:         |
+| commit-log, cl               | list all commit logs since last version as jsons       | :heavy_check_mark: |
+| release-notes, rn            | generate release notes                                 | :heavy_check_mark: |
+| changelog, cgl               | generate changelog                                     | :heavy_check_mark: |
+| tag, tg                      | generate tag with version based on git commit messages |        :x:         |
+| validate-commit-message, vcm | use as prepare-commit-message hook to validate message | :heavy_check_mark: |
+| help, h                      | Shows a list of commands or help for one command       |        :x:         |
 
 ## Development
 
@@ -77,17 +80,17 @@ make
 
 #### Make configs
 
-| Variable | description|
-| --------- | ----------|
-| BUILDOS | build OS |
-| BUILDARCH | build arch |
-| ECHOFLAGS | flags used on echo |
-| BUILDENVS | var envs used on build |
-| BUILDFLAGS | flags used on build |
+| Variable   | description            |
+| ---------- | ---------------------- |
+| BUILDOS    | build OS               |
+| BUILDARCH  | build arch             |
+| ECHOFLAGS  | flags used on echo     |
+| BUILDENVS  | var envs used on build |
+| BUILDFLAGS | flags used on build    |
 
-| Parameters | description|
-| --------- | ----------|
-| args | parameters that will be used on run |
+| Parameters | description                         |
+| ---------- | ----------------------------------- |
+| args       | parameters that will be used on run |
 
 ```bash
 #variables
