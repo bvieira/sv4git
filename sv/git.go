@@ -28,6 +28,7 @@ type Git interface {
 	Log(initialTag, endTag string) ([]GitCommitLog, error)
 	Tag(version semver.Version) error
 	Tags() ([]GitTag, error)
+	Branch() string
 }
 
 // GitCommitLog description of a single commit log
@@ -113,6 +114,16 @@ func (g GitImpl) Tags() ([]GitTag, error) {
 		return nil, err
 	}
 	return parseTagsOutput(string(out))
+}
+
+// Branch get git branch
+func (GitImpl) Branch() string {
+	cmd := exec.Command("git", "symbolic-ref", "--short", "HEAD")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(strings.Trim(string(out), "\n"))
 }
 
 func parseTagsOutput(input string) ([]GitTag, error) {

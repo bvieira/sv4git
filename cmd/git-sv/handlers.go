@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"sort"
 	"sv4git/sv"
 	"time"
@@ -227,4 +229,56 @@ func changelogHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, rnP
 
 		return nil
 	}
+}
+
+func validateCommitMessageHandler(git sv.Git, validateMessageProcessor sv.ValidateMessageProcessor) func(c *cli.Context) error {
+	return func(c *cli.Context) error {
+		branch := git.Branch()
+		if validateMessageProcessor.SkipBranch(branch) {
+			warn("commit message validation skipped, branch in ignore list...")
+			return nil
+		}
+
+		filepath := fmt.Sprintf("%s/%s", c.String("path"), c.String("file"))
+
+		commitMessage, err := readFile(filepath)
+		if err != nil {
+			return fmt.Errorf("failed to read commit message, error: %s", err.Error())
+		}
+
+		if err := validateMessageProcessor.Validate(commitMessage); err != nil {
+			return fmt.Errorf("invalid commit message, error: %s", err.Error())
+		}
+
+		msg, err := validateMessageProcessor.Enhance(branch, commitMessage)
+		if err != nil {
+			warn("could not enhance commit message, %s", err.Error())
+			return nil
+		}
+
+		if err := appendOnFile(msg, filepath); err != nil {
+			return fmt.Errorf("failed to append meta-informations on footer, error: %s", err.Error())
+		}
+
+		return nil
+	}
+}
+
+func readFile(filepath string) (string, error) {
+	f, err := ioutil.ReadFile(filepath)
+	if err != nil {
+		return "", err
+	}
+	return string(f), nil
+}
+
+func appendOnFile(message, filepath string) error {
+	f, err := os.OpenFile(filepath, os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	_, err = f.WriteString(message)
+	return err
 }
