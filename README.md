@@ -12,18 +12,20 @@ download the latest release and add the binary on your path
 
 you can config using the environment variables
 
-| Variable                       | description                                                      | default                                                      |
-| ------------------------------ | ---------------------------------------------------------------- | ------------------------------------------------------------ |
-| MAJOR_VERSION_TYPES            | types used to bump major version                                 |                                                              |
-| MINOR_VERSION_TYPES            | types used to bump minor version                                 | feat                                                         |
-| PATCH_VERSION_TYPES            | types used to bump patch version                                 | build,ci,docs,fix,perf,refactor,style,test                   |
-| INCLUDE_UNKNOWN_TYPE_AS_PATCH  | force patch bump on unknown type                                 | true                                                         |
-| BRAKING_CHANGE_PREFIXES        | list of prefixes that will be used to identify a breaking change | BREAKING CHANGE:,BREAKING CHANGES:                           |
-| ISSUEID_PREFIXES               | list of prefixes that will be used to identify an issue id       | jira:,JIRA:,Jira:                                            |
-| TAG_PATTERN                    | tag version pattern                                              | %d.%d.%d                                                     |
-| RELEASE_NOTES_TAGS             | release notes headers for each visible type                      | fix:Bug Fixes,feat:Features                                  |
-| VALIDATE_MESSAGE_SKIP_BRANCHES | ignore branches from this list on validate commit message        | master,develop                                               |
-| COMMIT_MESSAGE_TYPES           | list of valid commit types for commit message                    | build,ci,chore,docs,feat,fix,perf,refactor,revert,style,test |
+| Variable                       | description                                                                                                            | default                                                      |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| MAJOR_VERSION_TYPES            | types used to bump major version                                                                                       |                                                              |
+| MINOR_VERSION_TYPES            | types used to bump minor version                                                                                       | feat                                                         |
+| PATCH_VERSION_TYPES            | types used to bump patch version                                                                                       | build,ci,docs,fix,perf,refactor,style,test                   |
+| INCLUDE_UNKNOWN_TYPE_AS_PATCH  | force patch bump on unknown type                                                                                       | true                                                         |
+| BRAKING_CHANGE_PREFIXES        | list of prefixes that will be used to identify a breaking change                                                       | BREAKING CHANGE:,BREAKING CHANGES:                           |
+| ISSUEID_PREFIXES               | list of prefixes that will be used to identify an issue id                                                             | jira:,JIRA:,Jira:                                            |
+| TAG_PATTERN                    | tag version pattern                                                                                                    | %d.%d.%d                                                     |
+| RELEASE_NOTES_TAGS             | release notes headers for each visible type                                                                            | fix:Bug Fixes,feat:Features                                  |
+| VALIDATE_MESSAGE_SKIP_BRANCHES | ignore branches from this list on validate commit message                                                              | master,develop                                               |
+| COMMIT_MESSAGE_TYPES           | list of valid commit types for commit message                                                                          | build,ci,chore,docs,feat,fix,perf,refactor,revert,style,test |
+| ISSUE_KEY_NAME                 | metadata key name used on validate commit message hook to enhance footer, if blank footer will not be added            | jira                                                         |
+| BRANCH_ISSUE_REGEX             | regex to extract issue id from branch name, must have 3 groups (prefix, id, posfix), if blank footer will not be added | ^([a-z]+\\/)?([A-Z]+-[0-9]+)(-.*)?                           |
 
 ### Running
 
@@ -67,6 +69,26 @@ git-sv rn -h
 | tag, tg                      | generate tag with version based on git commit messages        |        :x:         |
 | validate-commit-message, vcm | use as prepare-commit-message hook to validate commit message | :heavy_check_mark: |
 | help, h                      | Shows a list of commands or help for one command              |        :x:         |
+
+##### Use validate-commit-message as prepare-commit-msg hook
+
+Configure your .git/hooks/prepare-commit-msg
+
+```bash
+#!/bin/sh
+
+COMMIT_MSG_FILE=$1
+COMMIT_SOURCE=$2
+SHA1=$3
+
+git sv vcm --path "$(pwd)" --file $COMMIT_MSG_FILE --source $COMMIT_SOURCE
+```
+
+tip: you can configure a directory as your global git templates using the command below, check [git config docs](https://git-scm.com/docs/git-config#Documentation/git-config.txt-inittemplateDir) for more information!
+
+```bash
+git config --global init.templatedir '<YOUR TEMPLATE DIR>'
+```
 
 ## Development
 

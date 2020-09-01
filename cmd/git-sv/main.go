@@ -18,7 +18,7 @@ func main() {
 	semverProcessor := sv.NewSemVerCommitsProcessor(cfg.IncludeUnknownTypeAsPatch, cfg.MajorVersionTypes, cfg.MinorVersionTypes, cfg.PatchVersionTypes)
 	releasenotesProcessor := sv.NewReleaseNoteProcessor(cfg.ReleaseNotesTags)
 	outputFormatter := sv.NewOutputFormatter()
-	validateMessageProcessor := sv.NewValidateMessageProcessor(cfg.ValidateMessageSkipBranches, cfg.CommitMessageTypes)
+	validateMessageProcessor := sv.NewValidateMessageProcessor(cfg.ValidateMessageSkipBranches, cfg.CommitMessageTypes, cfg.IssueKeyName, cfg.BranchIssueRegex)
 
 	app := cli.NewApp()
 	app.Name = "sv"

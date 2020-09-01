@@ -18,6 +18,8 @@ type Config struct {
 	ReleaseNotesTags            map[string]string `envconfig:"RELEASE_NOTES_TAGS" default:"fix:Bug Fixes,feat:Features"`
 	ValidateMessageSkipBranches []string          `envconfig:"VALIDATE_MESSAGE_SKIP_BRANCHES" default:"master,develop"`
 	CommitMessageTypes          []string          `envconfig:"COMMIT_MESSAGE_TYPES" default:"build,ci,chore,docs,feat,fix,perf,refactor,revert,style,test"`
+	IssueKeyName                string            `envconfig:"ISSUE_KEY_NAME" default:"jira"`
+	BranchIssueRegex            string            `envconfig:"BRANCH_ISSUE_REGEX" default:"^([a-z]+\\/)?([A-Z]+-[0-9]+)(-.*)?"`
 }
 
 func loadConfig() Config {

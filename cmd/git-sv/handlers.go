@@ -255,6 +255,9 @@ func validateCommitMessageHandler(git sv.Git, validateMessageProcessor sv.Valida
 			warn("could not enhance commit message, %s", err.Error())
 			return nil
 		}
+		if msg == "" {
+			return nil
+		}
 
 		if err := appendOnFile(msg, filepath); err != nil {
 			return fmt.Errorf("failed to append meta-informations on footer, error: %s", err.Error())
