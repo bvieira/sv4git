@@ -10,7 +10,7 @@ import (
 type Config struct {
 	MajorVersionTypes           []string          `envconfig:"MAJOR_VERSION_TYPES" default:""`
 	MinorVersionTypes           []string          `envconfig:"MINOR_VERSION_TYPES" default:"feat"`
-	PatchVersionTypes           []string          `envconfig:"PATCH_VERSION_TYPES" default:"build,ci,docs,fix,perf,refactor,style,test"`
+	PatchVersionTypes           []string          `envconfig:"PATCH_VERSION_TYPES" default:"build,ci,chore,docs,fix,perf,refactor,style,test"`
 	IncludeUnknownTypeAsPatch   bool              `envconfig:"INCLUDE_UNKNOWN_TYPE_AS_PATCH" default:"true"`
 	BreakingChangePrefixes      []string          `envconfig:"BRAKING_CHANGE_PREFIXES" default:"BREAKING CHANGE:,BREAKING CHANGES:"`
 	IssueIDPrefixes             []string          `envconfig:"ISSUEID_PREFIXES" default:"jira:,JIRA:,Jira:"`
