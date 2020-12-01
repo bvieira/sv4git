@@ -62,7 +62,7 @@ func (p ValidateMessageProcessorImpl) Enhance(branch string, message string) (st
 
 	groups := r.FindStringSubmatch(branch)
 	if len(groups) != 4 {
-		return "", fmt.Errorf("could not find issue id group with configured regex")
+		return "", fmt.Errorf("could not find issue id using configured regex")
 	}
 
 	footer := fmt.Sprintf("%s: %s", p.issueKeyName, groups[2])
