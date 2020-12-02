@@ -7,20 +7,25 @@ import (
 	"strings"
 )
 
+const breakingChangeKey = "BREAKING CHANGE"
+
 // ValidateMessageProcessor interface.
 type ValidateMessageProcessor interface {
 	SkipBranch(branch string) bool
 	Validate(message string) error
 	Enhance(branch string, message string) (string, error)
+	IssueID(branch string) (string, error)
+	Format(ctype, scope, subject, body, issue, breakingChanges string) (string, string, string)
 }
 
 // NewValidateMessageProcessor ValidateMessageProcessorImpl constructor
-func NewValidateMessageProcessor(skipBranches, supportedTypes []string, issueKeyName, branchIssueRegex string) *ValidateMessageProcessorImpl {
+func NewValidateMessageProcessor(skipBranches, supportedTypes []string, issueKeyName, branchIssueRegex, issueRegex string) *ValidateMessageProcessorImpl {
 	return &ValidateMessageProcessorImpl{
 		skipBranches:     skipBranches,
 		supportedTypes:   supportedTypes,
 		issueKeyName:     issueKeyName,
 		branchIssueRegex: branchIssueRegex,
+		issueRegex:       issueRegex,
 	}
 }
 
@@ -30,6 +35,7 @@ type ValidateMessageProcessorImpl struct {
 	supportedTypes   []string
 	issueKeyName     string
 	branchIssueRegex string
+	issueRegex       string
 }
 
 // SkipBranch check if branch should be ignored.
@@ -55,17 +61,15 @@ func (p ValidateMessageProcessorImpl) Enhance(branch string, message string) (st
 		return "", nil //enhance disabled
 	}
 
-	r, err := regexp.Compile(p.branchIssueRegex)
+	issue, err := p.IssueID(branch)
 	if err != nil {
-		return "", fmt.Errorf("could not compile issue regex: %s, error: %v", p.branchIssueRegex, err.Error())
+		return "", err
 	}
-
-	groups := r.FindStringSubmatch(branch)
-	if len(groups) != 4 {
+	if issue == "" {
 		return "", fmt.Errorf("could not find issue id using configured regex")
 	}
 
-	footer := fmt.Sprintf("%s: %s", p.issueKeyName, groups[2])
+	footer := fmt.Sprintf("%s: %s", p.issueKeyName, issue)
 
 	if !hasFooter(message) {
 		return "\n" + footer, nil
@@ -74,8 +78,46 @@ func (p ValidateMessageProcessorImpl) Enhance(branch string, message string) (st
 	return footer, nil
 }
 
+// IssueID try to extract issue id from branch, return empty if not found
+func (p ValidateMessageProcessorImpl) IssueID(branch string) (string, error) {
+	r, err := regexp.Compile(p.branchIssueRegex)
+	if err != nil {
+		return "", fmt.Errorf("could not compile issue regex: %s, error: %v", p.branchIssueRegex, err.Error())
+	}
+
+	groups := r.FindStringSubmatch(branch)
+	if len(groups) != 4 {
+		return "", nil
+	}
+	return groups[2], nil
+}
+
+// Format format commit message to header, body and footer
+func (p ValidateMessageProcessorImpl) Format(ctype, scope, subject, body, issue, breakingChanges string) (string, string, string) {
+	var header strings.Builder
+	header.WriteString(ctype)
+	if scope != "" {
+		header.WriteString("(" + scope + ")")
+	}
+	header.WriteString(": ")
+	header.WriteString(subject)
+
+	var footer strings.Builder
+	if breakingChanges != "" {
+		footer.WriteString(fmt.Sprintf("%s: %s", breakingChangeKey, breakingChanges))
+	}
+	if issue != "" {
+		if footer.Len() > 0 {
+			footer.WriteString("\n")
+		}
+		footer.WriteString(fmt.Sprintf("%s: %s", p.issueKeyName, issue))
+	}
+
+	return header.String(), body, footer.String()
+}
+
 func hasFooter(message string) bool {
-	r := regexp.MustCompile("^[a-zA-Z-]+: .*|^[a-zA-Z-]+ #.*|^BREAKING CHANGE: .*")
+	r := regexp.MustCompile("^[a-zA-Z-]+: .*|^[a-zA-Z-]+ #.*|^" + breakingChangeKey + ": .*")
 
 	scanner := bufio.NewScanner(strings.NewReader(message))
 	lines := 0

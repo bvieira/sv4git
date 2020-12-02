@@ -6,5 +6,6 @@ require (
 	github.com/Masterminds/semver v1.5.0
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/urfave/cli/v2 v2.2.0
+	github.com/manifoldco/promptui v0.8.0
+	github.com/urfave/cli/v2 v2.3.0
 )

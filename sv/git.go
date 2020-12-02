@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"os"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -26,6 +27,7 @@ const (
 type Git interface {
 	Describe() string
 	Log(initialTag, endTag string) ([]GitCommitLog, error)
+	Commit(header, body, footer string) error
 	Tag(version semver.Version) error
 	Tags() ([]GitTag, error)
 	Branch() string
@@ -90,6 +92,14 @@ func (g GitImpl) Log(initialTag, endTag string) ([]GitCommitLog, error) {
 		return nil, err
 	}
 	return parseLogOutput(g.messageMetadata, string(out)), nil
+}
+
+// Commit runs git commit
+func (g GitImpl) Commit(header, body, footer string) error {
+	cmd := exec.Command("git", "commit", "-m", header, "-m", "", "-m", body, "-m", "", "-m", footer)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }
 
 // Tag create a git tag

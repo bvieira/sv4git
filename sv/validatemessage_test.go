@@ -4,7 +4,10 @@ import (
 	"testing"
 )
 
-var issueRegex = "^([a-z]+\\/)?([A-Z]+-[0-9]+)(-.*)?"
+const (
+	branchIssueRegex = "^([a-z]+\\/)?([A-Z]+-[0-9]+)(-.*)?"
+	issueRegex       = "[A-Z]+-[0-9]+"
+)
 
 // messages samples start
 var fullMessage = `fix: correct minor typos in code
@@ -43,7 +46,7 @@ BREAKING CHANGE: refactor to use JavaScript features not available in Node 6.`
 // multiline samples end
 
 func TestValidateMessageProcessorImpl_Validate(t *testing.T) {
-	p := NewValidateMessageProcessor([]string{"develop", "master"}, []string{"feat", "fix"}, "jira", issueRegex)
+	p := NewValidateMessageProcessor([]string{"develop", "master"}, []string{"feat", "fix"}, "jira", branchIssueRegex, issueRegex)
 
 	tests := []struct {
 		name    string
@@ -76,7 +79,7 @@ func TestValidateMessageProcessorImpl_Validate(t *testing.T) {
 }
 
 func TestValidateMessageProcessorImpl_Enhance(t *testing.T) {
-	p := NewValidateMessageProcessor([]string{"develop", "master"}, []string{"feat", "fix"}, "jira", issueRegex)
+	p := NewValidateMessageProcessor([]string{"develop", "master"}, []string{"feat", "fix"}, "jira", branchIssueRegex, issueRegex)
 
 	tests := []struct {
 		name    string

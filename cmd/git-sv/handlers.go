@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"sort"
+	"strings"
 	"sv4git/sv"
 	"time"
 
@@ -183,6 +184,68 @@ func tagHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor) func(c *c
 
 		if err := git.Tag(nextVer); err != nil {
 			return fmt.Errorf("error generating tag version: %s, message: %v", nextVer.String(), err)
+		}
+		return nil
+	}
+}
+
+func commitHandler(cfg Config, git sv.Git, messageProcessor sv.ValidateMessageProcessor) func(c *cli.Context) error {
+	return func(c *cli.Context) error {
+
+		ctype, err := promptType()
+		if err != nil {
+			return err
+		}
+
+		scope, err := promptScope()
+		if err != nil {
+			return err
+		}
+
+		subject, err := promptSubject()
+		if err != nil {
+			return err
+		}
+
+		var fullBody strings.Builder
+		for body, err := promptBody(); body != "" || err != nil; body, err = promptBody() {
+			if err != nil {
+				return err
+			}
+			if fullBody.Len() > 0 {
+				fullBody.WriteString("\n")
+			}
+			if body != "" {
+				fullBody.WriteString(body)
+			}
+		}
+
+		branchIssue, err := messageProcessor.IssueID(git.Branch())
+		if err != nil {
+			return err
+		}
+		issue, err := promptIssueID(cfg.IssueKeyName, cfg.IssueRegex, branchIssue)
+		if err != nil {
+			return err
+		}
+
+		hasBreakingChanges, err := promptConfirm("has breaking changes?")
+		if err != nil {
+			return err
+		}
+		breakingChanges := ""
+		if hasBreakingChanges {
+			breakingChanges, err = promptBreakingChanges()
+			if err != nil {
+				return err
+			}
+		}
+
+		header, body, footer := messageProcessor.Format(ctype.Type, scope, subject, fullBody.String(), issue, breakingChanges)
+
+		err = git.Commit(header, body, footer)
+		if err != nil {
+			return fmt.Errorf("error executing git commit, message: %v", err)
 		}
 		return nil
 	}

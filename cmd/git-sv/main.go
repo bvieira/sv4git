@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"sv4git/sv"
@@ -12,13 +13,17 @@ import (
 var Version = ""
 
 func main() {
+	log.SetFlags(0)
+
 	cfg := loadConfig()
+
+	fmt.Printf("%+v\n", cfg)
 
 	git := sv.NewGit(cfg.BreakingChangePrefixes, cfg.IssueIDPrefixes, cfg.TagPattern)
 	semverProcessor := sv.NewSemVerCommitsProcessor(cfg.IncludeUnknownTypeAsPatch, cfg.MajorVersionTypes, cfg.MinorVersionTypes, cfg.PatchVersionTypes)
 	releasenotesProcessor := sv.NewReleaseNoteProcessor(cfg.ReleaseNotesTags)
 	outputFormatter := sv.NewOutputFormatter()
-	validateMessageProcessor := sv.NewValidateMessageProcessor(cfg.ValidateMessageSkipBranches, cfg.CommitMessageTypes, cfg.IssueKeyName, cfg.BranchIssueRegex)
+	validateMessageProcessor := sv.NewValidateMessageProcessor(cfg.ValidateMessageSkipBranches, cfg.CommitMessageTypes, cfg.IssueKeyName, cfg.BranchIssueRegex, cfg.IssueRegex)
 
 	app := cli.NewApp()
 	app.Name = "sv"
@@ -66,6 +71,12 @@ func main() {
 			Aliases: []string{"tg"},
 			Usage:   "generate tag with version based on git commit messages",
 			Action:  tagHandler(git, semverProcessor),
+		},
+		{
+			Name:    "commit",
+			Aliases: []string{"cmt"},
+			Usage:   "execute git commit with convetional commit message helper",
+			Action:  commitHandler(cfg, git, validateMessageProcessor),
 		},
 		{
 			Name:    "validate-commit-message",
