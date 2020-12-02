@@ -111,6 +111,84 @@ func TestMessageProcessorImpl_Enhance(t *testing.T) {
 	}
 }
 
+func TestMessageProcessorImpl_IssueID(t *testing.T) {
+	p := NewMessageProcessor([]string{"develop", "master"}, []string{"feat", "fix"}, "jira", branchIssueRegex, issueRegex)
+
+	tests := []struct {
+		name    string
+		branch  string
+		want    string
+		wantErr bool
+	}{
+		{"simple branch", "JIRA-123", "JIRA-123", false},
+		{"branch with prefix", "feature/JIRA-123", "JIRA-123", false},
+		{"branch with prefix and posfix", "feature/JIRA-123-some-description", "JIRA-123", false},
+		{"branch not found", "feature/wrong123-some-description", "", false},
+		{"empty branch", "", "", false},
+		{"unexpected branch name", "feature /JIRA-123", "", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := p.IssueID(tt.branch)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MessageProcessorImpl.IssueID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MessageProcessorImpl.IssueID() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+const (
+	multilineBody = `a
+b
+c`
+	fullFooter = `BREAKING CHANGE: breaks
+jira: JIRA-123`
+)
+
+func TestMessageProcessorImpl_Format(t *testing.T) {
+	p := NewMessageProcessor([]string{"develop", "master"}, []string{"feat", "fix"}, "jira", branchIssueRegex, issueRegex)
+
+	type args struct {
+		ctype           string
+		scope           string
+		subject         string
+		body            string
+		issue           string
+		breakingChanges string
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantHeader string
+		wantBody   string
+		wantFooter string
+	}{
+		{"type and subject", args{"feat", "", "subject", "", "", ""}, "feat: subject", "", ""},
+		{"type, scope and subject", args{"feat", "scope", "subject", "", "", ""}, "feat(scope): subject", "", ""},
+		{"type, scope, subject and issue", args{"feat", "scope", "subject", "", "JIRA-123", ""}, "feat(scope): subject", "", "jira: JIRA-123"},
+		{"type, scope, subject and breaking change", args{"feat", "scope", "subject", "", "", "breaks"}, "feat(scope): subject", "", "BREAKING CHANGE: breaks"},
+		{"full message", args{"feat", "scope", "subject", multilineBody, "JIRA-123", "breaks"}, "feat(scope): subject", multilineBody, fullFooter},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			header, body, footer := p.Format(tt.args.ctype, tt.args.scope, tt.args.subject, tt.args.body, tt.args.issue, tt.args.breakingChanges)
+			if header != tt.wantHeader {
+				t.Errorf("MessageProcessorImpl.Format() header = %v, want %v", header, tt.wantHeader)
+			}
+			if body != tt.wantBody {
+				t.Errorf("MessageProcessorImpl.Format() body = %v, want %v", body, tt.wantBody)
+			}
+			if footer != tt.wantFooter {
+				t.Errorf("MessageProcessorImpl.Format() footer = %v, want %v", footer, tt.wantFooter)
+			}
+		})
+	}
+}
+
 func Test_firstLine(t *testing.T) {
 	tests := []struct {
 		name  string
