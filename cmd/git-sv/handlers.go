@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"sort"
+	"strings"
 	"sv4git/sv"
 	"time"
 
@@ -188,6 +189,68 @@ func tagHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor) func(c *c
 	}
 }
 
+func commitHandler(cfg Config, git sv.Git, messageProcessor sv.MessageProcessor) func(c *cli.Context) error {
+	return func(c *cli.Context) error {
+
+		ctype, err := promptType()
+		if err != nil {
+			return err
+		}
+
+		scope, err := promptScope()
+		if err != nil {
+			return err
+		}
+
+		subject, err := promptSubject()
+		if err != nil {
+			return err
+		}
+
+		var fullBody strings.Builder
+		for body, err := promptBody(); body != "" || err != nil; body, err = promptBody() {
+			if err != nil {
+				return err
+			}
+			if fullBody.Len() > 0 {
+				fullBody.WriteString("\n")
+			}
+			if body != "" {
+				fullBody.WriteString(body)
+			}
+		}
+
+		branchIssue, err := messageProcessor.IssueID(git.Branch())
+		if err != nil {
+			return err
+		}
+		issue, err := promptIssueID(cfg.IssueKeyName, cfg.IssueRegex, branchIssue)
+		if err != nil {
+			return err
+		}
+
+		hasBreakingChanges, err := promptConfirm("has breaking changes?")
+		if err != nil {
+			return err
+		}
+		breakingChanges := ""
+		if hasBreakingChanges {
+			breakingChanges, err = promptBreakingChanges()
+			if err != nil {
+				return err
+			}
+		}
+
+		header, body, footer := messageProcessor.Format(ctype.Type, scope, subject, fullBody.String(), issue, breakingChanges)
+
+		err = git.Commit(header, body, footer)
+		if err != nil {
+			return fmt.Errorf("error executing git commit, message: %v", err)
+		}
+		return nil
+	}
+}
+
 func changelogHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, rnProcessor sv.ReleaseNoteProcessor, formatter sv.OutputFormatter) func(c *cli.Context) error {
 	return func(c *cli.Context) error {
 
@@ -231,10 +294,10 @@ func changelogHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, rnP
 	}
 }
 
-func validateCommitMessageHandler(git sv.Git, validateMessageProcessor sv.ValidateMessageProcessor) func(c *cli.Context) error {
+func validateCommitMessageHandler(git sv.Git, messageProcessor sv.MessageProcessor) func(c *cli.Context) error {
 	return func(c *cli.Context) error {
 		branch := git.Branch()
-		if validateMessageProcessor.SkipBranch(branch) {
+		if messageProcessor.SkipBranch(branch) {
 			warn("commit message validation skipped, branch in ignore list...")
 			return nil
 		}
@@ -246,11 +309,11 @@ func validateCommitMessageHandler(git sv.Git, validateMessageProcessor sv.Valida
 			return fmt.Errorf("failed to read commit message, error: %s", err.Error())
 		}
 
-		if err := validateMessageProcessor.Validate(commitMessage); err != nil {
+		if err := messageProcessor.Validate(commitMessage); err != nil {
 			return fmt.Errorf("invalid commit message, error: %s", err.Error())
 		}
 
-		msg, err := validateMessageProcessor.Enhance(branch, commitMessage)
+		msg, err := messageProcessor.Enhance(branch, commitMessage)
 		if err != nil {
 			warn("could not enhance commit message, %s", err.Error())
 			return nil

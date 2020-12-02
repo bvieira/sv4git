@@ -12,20 +12,21 @@ download the latest release and add the binary on your path
 
 you can config using the environment variables
 
-| Variable                       | description                                                                                                            | default                                                      |
-| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| MAJOR_VERSION_TYPES            | types used to bump major version                                                                                       |                                                              |
-| MINOR_VERSION_TYPES            | types used to bump minor version                                                                                       | feat                                                         |
-| PATCH_VERSION_TYPES            | types used to bump patch version                                                                                       | build,ci,docs,fix,perf,refactor,style,test                   |
-| INCLUDE_UNKNOWN_TYPE_AS_PATCH  | force patch bump on unknown type                                                                                       | true                                                         |
-| BRAKING_CHANGE_PREFIXES        | list of prefixes that will be used to identify a breaking change                                                       | BREAKING CHANGE:,BREAKING CHANGES:                           |
-| ISSUEID_PREFIXES               | list of prefixes that will be used to identify an issue id                                                             | jira:,JIRA:,Jira:                                            |
-| TAG_PATTERN                    | tag version pattern                                                                                                    | %d.%d.%d                                                     |
-| RELEASE_NOTES_TAGS             | release notes headers for each visible type                                                                            | fix:Bug Fixes,feat:Features                                  |
-| VALIDATE_MESSAGE_SKIP_BRANCHES | ignore branches from this list on validate commit message                                                              | master,develop                                               |
-| COMMIT_MESSAGE_TYPES           | list of valid commit types for commit message                                                                          | build,ci,chore,docs,feat,fix,perf,refactor,revert,style,test |
-| ISSUE_KEY_NAME                 | metadata key name used on validate commit message hook to enhance footer, if blank footer will not be added            | jira                                                         |
-| BRANCH_ISSUE_REGEX             | regex to extract issue id from branch name, must have 3 groups (prefix, id, posfix), if blank footer will not be added | ^([a-z]+\\/)?([A-Z]+-[0-9]+)(-.*)?                           |
+| Variable                              | description                                                                                                            | default                                                      |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| SV4GIT_MAJOR_VERSION_TYPES            | types used to bump major version                                                                                       |                                                              |
+| SV4GIT_MINOR_VERSION_TYPES            | types used to bump minor version                                                                                       | feat                                                         |
+| SV4GIT_PATCH_VERSION_TYPES            | types used to bump patch version                                                                                       | build,ci,chore,docs,fix,perf,refactor,style,test             |
+| SV4GIT_INCLUDE_UNKNOWN_TYPE_AS_PATCH  | force patch bump on unknown type                                                                                       | true                                                         |
+| SV4GIT_BRAKING_CHANGE_PREFIXES        | list of prefixes that will be used to identify a breaking change                                                       | BREAKING CHANGE:,BREAKING CHANGES:                           |
+| SV4GIT_ISSUEID_PREFIXES               | list of prefixes that will be used to identify an issue id                                                             | jira:,JIRA:,Jira:                                            |
+| SV4GIT_TAG_PATTERN                    | tag version pattern                                                                                                    | %d.%d.%d                                                     |
+| SV4GIT_RELEASE_NOTES_TAGS             | release notes headers for each visible type                                                                            | fix:Bug Fixes,feat:Features                                  |
+| SV4GIT_VALIDATE_MESSAGE_SKIP_BRANCHES | ignore branches from this list on validate commit message                                                              | master,develop                                               |
+| SV4GIT_COMMIT_MESSAGE_TYPES           | list of valid commit types for commit message                                                                          | build,ci,chore,docs,feat,fix,perf,refactor,revert,style,test |
+| SV4GIT_ISSUE_KEY_NAME                 | metadata key name used on validate commit message hook to enhance footer, if blank footer will not be added            | jira                                                         |
+| SV4GIT_ISSUE_REGEX                    | issue id regex, if blank footer will not be added                                                                      | [A-Z]+-[0-9]+                                                |
+| SV4GIT_BRANCH_ISSUE_REGEX             | regex to extract issue id from branch name, must have 3 groups (prefix, id, posfix), if blank footer will not be added | ^([a-z]+\\/)?([A-Z]+-[0-9]+)(-.*)?                           |
 
 ### Running
 
@@ -67,8 +68,9 @@ git-sv rn -h
 | release-notes, rn            | generate release notes                                        | :heavy_check_mark: |
 | changelog, cgl               | generate changelog                                            | :heavy_check_mark: |
 | tag, tg                      | generate tag with version based on git commit messages        |        :x:         |
+| commit, cmt                  | execute git commit with convetional commit message helper     |        :x:         |
 | validate-commit-message, vcm | use as prepare-commit-message hook to validate commit message | :heavy_check_mark: |
-| help, h                      | Shows a list of commands or help for one command              |        :x:         |
+| help, h                      | shows a list of commands or help for one command              |        :x:         |
 
 ##### Use validate-commit-message as prepare-commit-msg hook
 

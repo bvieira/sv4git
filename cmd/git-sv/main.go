@@ -12,13 +12,15 @@ import (
 var Version = ""
 
 func main() {
+	log.SetFlags(0)
+
 	cfg := loadConfig()
 
 	git := sv.NewGit(cfg.BreakingChangePrefixes, cfg.IssueIDPrefixes, cfg.TagPattern)
 	semverProcessor := sv.NewSemVerCommitsProcessor(cfg.IncludeUnknownTypeAsPatch, cfg.MajorVersionTypes, cfg.MinorVersionTypes, cfg.PatchVersionTypes)
 	releasenotesProcessor := sv.NewReleaseNoteProcessor(cfg.ReleaseNotesTags)
 	outputFormatter := sv.NewOutputFormatter()
-	validateMessageProcessor := sv.NewValidateMessageProcessor(cfg.ValidateMessageSkipBranches, cfg.CommitMessageTypes, cfg.IssueKeyName, cfg.BranchIssueRegex)
+	messageProcessor := sv.NewMessageProcessor(cfg.ValidateMessageSkipBranches, cfg.CommitMessageTypes, cfg.IssueKeyName, cfg.BranchIssueRegex, cfg.IssueRegex)
 
 	app := cli.NewApp()
 	app.Name = "sv"
@@ -68,10 +70,16 @@ func main() {
 			Action:  tagHandler(git, semverProcessor),
 		},
 		{
+			Name:    "commit",
+			Aliases: []string{"cmt"},
+			Usage:   "execute git commit with convetional commit message helper",
+			Action:  commitHandler(cfg, git, messageProcessor),
+		},
+		{
 			Name:    "validate-commit-message",
 			Aliases: []string{"vcm"},
 			Usage:   "use as prepare-commit-message hook to validate message",
-			Action:  validateCommitMessageHandler(git, validateMessageProcessor),
+			Action:  validateCommitMessageHandler(git, messageProcessor),
 			Flags: []cli.Flag{
 				&cli.StringFlag{Name: "path", Required: true, Usage: "git working directory"},
 				&cli.StringFlag{Name: "file", Required: true, Usage: "name of the file that contains the commit log message"},
