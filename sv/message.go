@@ -9,8 +9,8 @@ import (
 
 const breakingChangeKey = "BREAKING CHANGE"
 
-// ValidateMessageProcessor interface.
-type ValidateMessageProcessor interface {
+// MessageProcessor interface.
+type MessageProcessor interface {
 	SkipBranch(branch string) bool
 	Validate(message string) error
 	Enhance(branch string, message string) (string, error)
@@ -18,9 +18,9 @@ type ValidateMessageProcessor interface {
 	Format(ctype, scope, subject, body, issue, breakingChanges string) (string, string, string)
 }
 
-// NewValidateMessageProcessor ValidateMessageProcessorImpl constructor
-func NewValidateMessageProcessor(skipBranches, supportedTypes []string, issueKeyName, branchIssueRegex, issueRegex string) *ValidateMessageProcessorImpl {
-	return &ValidateMessageProcessorImpl{
+// NewMessageProcessor MessageProcessorImpl constructor
+func NewMessageProcessor(skipBranches, supportedTypes []string, issueKeyName, branchIssueRegex, issueRegex string) *MessageProcessorImpl {
+	return &MessageProcessorImpl{
 		skipBranches:     skipBranches,
 		supportedTypes:   supportedTypes,
 		issueKeyName:     issueKeyName,
@@ -29,8 +29,8 @@ func NewValidateMessageProcessor(skipBranches, supportedTypes []string, issueKey
 	}
 }
 
-// ValidateMessageProcessorImpl process validate message hook.
-type ValidateMessageProcessorImpl struct {
+// MessageProcessorImpl process validate message hook.
+type MessageProcessorImpl struct {
 	skipBranches     []string
 	supportedTypes   []string
 	issueKeyName     string
@@ -39,12 +39,12 @@ type ValidateMessageProcessorImpl struct {
 }
 
 // SkipBranch check if branch should be ignored.
-func (p ValidateMessageProcessorImpl) SkipBranch(branch string) bool {
+func (p MessageProcessorImpl) SkipBranch(branch string) bool {
 	return contains(branch, p.skipBranches)
 }
 
 // Validate commit message.
-func (p ValidateMessageProcessorImpl) Validate(message string) error {
+func (p MessageProcessorImpl) Validate(message string) error {
 	valid, err := regexp.MatchString("^("+strings.Join(p.supportedTypes, "|")+")(\\(.+\\))?!?: .*$", firstLine(message))
 	if err != nil {
 		return err
@@ -56,7 +56,7 @@ func (p ValidateMessageProcessorImpl) Validate(message string) error {
 }
 
 // Enhance add metadata on commit message.
-func (p ValidateMessageProcessorImpl) Enhance(branch string, message string) (string, error) {
+func (p MessageProcessorImpl) Enhance(branch string, message string) (string, error) {
 	if p.branchIssueRegex == "" || p.issueKeyName == "" || hasIssueID(message, p.issueKeyName) {
 		return "", nil //enhance disabled
 	}
@@ -79,7 +79,7 @@ func (p ValidateMessageProcessorImpl) Enhance(branch string, message string) (st
 }
 
 // IssueID try to extract issue id from branch, return empty if not found
-func (p ValidateMessageProcessorImpl) IssueID(branch string) (string, error) {
+func (p MessageProcessorImpl) IssueID(branch string) (string, error) {
 	r, err := regexp.Compile(p.branchIssueRegex)
 	if err != nil {
 		return "", fmt.Errorf("could not compile issue regex: %s, error: %v", p.branchIssueRegex, err.Error())
@@ -93,7 +93,7 @@ func (p ValidateMessageProcessorImpl) IssueID(branch string) (string, error) {
 }
 
 // Format format commit message to header, body and footer
-func (p ValidateMessageProcessorImpl) Format(ctype, scope, subject, body, issue, breakingChanges string) (string, string, string) {
+func (p MessageProcessorImpl) Format(ctype, scope, subject, body, issue, breakingChanges string) (string, string, string) {
 	var header strings.Builder
 	header.WriteString(ctype)
 	if scope != "" {

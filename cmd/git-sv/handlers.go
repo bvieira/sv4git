@@ -189,7 +189,7 @@ func tagHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor) func(c *c
 	}
 }
 
-func commitHandler(cfg Config, git sv.Git, messageProcessor sv.ValidateMessageProcessor) func(c *cli.Context) error {
+func commitHandler(cfg Config, git sv.Git, messageProcessor sv.MessageProcessor) func(c *cli.Context) error {
 	return func(c *cli.Context) error {
 
 		ctype, err := promptType()
@@ -294,10 +294,10 @@ func changelogHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, rnP
 	}
 }
 
-func validateCommitMessageHandler(git sv.Git, validateMessageProcessor sv.ValidateMessageProcessor) func(c *cli.Context) error {
+func validateCommitMessageHandler(git sv.Git, messageProcessor sv.MessageProcessor) func(c *cli.Context) error {
 	return func(c *cli.Context) error {
 		branch := git.Branch()
-		if validateMessageProcessor.SkipBranch(branch) {
+		if messageProcessor.SkipBranch(branch) {
 			warn("commit message validation skipped, branch in ignore list...")
 			return nil
 		}
@@ -309,11 +309,11 @@ func validateCommitMessageHandler(git sv.Git, validateMessageProcessor sv.Valida
 			return fmt.Errorf("failed to read commit message, error: %s", err.Error())
 		}
 
-		if err := validateMessageProcessor.Validate(commitMessage); err != nil {
+		if err := messageProcessor.Validate(commitMessage); err != nil {
 			return fmt.Errorf("invalid commit message, error: %s", err.Error())
 		}
 
-		msg, err := validateMessageProcessor.Enhance(branch, commitMessage)
+		msg, err := messageProcessor.Enhance(branch, commitMessage)
 		if err != nil {
 			warn("could not enhance commit message, %s", err.Error())
 			return nil

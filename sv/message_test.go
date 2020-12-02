@@ -45,8 +45,8 @@ BREAKING CHANGE: refactor to use JavaScript features not available in Node 6.`
 
 // multiline samples end
 
-func TestValidateMessageProcessorImpl_Validate(t *testing.T) {
-	p := NewValidateMessageProcessor([]string{"develop", "master"}, []string{"feat", "fix"}, "jira", branchIssueRegex, issueRegex)
+func TestMessageProcessorImpl_Validate(t *testing.T) {
+	p := NewMessageProcessor([]string{"develop", "master"}, []string{"feat", "fix"}, "jira", branchIssueRegex, issueRegex)
 
 	tests := []struct {
 		name    string
@@ -72,14 +72,14 @@ func TestValidateMessageProcessorImpl_Validate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := p.Validate(tt.message); (err != nil) != tt.wantErr {
-				t.Errorf("ValidateMessageProcessorImpl.Validate() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("MessageProcessorImpl.Validate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestValidateMessageProcessorImpl_Enhance(t *testing.T) {
-	p := NewValidateMessageProcessor([]string{"develop", "master"}, []string{"feat", "fix"}, "jira", branchIssueRegex, issueRegex)
+func TestMessageProcessorImpl_Enhance(t *testing.T) {
+	p := NewMessageProcessor([]string{"develop", "master"}, []string{"feat", "fix"}, "jira", branchIssueRegex, issueRegex)
 
 	tests := []struct {
 		name    string
@@ -101,11 +101,11 @@ func TestValidateMessageProcessorImpl_Enhance(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := p.Enhance(tt.branch, tt.message)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ValidateMessageProcessorImpl.Enhance() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("MessageProcessorImpl.Enhance() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("ValidateMessageProcessorImpl.Enhance() = %v, want %v", got, tt.want)
+				t.Errorf("MessageProcessorImpl.Enhance() = %v, want %v", got, tt.want)
 			}
 		})
 	}
