@@ -13,31 +13,31 @@ func TestReleaseNoteProcessorImpl_Create(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		version semver.Version
+		version *semver.Version
 		date    time.Time
 		commits []GitCommitLog
 		want    ReleaseNote
 	}{
 		{
 			name:    "mapped tag",
-			version: *semver.MustParse("1.0.0"),
+			version: semver.MustParse("1.0.0"),
 			date:    date,
 			commits: []GitCommitLog{commitlog("t1", map[string]string{})},
-			want:    releaseNote(*semver.MustParse("1.0.0"), date, map[string]ReleaseNoteSection{"t1": newReleaseNoteSection("Tag 1", []GitCommitLog{commitlog("t1", map[string]string{})})}, nil),
+			want:    releaseNote(semver.MustParse("1.0.0"), date, map[string]ReleaseNoteSection{"t1": newReleaseNoteSection("Tag 1", []GitCommitLog{commitlog("t1", map[string]string{})})}, nil),
 		},
 		{
 			name:    "unmapped tag",
-			version: *semver.MustParse("1.0.0"),
+			version: semver.MustParse("1.0.0"),
 			date:    date,
 			commits: []GitCommitLog{commitlog("t1", map[string]string{}), commitlog("unmapped", map[string]string{})},
-			want:    releaseNote(*semver.MustParse("1.0.0"), date, map[string]ReleaseNoteSection{"t1": newReleaseNoteSection("Tag 1", []GitCommitLog{commitlog("t1", map[string]string{})})}, nil),
+			want:    releaseNote(semver.MustParse("1.0.0"), date, map[string]ReleaseNoteSection{"t1": newReleaseNoteSection("Tag 1", []GitCommitLog{commitlog("t1", map[string]string{})})}, nil),
 		},
 		{
 			name:    "breaking changes tag",
-			version: *semver.MustParse("1.0.0"),
+			version: semver.MustParse("1.0.0"),
 			date:    date,
 			commits: []GitCommitLog{commitlog("t1", map[string]string{}), commitlog("unmapped", map[string]string{"breakingchange": "breaks"})},
-			want:    releaseNote(*semver.MustParse("1.0.0"), date, map[string]ReleaseNoteSection{"t1": newReleaseNoteSection("Tag 1", []GitCommitLog{commitlog("t1", map[string]string{})})}, []string{"breaks"}),
+			want:    releaseNote(semver.MustParse("1.0.0"), date, map[string]ReleaseNoteSection{"t1": newReleaseNoteSection("Tag 1", []GitCommitLog{commitlog("t1", map[string]string{})})}, []string{"breaks"}),
 		},
 	}
 	for _, tt := range tests {
