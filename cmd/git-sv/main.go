@@ -42,7 +42,7 @@ func main() {
 		{
 			Name:    "commit-log",
 			Aliases: []string{"cl"},
-			Usage:   "list all commit logs since last version as jsons",
+			Usage:   "list all commit logs since last version or according with range as jsons",
 			Action:  commitLogHandler(git, semverProcessor),
 			Flags: []cli.Flag{
 				&cli.StringFlag{Name: "t", Aliases: []string{"tag"}, Usage: "get commit log from a specific tag"},
