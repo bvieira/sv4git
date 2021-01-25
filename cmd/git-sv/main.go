@@ -55,7 +55,7 @@ func main() {
 		{
 			Name:        "commit-notes",
 			Aliases:     []string{"cn"},
-			Usage:       "create a release notes according to range",
+			Usage:       "generate a commit notes according to range",
 			Description: "when flag range is \"tag\" and start is empty, last tag created will be used instead",
 			Action:      commitNotesHandler(git, releasenotesProcessor, outputFormatter),
 			Flags: []cli.Flag{
