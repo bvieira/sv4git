@@ -36,7 +36,7 @@ func nextVersionHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor) f
 			return fmt.Errorf("error parsing version: %s from describe, message: %v", describe, err)
 		}
 
-		commits, err := git.Log(describe, "")
+		commits, err := git.Log(sv.NewLogRange(sv.TagRange, describe, ""))
 		if err != nil {
 			return fmt.Errorf("error getting git log, message: %v", err)
 		}
@@ -51,11 +51,23 @@ func commitLogHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor) fun
 	return func(c *cli.Context) error {
 		var commits []sv.GitCommitLog
 		var err error
+		tagFlag := c.String("t")
+		rangeFlag := c.String("r")
+		startFlag := c.String("s")
+		endFlag := c.String("e")
+		if tagFlag != "" && (rangeFlag != "" || startFlag != "" || endFlag != "") {
+			return fmt.Errorf("cannot define tag flag with range, start or end flags")
+		}
 
-		if tag := c.String("t"); tag != "" {
-			commits, err = getTagCommits(git, tag)
+		if tagFlag != "" {
+			commits, err = getTagCommits(git, tagFlag)
 		} else {
-			commits, err = git.Log(git.Describe(), "")
+			// commits, err = git.Log(sv.NewLogRange(sv.TagRange, git.Describe(), ""))
+			r, rerr := logRange(git, rangeFlag, startFlag, endFlag)
+			if rerr != nil {
+				return rerr
+			}
+			commits, err = git.Log(r)
 		}
 		if err != nil {
 			return fmt.Errorf("error getting git log, message: %v", err)
@@ -77,7 +89,20 @@ func getTagCommits(git sv.Git, tag string) ([]sv.GitCommitLog, error) {
 	if err != nil {
 		return nil, err
 	}
-	return git.Log(prev, tag)
+	return git.Log(sv.NewLogRange(sv.TagRange, prev, tag))
+}
+
+func logRange(git sv.Git, rangeFlag, startFlag, endFlag string) (sv.LogRange, error) {
+	switch rangeFlag {
+	case "", string(sv.TagRange):
+		return sv.NewLogRange(sv.TagRange, str(startFlag, git.Describe()), endFlag), nil
+	case string(sv.DateRange):
+		return sv.NewLogRange(sv.DateRange, startFlag, endFlag), nil
+	case string(sv.HashRange):
+		return sv.NewLogRange(sv.HashRange, startFlag, endFlag), nil
+	default:
+		return sv.LogRange{}, fmt.Errorf("invalid range: %s, expected: %s, %s or %s", rangeFlag, sv.TagRange, sv.DateRange, sv.HashRange)
+	}
 }
 
 func releaseNotesHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, rnProcessor sv.ReleaseNoteProcessor, outputFormatter sv.OutputFormatter) func(c *cli.Context) error {
@@ -114,7 +139,7 @@ func getTagVersionInfo(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, ta
 		return semver.Version{}, time.Time{}, nil, fmt.Errorf("error listing tags, message: %v", err)
 	}
 
-	commits, err := git.Log(previousTag, tag)
+	commits, err := git.Log(sv.NewLogRange(sv.TagRange, previousTag, tag))
 	if err != nil {
 		return semver.Version{}, time.Time{}, nil, fmt.Errorf("error getting git log from tag: %s, message: %v", tag, err)
 	}
@@ -157,7 +182,7 @@ func getNextVersionInfo(git sv.Git, semverProcessor sv.SemVerCommitsProcessor) (
 		return semver.Version{}, time.Time{}, nil, fmt.Errorf("error parsing version: %s from describe, message: %v", describe, err)
 	}
 
-	commits, err := git.Log(describe, "")
+	commits, err := git.Log(sv.NewLogRange(sv.TagRange, describe, ""))
 	if err != nil {
 		return semver.Version{}, time.Time{}, nil, fmt.Errorf("error getting git log, message: %v", err)
 	}
@@ -174,7 +199,7 @@ func tagHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor) func(c *c
 			return fmt.Errorf("error parsing version: %s from describe, message: %v", describe, err)
 		}
 
-		commits, err := git.Log(describe, "")
+		commits, err := git.Log(sv.NewLogRange(sv.TagRange, describe, ""))
 		if err != nil {
 			return fmt.Errorf("error getting git log, message: %v", err)
 		}
@@ -276,7 +301,7 @@ func changelogHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, rnP
 				previousTag = tags[i+1].Name
 			}
 
-			commits, err := git.Log(previousTag, tag.Name)
+			commits, err := git.Log(sv.NewLogRange(sv.TagRange, previousTag, tag.Name))
 			if err != nil {
 				return fmt.Errorf("error getting git log from tag: %s, message: %v", tag.Name, err)
 			}
@@ -347,4 +372,11 @@ func appendOnFile(message, filepath string) error {
 
 	_, err = f.WriteString(message)
 	return err
+}
+
+func str(value, defaultValue string) string {
+	if value != "" {
+		return value
+	}
+	return defaultValue
 }

@@ -26,7 +26,7 @@ const (
 // Git commands
 type Git interface {
 	Describe() string
-	Log(initialTag, endTag string) ([]GitCommitLog, error)
+	Log(lr LogRange) ([]GitCommitLog, error)
 	Commit(header, body, footer string) error
 	Tag(version semver.Version) error
 	Tags() ([]GitTag, error)
@@ -35,6 +35,7 @@ type Git interface {
 
 // GitCommitLog description of a single commit log
 type GitCommitLog struct {
+	Date     string            `json:"date,omitempty"`
 	Hash     string            `json:"hash,omitempty"`
 	Type     string            `json:"type,omitempty"`
 	Scope    string            `json:"scope,omitempty"`
@@ -47,6 +48,28 @@ type GitCommitLog struct {
 type GitTag struct {
 	Name string
 	Date time.Time
+}
+
+// LogRangeType type of log range
+type LogRangeType string
+
+// constants for log range type
+const (
+	TagRange  LogRangeType = "tag"
+	DateRange              = "date"
+	HashRange              = "hash"
+)
+
+// LogRange git log range
+type LogRange struct {
+	rangeType LogRangeType
+	start     string
+	end       string
+}
+
+// NewLogRange LogRange constructor
+func NewLogRange(t LogRangeType, start, end string) LogRange {
+	return LogRange{rangeType: t, start: start, end: end}
 }
 
 // GitImpl git command implementation
@@ -74,22 +97,27 @@ func (GitImpl) Describe() string {
 }
 
 // Log return git log
-func (g GitImpl) Log(initialTag, endTag string) ([]GitCommitLog, error) {
-	format := "--pretty=format:\"%h" + logSeparator + "%s" + logSeparator + "%b" + endLine + "\""
-	var cmd *exec.Cmd
-	if initialTag == "" && endTag == "" {
-		cmd = exec.Command("git", "log", format)
-	} else if endTag == "" {
-		cmd = exec.Command("git", "log", initialTag+"..HEAD", format)
-	} else if initialTag == "" {
-		cmd = exec.Command("git", "log", endTag, format)
-	} else {
-		cmd = exec.Command("git", "log", initialTag+".."+endTag, format)
+func (g GitImpl) Log(lr LogRange) ([]GitCommitLog, error) {
+	format := "--pretty=format:\"%ad" + logSeparator + "%h" + logSeparator + "%s" + logSeparator + "%b" + endLine + "\""
+	params := []string{"log", "--date=short", format}
+
+	if lr.start != "" || lr.end != "" {
+		switch lr.rangeType {
+		case DateRange:
+			params = append(params, "--since", lr.start, "--until", addDay(lr.end))
+		default:
+			if lr.start == "" {
+				params = append(params, lr.end)
+			} else {
+				params = append(params, lr.start+".."+str(lr.end, "HEAD"))
+			}
+		}
 	}
 
+	cmd := exec.Command("git", params...)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return nil, err
+		return nil, combinedOutputErr(err, out)
 	}
 	return parseLogOutput(g.messageMetadata, string(out)), nil
 }
@@ -121,7 +149,7 @@ func (g GitImpl) Tags() ([]GitTag, error) {
 	cmd := exec.Command("git", "tag", "-l", "--format", "%(taggerdate:iso8601)#%(refname:short)")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return nil, err
+		return nil, combinedOutputErr(err, out)
 	}
 	return parseTagsOutput(string(out))
 }
@@ -163,12 +191,12 @@ func parseLogOutput(messageMetadata map[string][]string, log string) []GitCommit
 
 func parseCommitLog(messageMetadata map[string][]string, commit string) GitCommitLog {
 	content := strings.Split(strings.Trim(commit, "\""), logSeparator)
-	commitType, scope, subject := parseCommitLogMessage(content[1])
+	commitType, scope, subject := parseCommitLogMessage(content[2])
 
 	metadata := make(map[string]string)
 	for key, prefixes := range messageMetadata {
 		for _, prefix := range prefixes {
-			if tagValue := extractTag(prefix, content[2]); tagValue != "" {
+			if tagValue := extractTag(prefix, content[3]); tagValue != "" {
 				metadata[key] = tagValue
 				break
 			}
@@ -176,11 +204,12 @@ func parseCommitLog(messageMetadata map[string][]string, commit string) GitCommi
 	}
 
 	return GitCommitLog{
-		Hash:     content[0],
+		Date:     content[0],
+		Hash:     content[1],
 		Type:     commitType,
 		Scope:    scope,
 		Subject:  subject,
-		Body:     content[2],
+		Body:     content[3],
 		Metadata: metadata,
 	}
 }
@@ -221,4 +250,29 @@ func splitAt(b []byte) func(data []byte, atEOF bool) (advance int, token []byte,
 
 		return 0, nil, nil
 	}
+}
+
+func addDay(value string) string {
+	if value == "" {
+		return value
+	}
+
+	t, err := time.Parse("2006-01-02", value)
+	if err != nil { // keep original value if is not date format
+		return value
+	}
+
+	return t.AddDate(0, 0, 1).Format("2006-01-02")
+}
+
+func str(value, defaultValue string) string {
+	if value != "" {
+		return value
+	}
+	return defaultValue
+}
+
+func combinedOutputErr(err error, out []byte) error {
+	msg := strings.Split(string(out), "\n")
+	return fmt.Errorf("%v - %s", err, msg[0])
 }
