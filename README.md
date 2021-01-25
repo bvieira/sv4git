@@ -73,6 +73,26 @@ git-sv rn -h
 | validate-commit-message, vcm | use as prepare-commit-message hook to validate commit message | :heavy_check_mark: |
 | help, h                      | shows a list of commands or help for one command              |        :x:         |
 
+##### Use range
+
+Commands like `commit-log` and `commit-notes` has a range option. Supported range types are: `tag`, `date` and `hash`.
+
+By default, it's used [--date=short](https://git-scm.com/docs/git-log#Documentation/git-log.txt---dateltformatgt) at `git log`, all dates returned from it will be in `YYYY-MM-DD` format.
+
+Range `tag` will use `git describe` to get the last tag available if `start` is empty, the others types won't use the existing tags, it's recommended to always use a start limit in a old repository with a lot of commits. This behavior was maintained to not break the retrocompatibility.
+
+Range `date` use git log `--since` and `--until`, it's possible to use all supported formats from [git log](https://git-scm.com/docs/git-log#Documentation/git-log.txt---sinceltdategt), if `end` is in `YYYY-MM-DD` format, `sv` will add a day on git log command to make the end date inclusive.
+
+Range `tag` and `hash` are used on git log [revision range](https://git-scm.com/docs/git-log#Documentation/git-log.txt-ltrevisionrangegt). If `end` is empty, `HEAD` will be used instead.
+
+```bash
+# get commit log as json using a inclusive range
+git-sv commit-log --range hash --start 7ea9306~1 --end c444318
+
+# return all commits after last tag
+git-sv commit-log --range tag
+```
+
 ##### Use validate-commit-message as prepare-commit-msg hook
 
 Configure your .git/hooks/prepare-commit-msg
