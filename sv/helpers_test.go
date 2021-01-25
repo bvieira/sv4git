@@ -19,7 +19,7 @@ func commitlog(t string, metadata map[string]string) GitCommitLog {
 	}
 }
 
-func releaseNote(version semver.Version, date time.Time, sections map[string]ReleaseNoteSection, breakingChanges []string) ReleaseNote {
+func releaseNote(version *semver.Version, date time.Time, sections map[string]ReleaseNoteSection, breakingChanges []string) ReleaseNote {
 	return ReleaseNote{
 		Version:         version,
 		Date:            date.Truncate(time.Minute),

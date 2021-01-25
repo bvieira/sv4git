@@ -40,7 +40,7 @@ const (
 {{- end}}
 {{- end}}`
 
-	rnTemplate = `## v{{.Version}}{{if .Date}} ({{.Date}}){{end}}
+	rnTemplate = `## {{if .Version}}v{{.Version}}{{end}}{{if and .Date .Version}} ({{end}}{{.Date}}{{if and .Version .Date}}){{end}}
 {{- template "rnSection" .Sections.feat}}
 {{- template "rnSection" .Sections.fix}}
 {{- template "rnSectionBreakingChanges" .BreakingChanges}}
@@ -93,8 +93,13 @@ func releaseNoteVariables(releasenote ReleaseNote) releaseNoteTemplateVariables 
 	if !releasenote.Date.IsZero() {
 		date = releasenote.Date.Format("2006-01-02")
 	}
+
+	var version = ""
+	if releasenote.Version != nil {
+		version = fmt.Sprintf("%d.%d.%d", releasenote.Version.Major(), releasenote.Version.Minor(), releasenote.Version.Patch())
+	}
 	return releaseNoteTemplateVariables{
-		Version:         fmt.Sprintf("%d.%d.%d", releasenote.Version.Major(), releasenote.Version.Minor(), releasenote.Version.Patch()),
+		Version:         version,
 		Date:            date,
 		Sections:        releasenote.Sections,
 		BreakingChanges: releasenote.BreakingChanges,

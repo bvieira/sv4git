@@ -55,14 +55,13 @@ func commitLogHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor) fun
 		rangeFlag := c.String("r")
 		startFlag := c.String("s")
 		endFlag := c.String("e")
-		if tagFlag != "" && (rangeFlag != "" || startFlag != "" || endFlag != "") {
+		if tagFlag != "" && (rangeFlag != string(sv.TagRange) || startFlag != "" || endFlag != "") {
 			return fmt.Errorf("cannot define tag flag with range, start or end flags")
 		}
 
 		if tagFlag != "" {
 			commits, err = getTagCommits(git, tagFlag)
 		} else {
-			// commits, err = git.Log(sv.NewLogRange(sv.TagRange, git.Describe(), ""))
 			r, rerr := logRange(git, rangeFlag, startFlag, endFlag)
 			if rerr != nil {
 				return rerr
@@ -94,7 +93,7 @@ func getTagCommits(git sv.Git, tag string) ([]sv.GitCommitLog, error) {
 
 func logRange(git sv.Git, rangeFlag, startFlag, endFlag string) (sv.LogRange, error) {
 	switch rangeFlag {
-	case "", string(sv.TagRange):
+	case string(sv.TagRange):
 		return sv.NewLogRange(sv.TagRange, str(startFlag, git.Describe()), endFlag), nil
 	case string(sv.DateRange):
 		return sv.NewLogRange(sv.DateRange, startFlag, endFlag), nil
@@ -102,6 +101,31 @@ func logRange(git sv.Git, rangeFlag, startFlag, endFlag string) (sv.LogRange, er
 		return sv.NewLogRange(sv.HashRange, startFlag, endFlag), nil
 	default:
 		return sv.LogRange{}, fmt.Errorf("invalid range: %s, expected: %s, %s or %s", rangeFlag, sv.TagRange, sv.DateRange, sv.HashRange)
+	}
+}
+
+func commitNotesHandler(git sv.Git, rnProcessor sv.ReleaseNoteProcessor, outputFormatter sv.OutputFormatter) func(c *cli.Context) error {
+	return func(c *cli.Context) error {
+		var date time.Time
+
+		rangeFlag := c.String("r")
+		lr, err := logRange(git, rangeFlag, c.String("s"), c.String("e"))
+		if err != nil {
+			return err
+		}
+
+		commits, err := git.Log(lr)
+		if err != nil {
+			return fmt.Errorf("error getting git log from range: %s, message: %v", rangeFlag, err)
+		}
+
+		if len(commits) > 0 {
+			date, _ = time.Parse("2006-01-02", commits[0].Date)
+		}
+
+		releasenote := rnProcessor.Create(nil, date, commits)
+		fmt.Println(outputFormatter.FormatReleaseNote(releasenote))
+		return nil
 	}
 }
 
@@ -122,7 +146,7 @@ func releaseNotesHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, 
 			return err
 		}
 
-		releasenote := rnProcessor.Create(rnVersion, date, commits)
+		releasenote := rnProcessor.Create(&rnVersion, date, commits)
 		fmt.Println(outputFormatter.FormatReleaseNote(releasenote))
 		return nil
 	}
@@ -310,7 +334,7 @@ func changelogHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, rnP
 			if err != nil {
 				return fmt.Errorf("error parsing version: %s from describe, message: %v", tag.Name, err)
 			}
-			releaseNotes = append(releaseNotes, rnProcessor.Create(currentVer, tag.Date, commits))
+			releaseNotes = append(releaseNotes, rnProcessor.Create(&currentVer, tag.Date, commits))
 		}
 
 		fmt.Println(formatter.FormatChangelog(releaseNotes))
