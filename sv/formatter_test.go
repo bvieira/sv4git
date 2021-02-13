@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Masterminds/semver"
+	"github.com/Masterminds/semver/v3"
 )
 
 var dateChangelog = `## v1.0.0 (2020-05-01)

@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Masterminds/semver"
+	"github.com/Masterminds/semver/v3"
 )
 
 func TestReleaseNoteProcessorImpl_Create(t *testing.T) {

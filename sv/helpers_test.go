@@ -3,7 +3,7 @@ package sv
 import (
 	"time"
 
-	"github.com/Masterminds/semver"
+	"github.com/Masterminds/semver/v3"
 )
 
 func version(v string) semver.Version {
