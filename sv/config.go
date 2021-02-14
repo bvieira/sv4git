@@ -1,5 +1,7 @@
 package sv
 
+// ==== Message ====
+
 // CommitMessageConfig config a commit message.
 type CommitMessageConfig struct {
 	Types  []string
@@ -42,10 +44,36 @@ type CommitMessageIssueConfig struct {
 	Regex string
 }
 
+// ==== Branches ====
+
 // BranchesConfig branches preferences.
 type BranchesConfig struct {
 	PrefixRegex string
 	SuffixRegex string
 	ExpectIssue bool
 	Skip        []string
+}
+
+// ==== Versioning ====
+
+// VersioningConfig versioning preferences.
+type VersioningConfig struct {
+	UpdateMajor        []string
+	UpdateMinor        []string
+	UpdatePatch        []string
+	UnknownTypeAsPatch bool
+}
+
+// ==== Tag ====
+
+// TagConfig tag preferences.
+type TagConfig struct {
+	Pattern string
+}
+
+// ==== Release Notes ====
+
+// ReleaseNotesConfig release notes preferences.
+type ReleaseNotesConfig struct {
+	Headers map[string]string
 }

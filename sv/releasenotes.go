@@ -13,12 +13,12 @@ type ReleaseNoteProcessor interface {
 
 // ReleaseNoteProcessorImpl release note based on commit log.
 type ReleaseNoteProcessorImpl struct {
-	tags map[string]string
+	cfg ReleaseNotesConfig
 }
 
 // NewReleaseNoteProcessor ReleaseNoteProcessor constructor.
-func NewReleaseNoteProcessor(tags map[string]string) *ReleaseNoteProcessorImpl {
-	return &ReleaseNoteProcessorImpl{tags: tags}
+func NewReleaseNoteProcessor(cfg ReleaseNotesConfig) *ReleaseNoteProcessorImpl {
+	return &ReleaseNoteProcessorImpl{cfg: cfg}
 }
 
 // Create create a release note based on commits.
@@ -26,7 +26,7 @@ func (p ReleaseNoteProcessorImpl) Create(version *semver.Version, date time.Time
 	sections := make(map[string]ReleaseNoteSection)
 	var breakingChanges []string
 	for _, commit := range commits {
-		if name, exists := p.tags[commit.Message.Type]; exists {
+		if name, exists := p.cfg.Headers[commit.Message.Type]; exists {
 			section, sexists := sections[commit.Message.Type]
 			if !sexists {
 				section = ReleaseNoteSection{Name: name}

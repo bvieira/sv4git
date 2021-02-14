@@ -32,12 +32,20 @@ func main() {
 		PrefixRegex: cfg.BranchIssuePrefixRegex,
 		SuffixRegex: cfg.BranchIssueSuffixRegex,
 	}
+	versioningConfig := sv.VersioningConfig{
+		UpdateMajor:        cfg.MajorVersionTypes,
+		UpdateMinor:        cfg.MinorVersionTypes,
+		UpdatePatch:        cfg.PatchVersionTypes,
+		UnknownTypeAsPatch: cfg.IncludeUnknownTypeAsPatch,
+	}
+	tagConfig := sv.TagConfig{Pattern: cfg.TagPattern}
+	releaseNotesConfig := sv.ReleaseNotesConfig{Headers: cfg.ReleaseNotesTags}
 	////
 
 	messageProcessor := sv.NewMessageProcessor(commitMessageCfg, branchesConfig)
-	git := sv.NewGit(messageProcessor, cfg.TagPattern)
-	semverProcessor := sv.NewSemVerCommitsProcessor(cfg.IncludeUnknownTypeAsPatch, cfg.MajorVersionTypes, cfg.MinorVersionTypes, cfg.PatchVersionTypes)
-	releasenotesProcessor := sv.NewReleaseNoteProcessor(cfg.ReleaseNotesTags)
+	git := sv.NewGit(messageProcessor, tagConfig)
+	semverProcessor := sv.NewSemVerCommitsProcessor(versioningConfig)
+	releasenotesProcessor := sv.NewReleaseNoteProcessor(releaseNotesConfig)
 	outputFormatter := sv.NewOutputFormatter()
 
 	app := cli.NewApp()

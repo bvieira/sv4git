@@ -65,14 +65,14 @@ func NewLogRange(t LogRangeType, start, end string) LogRange {
 // GitImpl git command implementation
 type GitImpl struct {
 	messageProcessor MessageProcessor
-	tagPattern       string
+	tagCfg           TagConfig
 }
 
 // NewGit constructor
-func NewGit(messageProcessor MessageProcessor, tagPattern string) *GitImpl {
+func NewGit(messageProcessor MessageProcessor, cfg TagConfig) *GitImpl {
 	return &GitImpl{
 		messageProcessor: messageProcessor,
-		tagPattern:       tagPattern,
+		tagCfg:           cfg,
 	}
 }
 
@@ -122,7 +122,7 @@ func (g GitImpl) Commit(header, body, footer string) error {
 
 // Tag create a git tag
 func (g GitImpl) Tag(version semver.Version) error {
-	tag := fmt.Sprintf(g.tagPattern, version.Major(), version.Minor(), version.Patch())
+	tag := fmt.Sprintf(g.tagCfg.Pattern, version.Major(), version.Minor(), version.Patch())
 	tagMsg := fmt.Sprintf("Version %d.%d.%d", version.Major(), version.Minor(), version.Patch())
 
 	tagCommand := exec.Command("git", "tag", "-a", tag, "-m", tagMsg)

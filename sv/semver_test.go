@@ -25,7 +25,7 @@ func TestSemVerCommitsProcessorImpl_NextVersion(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := NewSemVerCommitsProcessor(tt.unknownAsPatch, []string{"major"}, []string{"minor"}, []string{"patch"})
+			p := NewSemVerCommitsProcessor(VersioningConfig{UpdateMajor: []string{"major"}, UpdateMinor: []string{"minor"}, UpdatePatch: []string{"patch"}, UnknownTypeAsPatch: tt.unknownAsPatch})
 			if got := p.NextVersion(tt.version, tt.commits); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("SemVerCommitsProcessorImpl.NextVersion() = %v, want %v", got, tt.want)
 			}
