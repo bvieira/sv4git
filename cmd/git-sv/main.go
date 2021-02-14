@@ -16,7 +16,18 @@ func main() {
 
 	cfg := loadConfig()
 
-	git := sv.NewGit(cfg.BreakingChangePrefixes, cfg.IssueIDPrefixes, cfg.TagPattern)
+	// TODO: config using yaml
+	commitMessageCfg := sv.CommitMessageConfig{
+		Types: cfg.CommitMessageTypes,
+		Scope: sv.ScopeConfig{},
+		Footer: map[string]sv.FooterMetadataConfig{
+			"issue":           {Key: cfg.IssueIDPrefixes[0], KeySynonyms: cfg.IssueIDPrefixes[1:], Regex: cfg.IssueRegex},
+			"breaking-change": {Key: cfg.BreakingChangePrefixes[0], KeySynonyms: cfg.BreakingChangePrefixes[1:]},
+		},
+	}
+	////
+
+	git := sv.NewGit(sv.NewCommitMessageParser(commitMessageCfg), cfg.TagPattern)
 	semverProcessor := sv.NewSemVerCommitsProcessor(cfg.IncludeUnknownTypeAsPatch, cfg.MajorVersionTypes, cfg.MinorVersionTypes, cfg.PatchVersionTypes)
 	releasenotesProcessor := sv.NewReleaseNoteProcessor(cfg.ReleaseNotesTags)
 	outputFormatter := sv.NewOutputFormatter()

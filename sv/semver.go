@@ -69,16 +69,16 @@ func (p SemVerCommitsProcessorImpl) NextVersion(version semver.Version, commits 
 }
 
 func (p SemVerCommitsProcessorImpl) versionTypeToUpdate(commit GitCommitLog) versionType {
-	if _, exists := commit.Metadata[BreakingChangesKey]; exists {
+	if commit.Message.IsBreakingChange {
 		return major
 	}
-	if _, exists := p.MajorVersionTypes[commit.Type]; exists {
+	if _, exists := p.MajorVersionTypes[commit.Message.Type]; exists {
 		return major
 	}
-	if _, exists := p.MinorVersionTypes[commit.Type]; exists {
+	if _, exists := p.MinorVersionTypes[commit.Message.Type]; exists {
 		return minor
 	}
-	if _, exists := p.PatchVersionTypes[commit.Type]; exists {
+	if _, exists := p.PatchVersionTypes[commit.Message.Type]; exists {
 		return patch
 	}
 	if p.IncludeUnknownTypeAsPatch {

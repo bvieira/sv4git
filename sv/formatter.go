@@ -22,7 +22,7 @@ const (
 {{- end}}
 `
 
-	rnSectionItem = "- {{if .Scope}}**{{.Scope}}:** {{end}}{{.Subject}} ({{.Hash}}){{if .Metadata.issueid}} ({{.Metadata.issueid}}){{end}}"
+	rnSectionItem = "- {{if .Message.Scope}}**{{.Message.Scope}}:** {{end}}{{.Message.Description}} ({{.Hash}}){{if .Message.Metadata.issue}} ({{.Message.Metadata.issue}}){{end}}"
 
 	rnSection = `{{- if .}}
 

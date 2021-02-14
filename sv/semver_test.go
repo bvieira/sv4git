@@ -21,7 +21,7 @@ func TestSemVerCommitsProcessorImpl_NextVersion(t *testing.T) {
 		{"patch update", false, version("0.0.0"), []GitCommitLog{commitlog("patch", map[string]string{})}, version("0.0.1")},
 		{"minor update", false, version("0.0.0"), []GitCommitLog{commitlog("patch", map[string]string{}), commitlog("minor", map[string]string{})}, version("0.1.0")},
 		{"major update", false, version("0.0.0"), []GitCommitLog{commitlog("patch", map[string]string{}), commitlog("major", map[string]string{})}, version("1.0.0")},
-		{"breaking change update", false, version("0.0.0"), []GitCommitLog{commitlog("patch", map[string]string{}), commitlog("patch", map[string]string{"breakingchange": "break"})}, version("1.0.0")},
+		{"breaking change update", false, version("0.0.0"), []GitCommitLog{commitlog("patch", map[string]string{}), commitlog("patch", map[string]string{"breaking-change": "break"})}, version("1.0.0")},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

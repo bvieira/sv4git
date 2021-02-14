@@ -36,7 +36,7 @@ func TestReleaseNoteProcessorImpl_Create(t *testing.T) {
 			name:    "breaking changes tag",
 			version: semver.MustParse("1.0.0"),
 			date:    date,
-			commits: []GitCommitLog{commitlog("t1", map[string]string{}), commitlog("unmapped", map[string]string{"breakingchange": "breaks"})},
+			commits: []GitCommitLog{commitlog("t1", map[string]string{}), commitlog("unmapped", map[string]string{"breaking-change": "breaks"})},
 			want:    releaseNote(semver.MustParse("1.0.0"), date, map[string]ReleaseNoteSection{"t1": newReleaseNoteSection("Tag 1", []GitCommitLog{commitlog("t1", map[string]string{})})}, []string{"breaks"}),
 		},
 	}

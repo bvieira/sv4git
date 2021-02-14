@@ -12,10 +12,17 @@ func version(v string) semver.Version {
 }
 
 func commitlog(t string, metadata map[string]string) GitCommitLog {
+	breaking := false
+	if _, found := metadata[breakingKey]; found {
+		breaking = true
+	}
 	return GitCommitLog{
-		Type:     t,
-		Subject:  "subject text",
-		Metadata: metadata,
+		Message: CommitMessage{
+			Type:             t,
+			Description:      "subject text",
+			IsBreakingChange: breaking,
+			Metadata:         metadata,
+		},
 	}
 }
 

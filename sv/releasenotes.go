@@ -26,16 +26,17 @@ func (p ReleaseNoteProcessorImpl) Create(version *semver.Version, date time.Time
 	sections := make(map[string]ReleaseNoteSection)
 	var breakingChanges []string
 	for _, commit := range commits {
-		if name, exists := p.tags[commit.Type]; exists {
-			section, sexists := sections[commit.Type]
+		if name, exists := p.tags[commit.Message.Type]; exists {
+			section, sexists := sections[commit.Message.Type]
 			if !sexists {
 				section = ReleaseNoteSection{Name: name}
 			}
 			section.Items = append(section.Items, commit)
-			sections[commit.Type] = section
+			sections[commit.Message.Type] = section
 		}
-		if value, exists := commit.Metadata[BreakingChangesKey]; exists {
-			breakingChanges = append(breakingChanges, value)
+		if commit.Message.BreakingMessage() != "" {
+			// TODO: if no message found, should use description instead?
+			breakingChanges = append(breakingChanges, commit.Message.BreakingMessage())
 		}
 	}
 
