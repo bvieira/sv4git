@@ -33,7 +33,7 @@ var hashMetadataBody = `some descriptions
 Jira: JIRA-999
 Refs #123`
 
-func TestCommitMessageParserImpl_Parse(t *testing.T) {
+func TestCommitMessageProcessorImpl_Parse(t *testing.T) {
 	tests := []struct {
 		name    string
 		subject string
@@ -51,9 +51,9 @@ func TestCommitMessageParserImpl_Parse(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := NewCommitMessageParser(cfg)
+			p := NewCommitMessageProcessor(cfg)
 			if got := p.Parse(tt.subject, tt.body); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("CommitMessageParserImpl.Parse() = %v, want %v", got, tt.want)
+				t.Errorf("CommitMessageProcessorImpl.Parse() = %v, want %v", got, tt.want)
 			}
 		})
 	}

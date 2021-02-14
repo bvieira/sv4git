@@ -64,15 +64,15 @@ func NewLogRange(t LogRangeType, start, end string) LogRange {
 
 // GitImpl git command implementation
 type GitImpl struct {
-	messageParser CommitMessageParser
-	tagPattern    string
+	messageProcessor CommitMessageProcessor
+	tagPattern       string
 }
 
 // NewGit constructor
-func NewGit(messageParser CommitMessageParser, tagPattern string) *GitImpl {
+func NewGit(messageProcessor CommitMessageProcessor, tagPattern string) *GitImpl {
 	return &GitImpl{
-		messageParser: messageParser,
-		tagPattern:    tagPattern,
+		messageProcessor: messageProcessor,
+		tagPattern:       tagPattern,
 	}
 }
 
@@ -109,7 +109,7 @@ func (g GitImpl) Log(lr LogRange) ([]GitCommitLog, error) {
 	if err != nil {
 		return nil, combinedOutputErr(err, out)
 	}
-	return parseLogOutput(g.messageParser, string(out)), nil
+	return parseLogOutput(g.messageProcessor, string(out)), nil
 }
 
 // Commit runs git commit
@@ -167,25 +167,25 @@ func parseTagsOutput(input string) ([]GitTag, error) {
 	return result, nil
 }
 
-func parseLogOutput(messageParser CommitMessageParser, log string) []GitCommitLog {
+func parseLogOutput(messageProcessor CommitMessageProcessor, log string) []GitCommitLog {
 	scanner := bufio.NewScanner(strings.NewReader(log))
 	scanner.Split(splitAt([]byte(endLine)))
 	var logs []GitCommitLog
 	for scanner.Scan() {
 		if text := strings.TrimSpace(strings.Trim(scanner.Text(), "\"")); text != "" {
-			logs = append(logs, parseCommitLog(messageParser, text))
+			logs = append(logs, parseCommitLog(messageProcessor, text))
 		}
 	}
 	return logs
 }
 
-func parseCommitLog(messageParser CommitMessageParser, commit string) GitCommitLog {
+func parseCommitLog(messageProcessor CommitMessageProcessor, commit string) GitCommitLog {
 	content := strings.Split(strings.Trim(commit, "\""), logSeparator)
 
 	return GitCommitLog{
 		Date:    content[0],
 		Hash:    content[1],
-		Message: messageParser.Parse(content[2], content[3]),
+		Message: messageProcessor.Parse(content[2], content[3]),
 	}
 }
 

@@ -27,7 +27,7 @@ func main() {
 	}
 	////
 
-	git := sv.NewGit(sv.NewCommitMessageParser(commitMessageCfg), cfg.TagPattern)
+	git := sv.NewGit(sv.NewCommitMessageProcessor(commitMessageCfg), cfg.TagPattern)
 	semverProcessor := sv.NewSemVerCommitsProcessor(cfg.IncludeUnknownTypeAsPatch, cfg.MajorVersionTypes, cfg.MinorVersionTypes, cfg.PatchVersionTypes)
 	releasenotesProcessor := sv.NewReleaseNoteProcessor(cfg.ReleaseNotesTags)
 	outputFormatter := sv.NewOutputFormatter()

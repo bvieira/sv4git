@@ -52,23 +52,23 @@ func (m CommitMessage) BreakingMessage() string {
 	return m.Metadata[breakingKey]
 }
 
-// CommitMessageParser parse commit messages.
-type CommitMessageParser interface {
+// CommitMessageProcessor parse commit messages.
+type CommitMessageProcessor interface {
 	Parse(subject, body string) CommitMessage
 }
 
-// CommitMessageParserImpl commit message parser implementation
-type CommitMessageParserImpl struct {
+// CommitMessageProcessorImpl commit message processor implementation
+type CommitMessageProcessorImpl struct {
 	cfg CommitMessageConfig
 }
 
-// NewCommitMessageParser CommitMessageParserImpl constructor
-func NewCommitMessageParser(cfg CommitMessageConfig) CommitMessageParser {
-	return &CommitMessageParserImpl{cfg: cfg}
+// NewCommitMessageProcessor CommitMessageProcessorImpl constructor
+func NewCommitMessageProcessor(cfg CommitMessageConfig) CommitMessageProcessor {
+	return &CommitMessageProcessorImpl{cfg: cfg}
 }
 
 // Parse parse a commit message
-func (p CommitMessageParserImpl) Parse(subject, body string) CommitMessage {
+func (p CommitMessageProcessorImpl) Parse(subject, body string) CommitMessage {
 	commitType, scope, description, hasBreakingChange := parseSubjectMessage(subject)
 
 	metadata := make(map[string]string)
