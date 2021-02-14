@@ -111,7 +111,7 @@ func (p MessageProcessorImpl) Enhance(branch string, message string) (string, er
 	return footer, nil
 }
 
-// IssueID try to extract issue id from branch, return empty if not found
+// IssueID try to extract issue id from branch, return empty if not found.
 func (p MessageProcessorImpl) IssueID(branch string) (string, error) {
 	r, err := regexp.Compile(p.branchIssueRegex)
 	if err != nil {
@@ -125,7 +125,7 @@ func (p MessageProcessorImpl) IssueID(branch string) (string, error) {
 	return groups[2], nil
 }
 
-// Format a commit message returning header, body and footer
+// Format a commit message returning header, body and footer.
 func (p MessageProcessorImpl) Format(msg CommitMessage) (string, string, string) {
 	var header strings.Builder
 	header.WriteString(msg.Type)
@@ -149,7 +149,7 @@ func (p MessageProcessorImpl) Format(msg CommitMessage) (string, string, string)
 	return header.String(), msg.Body, footer.String()
 }
 
-// Parse a commit message
+// Parse a commit message.
 func (p MessageProcessorImpl) Parse(subject, body string) CommitMessage {
 	commitType, scope, description, hasBreakingChange := parseSubjectMessage(subject)
 
