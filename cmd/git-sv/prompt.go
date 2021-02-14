@@ -14,18 +14,28 @@ type commitType struct {
 	Example     string
 }
 
-func promptType() (commitType, error) {
-	items := []commitType{
-		{Type: "build", Description: "changes that affect the build system or external dependencies", Example: "gradle, maven, go mod, npm"},
-		{Type: "ci", Description: "changes to our CI configuration files and scripts", Example: "Circle, BrowserStack, SauceLabs"},
-		{Type: "chore", Description: "update something without impacting the user", Example: "gitignore"},
-		{Type: "docs", Description: "documentation only changes"},
-		{Type: "feat", Description: "a new feature"},
-		{Type: "fix", Description: "a bug fix"},
-		{Type: "perf", Description: "a code change that improves performance"},
-		{Type: "refactor", Description: "a code change that neither fixes a bug nor adds a feature"},
-		{Type: "style", Description: "changes that do not affect the meaning of the code", Example: "white-space, formatting, missing semi-colons, etc"},
-		{Type: "test", Description: "adding missing tests or correcting existing tests"},
+func promptType(types []string) (commitType, error) {
+	defaultTypes := map[string]commitType{
+		"build":    {Type: "build", Description: "changes that affect the build system or external dependencies", Example: "gradle, maven, go mod, npm"},
+		"ci":       {Type: "ci", Description: "changes to our CI configuration files and scripts", Example: "Circle, BrowserStack, SauceLabs"},
+		"chore":    {Type: "chore", Description: "update something without impacting the user", Example: "gitignore"},
+		"docs":     {Type: "docs", Description: "documentation only changes"},
+		"feat":     {Type: "feat", Description: "a new feature"},
+		"fix":      {Type: "fix", Description: "a bug fix"},
+		"perf":     {Type: "perf", Description: "a code change that improves performance"},
+		"refactor": {Type: "refactor", Description: "a code change that neither fixes a bug nor adds a feature"},
+		"style":    {Type: "style", Description: "changes that do not affect the meaning of the code", Example: "white-space, formatting, missing semi-colons, etc"},
+		"test":     {Type: "test", Description: "adding missing tests or correcting existing tests"},
+		"revert":   {Type: "revert", Description: "revert a single commit"},
+	}
+
+	var items []commitType
+	for _, t := range types {
+		if v, exists := defaultTypes[t]; exists {
+			items = append(items, v)
+		} else {
+			items = append(items, commitType{Type: t})
+		}
 	}
 
 	template := &promptui.SelectTemplates{

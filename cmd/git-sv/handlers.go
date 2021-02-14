@@ -265,7 +265,7 @@ func tagHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor) func(c *c
 func commitHandler(cfg Config, git sv.Git, messageProcessor sv.MessageProcessor) func(c *cli.Context) error {
 	return func(c *cli.Context) error {
 
-		ctype, err := promptType()
+		ctype, err := promptType(cfg.CommitMessage.Types)
 		if err != nil {
 			return err
 		}
