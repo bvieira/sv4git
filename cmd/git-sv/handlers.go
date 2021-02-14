@@ -262,7 +262,7 @@ func tagHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor) func(c *c
 	}
 }
 
-func commitHandler(cfg EnvConfig, git sv.Git, messageProcessor sv.MessageProcessor) func(c *cli.Context) error {
+func commitHandler(cfg Config, git sv.Git, messageProcessor sv.MessageProcessor) func(c *cli.Context) error {
 	return func(c *cli.Context) error {
 
 		ctype, err := promptType()
@@ -297,7 +297,7 @@ func commitHandler(cfg EnvConfig, git sv.Git, messageProcessor sv.MessageProcess
 		if err != nil {
 			return err
 		}
-		issue, err := promptIssueID(cfg.IssueKeyName, cfg.IssueRegex, branchIssue)
+		issue, err := promptIssueID(cfg.CommitMessage.IssueFooterConfig().Key, cfg.CommitMessage.Issue.Regex, branchIssue)
 		if err != nil {
 			return err
 		}

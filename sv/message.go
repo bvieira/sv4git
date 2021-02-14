@@ -88,7 +88,7 @@ func (p MessageProcessorImpl) Validate(message string) error {
 
 // Enhance add metadata on commit message.
 func (p MessageProcessorImpl) Enhance(branch string, message string) (string, error) {
-	if p.branchesCfg.DisableIssue || p.messageCfg.IssueConfig().Key == "" || hasIssueID(message, p.messageCfg.IssueConfig().Key) {
+	if p.branchesCfg.DisableIssue || p.messageCfg.IssueFooterConfig().Key == "" || hasIssueID(message, p.messageCfg.IssueFooterConfig().Key) {
 		return "", nil //enhance disabled
 	}
 
@@ -100,7 +100,7 @@ func (p MessageProcessorImpl) Enhance(branch string, message string) (string, er
 		return "", fmt.Errorf("could not find issue id using configured regex")
 	}
 
-	footer := fmt.Sprintf("%s: %s", p.messageCfg.IssueConfig().Key, issue)
+	footer := fmt.Sprintf("%s: %s", p.messageCfg.IssueFooterConfig().Key, issue)
 
 	if !hasFooter(message, p.messageCfg.Footer[breakingKey].Key) {
 		return "\n" + footer, nil
@@ -136,13 +136,13 @@ func (p MessageProcessorImpl) Format(msg CommitMessage) (string, string, string)
 
 	var footer strings.Builder
 	if msg.BreakingMessage() != "" {
-		footer.WriteString(fmt.Sprintf("%s: %s", p.messageCfg.BreakingChangeConfig().Key, msg.BreakingMessage()))
+		footer.WriteString(fmt.Sprintf("%s: %s", p.messageCfg.BreakingChangeFooterConfig().Key, msg.BreakingMessage()))
 	}
 	if issue, exists := msg.Metadata[issueKey]; exists {
 		if footer.Len() > 0 {
 			footer.WriteString("\n")
 		}
-		footer.WriteString(fmt.Sprintf("%s: %s", p.messageCfg.IssueConfig().Key, issue))
+		footer.WriteString(fmt.Sprintf("%s: %s", p.messageCfg.IssueFooterConfig().Key, issue))
 	}
 
 	return header.String(), msg.Body, footer.String()

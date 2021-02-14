@@ -136,7 +136,7 @@ func main() {
 			Name:    "commit",
 			Aliases: []string{"cmt"},
 			Usage:   "execute git commit with convetional commit message helper",
-			Action:  commitHandler(envCfg, git, messageProcessor),
+			Action:  commitHandler(cfg, git, messageProcessor),
 		},
 		{
 			Name:    "validate-commit-message",

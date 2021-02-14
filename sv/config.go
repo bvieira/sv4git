@@ -10,16 +10,16 @@ type CommitMessageConfig struct {
 	Issue  CommitMessageIssueConfig             `yaml:"issue"`
 }
 
-// IssueConfig config for issue.
-func (c CommitMessageConfig) IssueConfig() CommitMessageFooterConfig {
+// IssueFooterConfig config for issue.
+func (c CommitMessageConfig) IssueFooterConfig() CommitMessageFooterConfig {
 	if v, exists := c.Footer[issueKey]; exists {
 		return v
 	}
 	return CommitMessageFooterConfig{}
 }
 
-// BreakingChangeConfig config for breaking changes.
-func (c CommitMessageConfig) BreakingChangeConfig() CommitMessageFooterConfig {
+// BreakingChangeFooterConfig config for breaking changes.
+func (c CommitMessageConfig) BreakingChangeFooterConfig() CommitMessageFooterConfig {
 	if v, exists := c.Footer[breakingKey]; exists {
 		return v
 	}
