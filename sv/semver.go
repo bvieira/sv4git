@@ -1,6 +1,6 @@
 package sv
 
-import "github.com/Masterminds/semver"
+import "github.com/Masterminds/semver/v3"
 
 type versionType int
 
