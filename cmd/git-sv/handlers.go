@@ -270,7 +270,7 @@ func commitHandler(cfg Config, git sv.Git, messageProcessor sv.MessageProcessor)
 			return err
 		}
 
-		scope, err := promptScope()
+		scope, err := promptScope(cfg.CommitMessage.Scope.Values)
 		if err != nil {
 			return err
 		}

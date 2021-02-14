@@ -46,7 +46,14 @@ func promptType() (commitType, error) {
 	return items[i], nil
 }
 
-func promptScope() (string, error) {
+func promptScope(values []string) (string, error) {
+	if len(values) > 0 {
+		selected, err := promptSelect("scope", values, nil)
+		if err != nil {
+			return "", err
+		}
+		return values[selected], nil
+	}
 	return promptText("scope", "^[a-z0-9-]*$", "")
 }
 
