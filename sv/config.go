@@ -5,6 +5,7 @@ type CommitMessageConfig struct {
 	Types  []string
 	Scope  CommitMessageScopeConfig
 	Footer map[string]CommitMessageFooterConfig
+	Issue  CommitMessageIssueConfig
 }
 
 // IssueConfig config for issue.
@@ -33,6 +34,18 @@ type CommitMessageScopeConfig struct {
 type CommitMessageFooterConfig struct {
 	Key         string
 	KeySynonyms []string
-	Regex       string
 	UseHash     bool
+}
+
+// CommitMessageIssueConfig issue preferences.
+type CommitMessageIssueConfig struct {
+	Regex string
+}
+
+// BranchesConfig branches preferences.
+type BranchesConfig struct {
+	PrefixRegex string
+	SuffixRegex string
+	ExpectIssue bool
+	Skip        []string
 }

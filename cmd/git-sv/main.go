@@ -21,13 +21,20 @@ func main() {
 		Types: cfg.CommitMessageTypes,
 		Scope: sv.CommitMessageScopeConfig{},
 		Footer: map[string]sv.CommitMessageFooterConfig{
-			"issue":           {Key: cfg.IssueIDPrefixes[0], KeySynonyms: cfg.IssueIDPrefixes[1:], Regex: cfg.IssueRegex},
+			"issue":           {Key: cfg.IssueIDPrefixes[0], KeySynonyms: cfg.IssueIDPrefixes[1:]},
 			"breaking-change": {Key: cfg.BreakingChangePrefixes[0], KeySynonyms: cfg.BreakingChangePrefixes[1:]},
 		},
+		Issue: sv.CommitMessageIssueConfig{Regex: cfg.IssueRegex},
+	}
+	branchesConfig := sv.BranchesConfig{
+		Skip:        cfg.ValidateMessageSkipBranches,
+		ExpectIssue: true,
+		PrefixRegex: cfg.BranchIssuePrefixRegex,
+		SuffixRegex: cfg.BranchIssueSuffixRegex,
 	}
 	////
 
-	messageProcessor := sv.NewMessageProcessor(commitMessageCfg, cfg.ValidateMessageSkipBranches, cfg.BranchIssueRegex)
+	messageProcessor := sv.NewMessageProcessor(commitMessageCfg, branchesConfig)
 	git := sv.NewGit(messageProcessor, cfg.TagPattern)
 	semverProcessor := sv.NewSemVerCommitsProcessor(cfg.IncludeUnknownTypeAsPatch, cfg.MajorVersionTypes, cfg.MinorVersionTypes, cfg.PatchVersionTypes)
 	releasenotesProcessor := sv.NewReleaseNoteProcessor(cfg.ReleaseNotesTags)

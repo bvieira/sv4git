@@ -5,20 +5,23 @@ import (
 	"testing"
 )
 
-var cfg = CommitMessageConfig{
+var ccfg = CommitMessageConfig{
 	Types: []string{"feat", "fix"},
 	Scope: CommitMessageScopeConfig{},
 	Footer: map[string]CommitMessageFooterConfig{
-		"issue":           {Key: "jira", KeySynonyms: []string{"Jira"}, Regex: "[A-Z]+-[0-9]+"},
+		"issue":           {Key: "jira", KeySynonyms: []string{"Jira"}},
 		"breaking-change": {Key: "BREAKING CHANGE", KeySynonyms: []string{"BREAKING CHANGES"}},
 		"refs":            {Key: "Refs", UseHash: true},
 	},
+	Issue: CommitMessageIssueConfig{Regex: "[A-Z]+-[0-9]+"},
 }
 
-const (
-	branchIssueRegex = "^([a-z]+\\/)?([A-Z]+-[0-9]+)(-.*)?"
-	issueRegex       = "[A-Z]+-[0-9]+"
-)
+var bcfg = BranchesConfig{
+	ExpectIssue: true,
+	PrefixRegex: "([a-z]+\\/)?",
+	SuffixRegex: "(-.*)?",
+	Skip:        []string{"develop", "master"},
+}
 
 // messages samples start
 var fullMessage = `fix: correct minor typos in code
@@ -57,7 +60,7 @@ BREAKING CHANGE: refactor to use JavaScript features not available in Node 6.`
 // multiline samples end
 
 func TestMessageProcessorImpl_Validate(t *testing.T) {
-	p := NewMessageProcessor(cfg, []string{"develop", "master"}, branchIssueRegex)
+	p := NewMessageProcessor(ccfg, bcfg)
 
 	tests := []struct {
 		name    string
@@ -90,7 +93,7 @@ func TestMessageProcessorImpl_Validate(t *testing.T) {
 }
 
 func TestMessageProcessorImpl_Enhance(t *testing.T) {
-	p := NewMessageProcessor(cfg, []string{"develop", "master"}, branchIssueRegex)
+	p := NewMessageProcessor(ccfg, bcfg)
 
 	tests := []struct {
 		name    string
@@ -123,7 +126,7 @@ func TestMessageProcessorImpl_Enhance(t *testing.T) {
 }
 
 func TestMessageProcessorImpl_IssueID(t *testing.T) {
-	p := NewMessageProcessor(cfg, []string{"develop", "master"}, branchIssueRegex)
+	p := NewMessageProcessor(ccfg, bcfg)
 
 	tests := []struct {
 		name    string
@@ -251,7 +254,7 @@ Jira: JIRA-999
 Refs #123`
 
 func TestMessageProcessorImpl_Parse(t *testing.T) {
-	p := NewMessageProcessor(cfg, []string{"develop", "master"}, branchIssueRegex)
+	p := NewMessageProcessor(ccfg, bcfg)
 
 	tests := []struct {
 		name    string
@@ -278,7 +281,7 @@ func TestMessageProcessorImpl_Parse(t *testing.T) {
 }
 
 func TestMessageProcessorImpl_Format(t *testing.T) {
-	p := NewMessageProcessor(cfg, []string{"develop", "master"}, branchIssueRegex)
+	p := NewMessageProcessor(ccfg, bcfg)
 
 	tests := []struct {
 		name       string

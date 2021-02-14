@@ -56,41 +56,39 @@ type MessageProcessor interface {
 }
 
 // NewMessageProcessor MessageProcessorImpl constructor
-func NewMessageProcessor(cfg CommitMessageConfig, skipBranches []string, branchIssueRegex string) *MessageProcessorImpl {
+func NewMessageProcessor(mcfg CommitMessageConfig, bcfg BranchesConfig) *MessageProcessorImpl {
 	return &MessageProcessorImpl{
-		cfg:              cfg,
-		skipBranches:     skipBranches,
-		branchIssueRegex: branchIssueRegex,
+		messageCfg:  mcfg,
+		branchesCfg: bcfg,
 	}
 }
 
 // MessageProcessorImpl process validate message hook.
 type MessageProcessorImpl struct {
-	cfg              CommitMessageConfig
-	skipBranches     []string
-	branchIssueRegex string
+	messageCfg  CommitMessageConfig
+	branchesCfg BranchesConfig
 }
 
 // SkipBranch check if branch should be ignored.
 func (p MessageProcessorImpl) SkipBranch(branch string) bool {
-	return contains(branch, p.skipBranches)
+	return contains(branch, p.branchesCfg.Skip)
 }
 
 // Validate commit message.
 func (p MessageProcessorImpl) Validate(message string) error {
-	valid, err := regexp.MatchString("^("+strings.Join(p.cfg.Types, "|")+")(\\(.+\\))?!?: .*$", firstLine(message))
+	valid, err := regexp.MatchString("^("+strings.Join(p.messageCfg.Types, "|")+")(\\(.+\\))?!?: .*$", firstLine(message))
 	if err != nil {
 		return err
 	}
 	if !valid {
-		return fmt.Errorf("message should contain type: %v, and should be valid according with conventional commits", p.cfg.Types)
+		return fmt.Errorf("message should contain type: %v, and should be valid according with conventional commits", p.messageCfg.Types)
 	}
 	return nil
 }
 
 // Enhance add metadata on commit message.
 func (p MessageProcessorImpl) Enhance(branch string, message string) (string, error) {
-	if p.branchIssueRegex == "" || p.cfg.IssueConfig().Key == "" || hasIssueID(message, p.cfg.IssueConfig().Key) {
+	if !p.branchesCfg.ExpectIssue || p.messageCfg.IssueConfig().Key == "" || hasIssueID(message, p.messageCfg.IssueConfig().Key) {
 		return "", nil //enhance disabled
 	}
 
@@ -102,9 +100,9 @@ func (p MessageProcessorImpl) Enhance(branch string, message string) (string, er
 		return "", fmt.Errorf("could not find issue id using configured regex")
 	}
 
-	footer := fmt.Sprintf("%s: %s", p.cfg.IssueConfig().Key, issue)
+	footer := fmt.Sprintf("%s: %s", p.messageCfg.IssueConfig().Key, issue)
 
-	if !hasFooter(message, p.cfg.Footer[breakingKey].Key) {
+	if !hasFooter(message, p.messageCfg.Footer[breakingKey].Key) {
 		return "\n" + footer, nil
 	}
 
@@ -113,9 +111,10 @@ func (p MessageProcessorImpl) Enhance(branch string, message string) (string, er
 
 // IssueID try to extract issue id from branch, return empty if not found.
 func (p MessageProcessorImpl) IssueID(branch string) (string, error) {
-	r, err := regexp.Compile(p.branchIssueRegex)
+	rstr := fmt.Sprintf("^%s(%s)%s$", p.branchesCfg.PrefixRegex, p.messageCfg.Issue.Regex, p.branchesCfg.SuffixRegex)
+	r, err := regexp.Compile(rstr)
 	if err != nil {
-		return "", fmt.Errorf("could not compile issue regex: %s, error: %v", p.branchIssueRegex, err.Error())
+		return "", fmt.Errorf("could not compile issue regex: %s, error: %v", rstr, err.Error())
 	}
 
 	groups := r.FindStringSubmatch(branch)
@@ -137,13 +136,13 @@ func (p MessageProcessorImpl) Format(msg CommitMessage) (string, string, string)
 
 	var footer strings.Builder
 	if msg.BreakingMessage() != "" {
-		footer.WriteString(fmt.Sprintf("%s: %s", p.cfg.BreakingChangeConfig().Key, msg.BreakingMessage()))
+		footer.WriteString(fmt.Sprintf("%s: %s", p.messageCfg.BreakingChangeConfig().Key, msg.BreakingMessage()))
 	}
 	if issue, exists := msg.Metadata[issueKey]; exists {
 		if footer.Len() > 0 {
 			footer.WriteString("\n")
 		}
-		footer.WriteString(fmt.Sprintf("%s: %s", p.cfg.IssueConfig().Key, issue))
+		footer.WriteString(fmt.Sprintf("%s: %s", p.messageCfg.IssueConfig().Key, issue))
 	}
 
 	return header.String(), msg.Body, footer.String()
@@ -154,7 +153,7 @@ func (p MessageProcessorImpl) Parse(subject, body string) CommitMessage {
 	commitType, scope, description, hasBreakingChange := parseSubjectMessage(subject)
 
 	metadata := make(map[string]string)
-	for key, mdCfg := range p.cfg.Footer {
+	for key, mdCfg := range p.messageCfg.Footer {
 		prefixes := append([]string{mdCfg.Key}, mdCfg.KeySynonyms...)
 		for _, prefix := range prefixes {
 			if tagValue := extractFooterMetadata(prefix, body, mdCfg.UseHash); tagValue != "" {

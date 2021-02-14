@@ -20,7 +20,8 @@ type Config struct {
 	CommitMessageTypes          []string          `envconfig:"COMMIT_MESSAGE_TYPES" default:"build,ci,chore,docs,feat,fix,perf,refactor,revert,style,test"`
 	IssueKeyName                string            `envconfig:"ISSUE_KEY_NAME" default:"jira"`
 	IssueRegex                  string            `envconfig:"ISSUE_REGEX" default:"[A-Z]+-[0-9]+"`
-	BranchIssueRegex            string            `envconfig:"BRANCH_ISSUE_REGEX" default:"^([a-z]+\\/)?([A-Z]+-[0-9]+)(-.*)?"` //TODO breaking change: use issue regex instead of duplicating issue regex
+	BranchIssuePrefixRegex      string            `envconfig:"BRANCH_ISSUE_PREFIX_REGEX" default:"([a-z]+\\/)?"`
+	BranchIssueSuffixRegex      string            `envconfig:"BRANCH_ISSUE_SUFFIX_REGEX" default:"(-.*)?"`
 }
 
 func loadConfig() Config {
