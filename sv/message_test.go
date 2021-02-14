@@ -17,7 +17,6 @@ var ccfg = CommitMessageConfig{
 }
 
 var bcfg = BranchesConfig{
-	ExpectIssue: true,
 	PrefixRegex: "([a-z]+\\/)?",
 	SuffixRegex: "(-.*)?",
 	Skip:        []string{"develop", "master"},

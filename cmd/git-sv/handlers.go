@@ -12,7 +12,31 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/urfave/cli/v2"
+	"gopkg.in/yaml.v3"
 )
+
+func configDefaultHandler() func(c *cli.Context) error {
+	cfg := defaultConfig()
+	return func(c *cli.Context) error {
+		content, err := yaml.Marshal(&cfg)
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(content))
+		return nil
+	}
+}
+
+func configShowHandler(cfg Config) func(c *cli.Context) error {
+	return func(c *cli.Context) error {
+		content, err := yaml.Marshal(&cfg)
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(content))
+		return nil
+	}
+}
 
 func currentVersionHandler(git sv.Git) func(c *cli.Context) error {
 	return func(c *cli.Context) error {
@@ -238,7 +262,7 @@ func tagHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor) func(c *c
 	}
 }
 
-func commitHandler(cfg Config, git sv.Git, messageProcessor sv.MessageProcessor) func(c *cli.Context) error {
+func commitHandler(cfg EnvConfig, git sv.Git, messageProcessor sv.MessageProcessor) func(c *cli.Context) error {
 	return func(c *cli.Context) error {
 
 		ctype, err := promptType()

@@ -40,7 +40,7 @@ type SemVerCommitsProcessorImpl struct {
 // NewSemVerCommitsProcessor SemanticVersionCommitsProcessorImpl constructor
 func NewSemVerCommitsProcessor(cfg VersioningConfig) *SemVerCommitsProcessorImpl {
 	return &SemVerCommitsProcessorImpl{
-		IncludeUnknownTypeAsPatch: cfg.UnknownTypeAsPatch,
+		IncludeUnknownTypeAsPatch: !cfg.IgnoreUnknown,
 		MajorVersionTypes:         toMap(cfg.UpdateMajor),
 		MinorVersionTypes:         toMap(cfg.UpdateMinor),
 		PatchVersionTypes:         toMap(cfg.UpdatePatch),

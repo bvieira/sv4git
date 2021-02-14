@@ -88,7 +88,7 @@ func (p MessageProcessorImpl) Validate(message string) error {
 
 // Enhance add metadata on commit message.
 func (p MessageProcessorImpl) Enhance(branch string, message string) (string, error) {
-	if !p.branchesCfg.ExpectIssue || p.messageCfg.IssueConfig().Key == "" || hasIssueID(message, p.messageCfg.IssueConfig().Key) {
+	if p.branchesCfg.DisableIssue || p.messageCfg.IssueConfig().Key == "" || hasIssueID(message, p.messageCfg.IssueConfig().Key) {
 		return "", nil //enhance disabled
 	}
 

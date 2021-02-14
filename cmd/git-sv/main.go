@@ -3,49 +3,51 @@ package main
 import (
 	"log"
 	"os"
+	"path/filepath"
 	"sv4git/sv"
 
+	"github.com/imdario/mergo"
 	"github.com/urfave/cli/v2"
 )
 
 // Version for git-sv
 var Version = ""
 
+const (
+	configFilename     = "config.yml"
+	repoConfigFilename = ".sv4git.yml"
+)
+
 func main() {
 	log.SetFlags(0)
 
-	cfg := loadConfig()
+	envCfg := loadEnvConfig()
 
-	// TODO: config using yaml
-	commitMessageCfg := sv.CommitMessageConfig{
-		Types: cfg.CommitMessageTypes,
-		Scope: sv.CommitMessageScopeConfig{},
-		Footer: map[string]sv.CommitMessageFooterConfig{
-			"issue":           {Key: cfg.IssueIDPrefixes[0], KeySynonyms: cfg.IssueIDPrefixes[1:]},
-			"breaking-change": {Key: cfg.BreakingChangePrefixes[0], KeySynonyms: cfg.BreakingChangePrefixes[1:]},
-		},
-		Issue: sv.CommitMessageIssueConfig{Regex: cfg.IssueRegex},
-	}
-	branchesConfig := sv.BranchesConfig{
-		Skip:        cfg.ValidateMessageSkipBranches,
-		ExpectIssue: true,
-		PrefixRegex: cfg.BranchIssuePrefixRegex,
-		SuffixRegex: cfg.BranchIssueSuffixRegex,
-	}
-	versioningConfig := sv.VersioningConfig{
-		UpdateMajor:        cfg.MajorVersionTypes,
-		UpdateMinor:        cfg.MinorVersionTypes,
-		UpdatePatch:        cfg.PatchVersionTypes,
-		UnknownTypeAsPatch: cfg.IncludeUnknownTypeAsPatch,
-	}
-	tagConfig := sv.TagConfig{Pattern: cfg.TagPattern}
-	releaseNotesConfig := sv.ReleaseNotesConfig{Headers: cfg.ReleaseNotesTags}
-	////
+	cfg := defaultConfig()
 
-	messageProcessor := sv.NewMessageProcessor(commitMessageCfg, branchesConfig)
-	git := sv.NewGit(messageProcessor, tagConfig)
-	semverProcessor := sv.NewSemVerCommitsProcessor(versioningConfig)
-	releasenotesProcessor := sv.NewReleaseNoteProcessor(releaseNotesConfig)
+	if envCfg.Home != "" {
+		if homeCfg, err := loadConfig(filepath.Join(envCfg.Home, configFilename)); err == nil {
+			if merr := mergo.Merge(&cfg, homeCfg, mergo.WithOverride); merr != nil {
+				log.Fatal(merr)
+			}
+		}
+	}
+
+	repoPath, rerr := getRepoPath()
+	if rerr != nil {
+		log.Fatal(rerr)
+	}
+
+	if repoCfg, err := loadConfig(filepath.Join(repoPath, repoConfigFilename)); err == nil {
+		if merr := mergo.Merge(&cfg, repoCfg, mergo.WithOverride); merr != nil {
+			log.Fatal(merr)
+		}
+	}
+
+	messageProcessor := sv.NewMessageProcessor(cfg.CommitMessage, cfg.Branches)
+	git := sv.NewGit(messageProcessor, cfg.Tag)
+	semverProcessor := sv.NewSemVerCommitsProcessor(cfg.Versioning)
+	releasenotesProcessor := sv.NewReleaseNoteProcessor(cfg.ReleaseNotes)
 	outputFormatter := sv.NewOutputFormatter()
 
 	app := cli.NewApp()
@@ -53,6 +55,23 @@ func main() {
 	app.Version = Version
 	app.Usage = "semantic version for git"
 	app.Commands = []*cli.Command{
+		{
+			Name:    "config",
+			Aliases: []string{"cfg"},
+			Usage:   "cli configuration",
+			Subcommands: []*cli.Command{
+				{
+					Name:   "default",
+					Usage:  "show default config",
+					Action: configDefaultHandler(),
+				},
+				{
+					Name:   "show",
+					Usage:  "show current config",
+					Action: configShowHandler(cfg),
+				},
+			},
+		},
 		{
 			Name:    "current-version",
 			Aliases: []string{"cv"},
@@ -117,7 +136,7 @@ func main() {
 			Name:    "commit",
 			Aliases: []string{"cmt"},
 			Usage:   "execute git commit with convetional commit message helper",
-			Action:  commitHandler(cfg, git, messageProcessor),
+			Action:  commitHandler(envCfg, git, messageProcessor),
 		},
 		{
 			Name:    "validate-commit-message",
