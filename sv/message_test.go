@@ -1,8 +1,19 @@
 package sv
 
 import (
+	"reflect"
 	"testing"
 )
+
+var cfg = CommitMessageConfig{
+	Types: []string{"feat", "fix"},
+	Scope: CommitMessageScopeConfig{},
+	Footer: map[string]CommitMessageFooterConfig{
+		"issue":           {Key: "jira", KeySynonyms: []string{"Jira"}, Regex: "[A-Z]+-[0-9]+"},
+		"breaking-change": {Key: "BREAKING CHANGE", KeySynonyms: []string{"BREAKING CHANGES"}},
+		"refs":            {Key: "Refs", UseHash: true},
+	},
+}
 
 const (
 	branchIssueRegex = "^([a-z]+\\/)?([A-Z]+-[0-9]+)(-.*)?"
@@ -46,7 +57,7 @@ BREAKING CHANGE: refactor to use JavaScript features not available in Node 6.`
 // multiline samples end
 
 func TestMessageProcessorImpl_Validate(t *testing.T) {
-	p := NewMessageProcessor([]string{"develop", "master"}, []string{"feat", "fix"}, "jira", branchIssueRegex, issueRegex)
+	p := NewMessageProcessor(cfg, []string{"develop", "master"}, branchIssueRegex)
 
 	tests := []struct {
 		name    string
@@ -79,7 +90,7 @@ func TestMessageProcessorImpl_Validate(t *testing.T) {
 }
 
 func TestMessageProcessorImpl_Enhance(t *testing.T) {
-	p := NewMessageProcessor([]string{"develop", "master"}, []string{"feat", "fix"}, "jira", branchIssueRegex, issueRegex)
+	p := NewMessageProcessor(cfg, []string{"develop", "master"}, branchIssueRegex)
 
 	tests := []struct {
 		name    string
@@ -112,7 +123,7 @@ func TestMessageProcessorImpl_Enhance(t *testing.T) {
 }
 
 func TestMessageProcessorImpl_IssueID(t *testing.T) {
-	p := NewMessageProcessor([]string{"develop", "master"}, []string{"feat", "fix"}, "jira", branchIssueRegex, issueRegex)
+	p := NewMessageProcessor(cfg, []string{"develop", "master"}, branchIssueRegex)
 
 	tests := []struct {
 		name    string
@@ -148,46 +159,6 @@ c`
 	fullFooter = `BREAKING CHANGE: breaks
 jira: JIRA-123`
 )
-
-func TestMessageProcessorImpl_Format(t *testing.T) {
-	p := NewMessageProcessor([]string{"develop", "master"}, []string{"feat", "fix"}, "jira", branchIssueRegex, issueRegex)
-
-	type args struct {
-		ctype           string
-		scope           string
-		subject         string
-		body            string
-		issue           string
-		breakingChanges string
-	}
-	tests := []struct {
-		name       string
-		args       args
-		wantHeader string
-		wantBody   string
-		wantFooter string
-	}{
-		{"type and subject", args{"feat", "", "subject", "", "", ""}, "feat: subject", "", ""},
-		{"type, scope and subject", args{"feat", "scope", "subject", "", "", ""}, "feat(scope): subject", "", ""},
-		{"type, scope, subject and issue", args{"feat", "scope", "subject", "", "JIRA-123", ""}, "feat(scope): subject", "", "jira: JIRA-123"},
-		{"type, scope, subject and breaking change", args{"feat", "scope", "subject", "", "", "breaks"}, "feat(scope): subject", "", "BREAKING CHANGE: breaks"},
-		{"full message", args{"feat", "scope", "subject", multilineBody, "JIRA-123", "breaks"}, "feat(scope): subject", multilineBody, fullFooter},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			header, body, footer := p.Format(tt.args.ctype, tt.args.scope, tt.args.subject, tt.args.body, tt.args.issue, tt.args.breakingChanges)
-			if header != tt.wantHeader {
-				t.Errorf("MessageProcessorImpl.Format() header = %v, want %v", header, tt.wantHeader)
-			}
-			if body != tt.wantBody {
-				t.Errorf("MessageProcessorImpl.Format() body = %v, want %v", body, tt.wantBody)
-			}
-			if footer != tt.wantFooter {
-				t.Errorf("MessageProcessorImpl.Format() footer = %v, want %v", footer, tt.wantFooter)
-			}
-		})
-	}
-}
 
 func Test_firstLine(t *testing.T) {
 	tests := []struct {
@@ -252,8 +223,89 @@ func Test_hasFooter(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := hasFooter(tt.message); got != tt.want {
+			if got := hasFooter(tt.message, "BREAKING CHANGE"); got != tt.want {
 				t.Errorf("hasFooter() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// conventional commit tests
+
+var completeBody = `some descriptions
+
+jira: JIRA-123
+BREAKING CHANGE: this change breaks everything`
+
+var issueOnlyBody = `some descriptions
+
+jira: JIRA-456`
+
+var issueSynonymsBody = `some descriptions
+
+Jira: JIRA-789`
+
+var hashMetadataBody = `some descriptions
+
+Jira: JIRA-999
+Refs #123`
+
+func TestMessageProcessorImpl_Parse(t *testing.T) {
+	p := NewMessageProcessor(cfg, []string{"develop", "master"}, branchIssueRegex)
+
+	tests := []struct {
+		name    string
+		subject string
+		body    string
+		want    CommitMessage
+	}{
+		{"simple message", "feat: something awesome", "", CommitMessage{Type: "feat", Scope: "", Description: "something awesome", Body: "", IsBreakingChange: false, Metadata: map[string]string{}}},
+		{"message with scope", "feat(scope): something awesome", "", CommitMessage{Type: "feat", Scope: "scope", Description: "something awesome", Body: "", IsBreakingChange: false, Metadata: map[string]string{}}},
+		{"unmapped type", "unkn: something unknown", "", CommitMessage{Type: "unkn", Scope: "", Description: "something unknown", Body: "", IsBreakingChange: false, Metadata: map[string]string{}}},
+		{"jira and breaking change metadata", "feat: something new", completeBody, CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: completeBody, IsBreakingChange: true, Metadata: map[string]string{issueKey: "JIRA-123", breakingKey: "this change breaks everything"}}},
+		{"jira only metadata", "feat: something new", issueOnlyBody, CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: issueOnlyBody, IsBreakingChange: false, Metadata: map[string]string{issueKey: "JIRA-456"}}},
+		{"jira synonyms metadata", "feat: something new", issueSynonymsBody, CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: issueSynonymsBody, IsBreakingChange: false, Metadata: map[string]string{issueKey: "JIRA-789"}}},
+		{"breaking change with exclamation mark", "feat!: something new", "", CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: "", IsBreakingChange: true, Metadata: map[string]string{}}},
+		{"hash metadata", "feat: something new", hashMetadataBody, CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: hashMetadataBody, IsBreakingChange: false, Metadata: map[string]string{issueKey: "JIRA-999", "refs": "#123"}}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := p.Parse(tt.subject, tt.body); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("MessageProcessorImpl.Parse() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMessageProcessorImpl_Format(t *testing.T) {
+	p := NewMessageProcessor(cfg, []string{"develop", "master"}, branchIssueRegex)
+
+	tests := []struct {
+		name       string
+		msg        CommitMessage
+		wantHeader string
+		wantBody   string
+		wantFooter string
+	}{
+		{"simple message", NewCommitMessage("feat", "", "something", "", "", ""), "feat: something", "", ""},
+		{"with issue", NewCommitMessage("feat", "", "something", "", "JIRA-123", ""), "feat: something", "", "jira: JIRA-123"},
+		{"with breaking change", NewCommitMessage("feat", "", "something", "", "", "breaks"), "feat: something", "", "BREAKING CHANGE: breaks"},
+		{"with scope", NewCommitMessage("feat", "scope", "something", "", "", ""), "feat(scope): something", "", ""},
+		{"with body", NewCommitMessage("feat", "", "something", "body", "", ""), "feat: something", "body", ""},
+		{"with multiline body", NewCommitMessage("feat", "", "something", multilineBody, "", ""), "feat: something", multilineBody, ""},
+		{"full message", NewCommitMessage("feat", "scope", "something", multilineBody, "JIRA-123", "breaks"), "feat(scope): something", multilineBody, fullFooter},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, got1, got2 := p.Format(tt.msg)
+			if got != tt.wantHeader {
+				t.Errorf("MessageProcessorImpl.Format() header got = %v, want %v", got, tt.wantHeader)
+			}
+			if got1 != tt.wantBody {
+				t.Errorf("MessageProcessorImpl.Format() body got = %v, want %v", got1, tt.wantBody)
+			}
+			if got2 != tt.wantFooter {
+				t.Errorf("MessageProcessorImpl.Format() footer got = %v, want %v", got2, tt.wantFooter)
 			}
 		})
 	}

@@ -19,19 +19,19 @@ func main() {
 	// TODO: config using yaml
 	commitMessageCfg := sv.CommitMessageConfig{
 		Types: cfg.CommitMessageTypes,
-		Scope: sv.ScopeConfig{},
-		Footer: map[string]sv.FooterMetadataConfig{
+		Scope: sv.CommitMessageScopeConfig{},
+		Footer: map[string]sv.CommitMessageFooterConfig{
 			"issue":           {Key: cfg.IssueIDPrefixes[0], KeySynonyms: cfg.IssueIDPrefixes[1:], Regex: cfg.IssueRegex},
 			"breaking-change": {Key: cfg.BreakingChangePrefixes[0], KeySynonyms: cfg.BreakingChangePrefixes[1:]},
 		},
 	}
 	////
 
-	git := sv.NewGit(sv.NewCommitMessageProcessor(commitMessageCfg), cfg.TagPattern)
+	messageProcessor := sv.NewMessageProcessor(commitMessageCfg, cfg.ValidateMessageSkipBranches, cfg.BranchIssueRegex)
+	git := sv.NewGit(messageProcessor, cfg.TagPattern)
 	semverProcessor := sv.NewSemVerCommitsProcessor(cfg.IncludeUnknownTypeAsPatch, cfg.MajorVersionTypes, cfg.MinorVersionTypes, cfg.PatchVersionTypes)
 	releasenotesProcessor := sv.NewReleaseNoteProcessor(cfg.ReleaseNotesTags)
 	outputFormatter := sv.NewOutputFormatter()
-	messageProcessor := sv.NewMessageProcessor(cfg.ValidateMessageSkipBranches, cfg.CommitMessageTypes, cfg.IssueKeyName, cfg.BranchIssueRegex, cfg.IssueRegex)
 
 	app := cli.NewApp()
 	app.Name = "sv"

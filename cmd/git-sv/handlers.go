@@ -290,7 +290,7 @@ func commitHandler(cfg Config, git sv.Git, messageProcessor sv.MessageProcessor)
 			}
 		}
 
-		header, body, footer := messageProcessor.Format(ctype.Type, scope, subject, fullBody.String(), issue, breakingChanges)
+		header, body, footer := messageProcessor.Format(sv.NewCommitMessage(ctype.Type, scope, subject, fullBody.String(), issue, breakingChanges))
 
 		err = git.Commit(header, body, footer)
 		if err != nil {
