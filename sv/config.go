@@ -28,8 +28,7 @@ func (c CommitMessageConfig) BreakingChangeFooterConfig() CommitMessageFooterCon
 
 // CommitMessageScopeConfig config scope preferences.
 type CommitMessageScopeConfig struct {
-	Mandatory bool     `yaml:"mandatory"`
-	Values    []string `yaml:"values"`
+	Values []string `yaml:"values"`
 }
 
 // CommitMessageFooterConfig config footer metadata.
