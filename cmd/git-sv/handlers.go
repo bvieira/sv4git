@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"sv4git/sv"
@@ -375,7 +376,7 @@ func validateCommitMessageHandler(git sv.Git, messageProcessor sv.MessageProcess
 			return nil
 		}
 
-		filepath := fmt.Sprintf("%s/%s", c.String("path"), c.String("file"))
+		filepath := filepath.Join(c.String("path"), c.String("file"))
 
 		commitMessage, err := readFile(filepath)
 		if err != nil {
