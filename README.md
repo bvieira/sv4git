@@ -149,18 +149,19 @@ git-sv rn -h
 
 ##### Available commands
 
-| Variable                     | description                                                   |    has options     |
-| ---------------------------- | ------------------------------------------------------------- | :----------------: |
-| current-version, cv          | get last released version from git                            |        :x:         |
-| next-version, nv             | generate the next version based on git commit messages        |        :x:         |
-| commit-log, cl               | list all commit logs according to range as jsons              | :heavy_check_mark: |
-| commit-notes, cn             | generate a commit notes according to range                    | :heavy_check_mark: |
-| release-notes, rn            | generate release notes                                        | :heavy_check_mark: |
-| changelog, cgl               | generate changelog                                            | :heavy_check_mark: |
-| tag, tg                      | generate tag with version based on git commit messages        |        :x:         |
-| commit, cmt                  | execute git commit with convetional commit message helper     |        :x:         |
-| validate-commit-message, vcm | use as prepare-commit-message hook to validate commit message | :heavy_check_mark: |
-| help, h                      | shows a list of commands or help for one command              |        :x:         |
+| Variable                     | description                                                   | has options or subcommands |
+| ---------------------------- | ------------------------------------------------------------- | :------------------------: |
+| config, cfg                  | show config information                                       |     :heavy_check_mark:     |
+| current-version, cv          | get last released version from git                            |            :x:             |
+| next-version, nv             | generate the next version based on git commit messages        |            :x:             |
+| commit-log, cl               | list all commit logs according to range as jsons              |     :heavy_check_mark:     |
+| commit-notes, cn             | generate a commit notes according to range                    |     :heavy_check_mark:     |
+| release-notes, rn            | generate release notes                                        |     :heavy_check_mark:     |
+| changelog, cgl               | generate changelog                                            |     :heavy_check_mark:     |
+| tag, tg                      | generate tag with version based on git commit messages        |            :x:             |
+| commit, cmt                  | execute git commit with convetional commit message helper     |            :x:             |
+| validate-commit-message, vcm | use as prepare-commit-message hook to validate commit message |     :heavy_check_mark:     |
+| help, h                      | shows a list of commands or help for one command              |            :x:             |
 
 ##### Use range
 
