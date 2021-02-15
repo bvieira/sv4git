@@ -49,7 +49,7 @@ func main() {
 
 	messageProcessor := sv.NewMessageProcessor(cfg.CommitMessage, cfg.Branches)
 	git := sv.NewGit(messageProcessor, cfg.Tag)
-	semverProcessor := sv.NewSemVerCommitsProcessor(cfg.Versioning)
+	semverProcessor := sv.NewSemVerCommitsProcessor(cfg.Versioning, cfg.CommitMessage)
 	releasenotesProcessor := sv.NewReleaseNoteProcessor(cfg.ReleaseNotes)
 	outputFormatter := sv.NewOutputFormatter()
 

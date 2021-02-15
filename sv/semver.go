@@ -34,16 +34,18 @@ type SemVerCommitsProcessorImpl struct {
 	MajorVersionTypes         map[string]struct{}
 	MinorVersionTypes         map[string]struct{}
 	PatchVersionTypes         map[string]struct{}
+	KnownTypes                []string
 	IncludeUnknownTypeAsPatch bool
 }
 
 // NewSemVerCommitsProcessor SemanticVersionCommitsProcessorImpl constructor
-func NewSemVerCommitsProcessor(cfg VersioningConfig) *SemVerCommitsProcessorImpl {
+func NewSemVerCommitsProcessor(vcfg VersioningConfig, mcfg CommitMessageConfig) *SemVerCommitsProcessorImpl {
 	return &SemVerCommitsProcessorImpl{
-		IncludeUnknownTypeAsPatch: !cfg.IgnoreUnknown,
-		MajorVersionTypes:         toMap(cfg.UpdateMajor),
-		MinorVersionTypes:         toMap(cfg.UpdateMinor),
-		PatchVersionTypes:         toMap(cfg.UpdatePatch),
+		IncludeUnknownTypeAsPatch: !vcfg.IgnoreUnknown,
+		MajorVersionTypes:         toMap(vcfg.UpdateMajor),
+		MinorVersionTypes:         toMap(vcfg.UpdateMinor),
+		PatchVersionTypes:         toMap(vcfg.UpdatePatch),
+		KnownTypes:                mcfg.Types,
 	}
 }
 
@@ -81,7 +83,7 @@ func (p SemVerCommitsProcessorImpl) versionTypeToUpdate(commit GitCommitLog) ver
 	if _, exists := p.PatchVersionTypes[commit.Message.Type]; exists {
 		return patch
 	}
-	if p.IncludeUnknownTypeAsPatch {
+	if !contains(commit.Message.Type, p.KnownTypes) && p.IncludeUnknownTypeAsPatch {
 		return patch
 	}
 	return none

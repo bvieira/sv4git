@@ -17,6 +17,7 @@ func TestSemVerCommitsProcessorImpl_NextVersion(t *testing.T) {
 	}{
 		{"no update", true, version("0.0.0"), []GitCommitLog{}, version("0.0.0")},
 		{"no update on unknown type", true, version("0.0.0"), []GitCommitLog{commitlog("a", map[string]string{})}, version("0.0.0")},
+		{"no update on unmapped known type", false, version("0.0.0"), []GitCommitLog{commitlog("none", map[string]string{})}, version("0.0.0")},
 		{"update patch on unknown type", false, version("0.0.0"), []GitCommitLog{commitlog("a", map[string]string{})}, version("0.0.1")},
 		{"patch update", false, version("0.0.0"), []GitCommitLog{commitlog("patch", map[string]string{})}, version("0.0.1")},
 		{"minor update", false, version("0.0.0"), []GitCommitLog{commitlog("patch", map[string]string{}), commitlog("minor", map[string]string{})}, version("0.1.0")},
@@ -25,7 +26,7 @@ func TestSemVerCommitsProcessorImpl_NextVersion(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := NewSemVerCommitsProcessor(VersioningConfig{UpdateMajor: []string{"major"}, UpdateMinor: []string{"minor"}, UpdatePatch: []string{"patch"}, IgnoreUnknown: tt.ignoreUnknown})
+			p := NewSemVerCommitsProcessor(VersioningConfig{UpdateMajor: []string{"major"}, UpdateMinor: []string{"minor"}, UpdatePatch: []string{"patch"}, IgnoreUnknown: tt.ignoreUnknown}, CommitMessageConfig{Types: []string{"major", "minor", "patch", "none"}})
 			if got := p.NextVersion(tt.version, tt.commits); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("SemVerCommitsProcessorImpl.NextVersion() = %v, want %v", got, tt.want)
 			}
