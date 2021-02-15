@@ -6,27 +6,116 @@ Semantic version for git
 
 ### Installing
 
-download the latest release and add the binary on your path
+- Download the latest release and add the binary on your path
+- Optional: Set `SV4GIT_HOME` to define user configs, check [config](#config) for more information.
 
 ### Config
 
-you can config using the environment variables
+There are 3 config levels when using sv4git: [default](#default), [user](#user), [repository](#repository). All 3 are merged using the follow priority: **repository > user > default**.
 
-| Variable                              | description                                                                                                            | default                                                      |
-| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| SV4GIT_MAJOR_VERSION_TYPES            | types used to bump major version                                                                                       |                                                              |
-| SV4GIT_MINOR_VERSION_TYPES            | types used to bump minor version                                                                                       | feat                                                         |
-| SV4GIT_PATCH_VERSION_TYPES            | types used to bump patch version                                                                                       | build,ci,chore,docs,fix,perf,refactor,style,test             |
-| SV4GIT_INCLUDE_UNKNOWN_TYPE_AS_PATCH  | force patch bump on unknown type                                                                                       | true                                                         |
-| SV4GIT_BRAKING_CHANGE_PREFIXES        | list of prefixes that will be used to identify a breaking change                                                       | BREAKING CHANGE:,BREAKING CHANGES:                           |
-| SV4GIT_ISSUEID_PREFIXES               | list of prefixes that will be used to identify an issue id                                                             | jira:,JIRA:,Jira:                                            |
-| SV4GIT_TAG_PATTERN                    | tag version pattern                                                                                                    | %d.%d.%d                                                     |
-| SV4GIT_RELEASE_NOTES_TAGS             | release notes headers for each visible type                                                                            | fix:Bug Fixes,feat:Features                                  |
-| SV4GIT_VALIDATE_MESSAGE_SKIP_BRANCHES | ignore branches from this list on validate commit message                                                              | master,develop                                               |
-| SV4GIT_COMMIT_MESSAGE_TYPES           | list of valid commit types for commit message                                                                          | build,ci,chore,docs,feat,fix,perf,refactor,revert,style,test |
-| SV4GIT_ISSUE_KEY_NAME                 | metadata key name used on validate commit message hook to enhance footer, if blank footer will not be added            | jira                                                         |
-| SV4GIT_ISSUE_REGEX                    | issue id regex, if blank footer will not be added                                                                      | [A-Z]+-[0-9]+                                                |
-| SV4GIT_BRANCH_ISSUE_REGEX             | regex to extract issue id from branch name, must have 3 groups (prefix, id, posfix), if blank footer will not be added | ^([a-z]+\\/)?([A-Z]+-[0-9]+)(-.*)?                           |
+To see current config, run:
+
+```bash
+git sv cfg show
+```
+
+#### Configuration types
+
+##### Default
+
+To check what is the default configuration, run:
+
+```bash
+git sv cfg default
+```
+
+##### User
+
+To configure define `SV4GIT_HOME` environment variable, eg.:
+
+```bash
+SV4GIT_HOME=/home/myuser/.sv4git # myuser is just an example
+```
+
+And define the `config.yml` inside it, eg:
+
+```bash
+.sv4git
+└── config.yml
+```
+
+##### Repository
+
+Create a `.sv4git.yml` on the root of your repository, eg.: [.sv4git.yml](.sv4git.yml)
+
+#### Configuration format
+
+```yml
+version: "1.0" #config version
+
+versioning: # versioning bump
+    update-major: [] # commit types used to bump major
+    update-minor: # commit types used to bump minor
+        - feat
+    update-patch: # commit types used to bump patch
+        - build
+        - ci
+        - chore
+        - docs
+        - fix
+        - perf
+        - refactor
+        - style
+        - test
+    # when type is not present on update rules and is unknown (not mapped on commit message types), 
+    # if ignore-unknown=false bump patch, if ignore-unknown=true do not bump version
+    ignore-unknown: false 
+
+tag:
+    pattern: '%d.%d.%d' # pattern used to create git tag
+
+release-notes:
+    headers: # headers names for relase notes markdown, to disable a section, just remove the header line
+        breaking-change: Breaking Changes
+        feat: Features
+        fix: Bug Fixes
+
+branches: # git branches config
+    prefix: ([a-z]+\/)? # prefix used on branch name, should be a regex group
+    suffix: (-.*)? # suffix used on branch name, should be a regex group
+    disable-issue: false # set true if there is no need to recover issue id from branch name
+    skip: # list of branch names ignored on commit message validation
+        - master
+        - main
+        - developer
+
+commit-message:
+    types: # supported commit types
+        - build
+        - ci
+        - chore
+        - docs
+        - feat
+        - fix
+        - perf
+        - refactor
+        - revert
+        - style
+        - test
+    scope:
+        # define supported scopes, if blank, scope will not be validated, if not, only scope listed will be valid.
+        # don't forget to add "" on your list if you need to define scopes and keep it optional
+        values: [] 
+    footer:
+        issue:
+            key: jira # name used to define an issue on footer metadata
+            key-synonyms: # supported variations for footer metadata
+                - Jira
+                - JIRA
+            use-hash: false # if false, use :<space> separator, if true, use <space># separator
+    issue:
+        regex: '[A-Z]+-[0-9]+' # regex for issue id
+```
 
 ### Running
 
@@ -48,7 +137,7 @@ git sv next-version
 
 #### Usage
 
-use `--help` or `-h` to get usage information, dont forget that some commands have unique options too
+use `--help` or `-h` to get usage information, don't forget that some commands have unique options too
 
 ```bash
 # sv help
