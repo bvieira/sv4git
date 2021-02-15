@@ -174,26 +174,32 @@ jira: JIRA-123`
 )
 
 func Test_hasIssueID(t *testing.T) {
+	cfgColon := CommitMessageFooterConfig{Key: "jira"}
+	cfgHash := CommitMessageFooterConfig{Key: "jira", UseHash: true}
+
 	tests := []struct {
-		name         string
-		message      string
-		issueKeyName string
-		want         bool
+		name     string
+		message  string
+		issueCfg CommitMessageFooterConfig
+		want     bool
 	}{
-		{"single line without issue", "feat: something", "jira", false},
+		{"single line without issue", "feat: something", cfgColon, false},
 		{"multi line without issue", `feat: something
 		
-yay`, "jira", false},
+yay`, cfgColon, false},
 		{"multi line without jira issue", `feat: something
 		
-jira1: JIRA-123`, "jira", false},
+jira1: JIRA-123`, cfgColon, false},
 		{"multi line with issue", `feat: something
 		
-jira: JIRA-123`, "jira", true},
+jira: JIRA-123`, cfgColon, true},
+		{"multi line with issue and hash", `feat: something
+		
+jira #JIRA-123`, cfgHash, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := hasIssueID(tt.message, tt.issueKeyName); got != tt.want {
+			if got := hasIssueID(tt.message, tt.issueCfg); got != tt.want {
 				t.Errorf("hasIssueID() = %v, want %v", got, tt.want)
 			}
 		})

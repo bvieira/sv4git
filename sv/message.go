@@ -97,7 +97,7 @@ func (p MessageProcessorImpl) Validate(message string) error {
 
 // Enhance add metadata on commit message.
 func (p MessageProcessorImpl) Enhance(branch string, message string) (string, error) {
-	if p.branchesCfg.DisableIssue || p.messageCfg.IssueFooterConfig().Key == "" || hasIssueID(message, p.messageCfg.IssueFooterConfig().Key) {
+	if p.branchesCfg.DisableIssue || p.messageCfg.IssueFooterConfig().Key == "" || hasIssueID(message, p.messageCfg.IssueFooterConfig()) {
 		return "", nil //enhance disabled
 	}
 
@@ -151,7 +151,11 @@ func (p MessageProcessorImpl) Format(msg CommitMessage) (string, string, string)
 		if footer.Len() > 0 {
 			footer.WriteString("\n")
 		}
-		footer.WriteString(fmt.Sprintf("%s: %s", p.messageCfg.IssueFooterConfig().Key, issue))
+		if p.messageCfg.IssueFooterConfig().UseHash {
+			footer.WriteString(fmt.Sprintf("%s #%s", p.messageCfg.IssueFooterConfig().Key, strings.TrimPrefix(issue, "#")))
+		} else {
+			footer.WriteString(fmt.Sprintf("%s: %s", p.messageCfg.IssueFooterConfig().Key, issue))
+		}
 	}
 
 	return header.String(), msg.Body, footer.String()
@@ -225,8 +229,13 @@ func hasFooter(message string) bool {
 	return false
 }
 
-func hasIssueID(message, issueKeyName string) bool {
-	r := regexp.MustCompile(fmt.Sprintf("(?m)^%s: .+$", issueKeyName))
+func hasIssueID(message string, issueConfig CommitMessageFooterConfig) bool {
+	var r *regexp.Regexp
+	if issueConfig.UseHash {
+		r = regexp.MustCompile(fmt.Sprintf("(?m)^%s #.+$", issueConfig.Key))
+	} else {
+		r = regexp.MustCompile(fmt.Sprintf("(?m)^%s: .+$", issueConfig.Key))
+	}
 	return r.MatchString(message)
 }
 
