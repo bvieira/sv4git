@@ -11,14 +11,14 @@ func version(v string) semver.Version {
 	return *r
 }
 
-func commitlog(t string, metadata map[string]string) GitCommitLog {
+func commitlog(ctype string, metadata map[string]string) GitCommitLog {
 	breaking := false
 	if _, found := metadata[breakingChangeMetadataKey]; found {
 		breaking = true
 	}
 	return GitCommitLog{
 		Message: CommitMessage{
-			Type:             t,
+			Type:             ctype,
 			Description:      "subject text",
 			IsBreakingChange: breaking,
 			Metadata:         metadata,
@@ -27,11 +27,15 @@ func commitlog(t string, metadata map[string]string) GitCommitLog {
 }
 
 func releaseNote(version *semver.Version, date time.Time, sections map[string]ReleaseNoteSection, breakingChanges []string) ReleaseNote {
+	var bchanges BreakingChangeSection
+	if len(breakingChanges) > 0 {
+		bchanges = BreakingChangeSection{Name: "Breaking Changes", Messages: breakingChanges}
+	}
 	return ReleaseNote{
 		Version:         version,
 		Date:            date.Truncate(time.Minute),
 		Sections:        sections,
-		BreakingChanges: breakingChanges,
+		BreakingChanges: bchanges,
 	}
 }
 

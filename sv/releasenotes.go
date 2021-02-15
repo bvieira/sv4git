@@ -40,7 +40,11 @@ func (p ReleaseNoteProcessorImpl) Create(version *semver.Version, date time.Time
 		}
 	}
 
-	return ReleaseNote{Version: version, Date: date.Truncate(time.Minute), Sections: sections, BreakingChanges: breakingChanges}
+	var breakingChangeSection BreakingChangeSection
+	if name, exists := p.cfg.Headers[breakingChangeMetadataKey]; exists && len(breakingChanges) > 0 {
+		breakingChangeSection = BreakingChangeSection{Name: name, Messages: breakingChanges}
+	}
+	return ReleaseNote{Version: version, Date: date.Truncate(time.Minute), Sections: sections, BreakingChanges: breakingChangeSection}
 }
 
 // ReleaseNote release note.
@@ -48,7 +52,13 @@ type ReleaseNote struct {
 	Version         *semver.Version
 	Date            time.Time
 	Sections        map[string]ReleaseNoteSection
-	BreakingChanges []string
+	BreakingChanges BreakingChangeSection
+}
+
+// BreakingChangeSection breaking change section
+type BreakingChangeSection struct {
+	Name     string
+	Messages []string
 }
 
 // ReleaseNoteSection release note section.
