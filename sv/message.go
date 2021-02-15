@@ -2,6 +2,7 @@ package sv
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -76,13 +77,21 @@ func (p MessageProcessorImpl) SkipBranch(branch string) bool {
 
 // Validate commit message.
 func (p MessageProcessorImpl) Validate(message string) error {
-	valid, err := regexp.MatchString("^("+strings.Join(p.messageCfg.Types, "|")+")(\\(.+\\))?!?: .*$", firstLine(message))
-	if err != nil {
-		return err
+	subject, body := splitCommitMessageContent(message)
+	msg := p.Parse(subject, body)
+
+	if !regexp.MustCompile("^[a-z+]+(\\(.+\\))?!?: .+$").MatchString(subject) {
+		return errors.New("message should be valid according with conventional commits")
 	}
-	if !valid {
-		return fmt.Errorf("message should contain type: %v, and should be valid according with conventional commits", p.messageCfg.Types)
+
+	if msg.Type == "" || !contains(msg.Type, p.messageCfg.Types) {
+		return fmt.Errorf("message type should be one of [%v]", strings.Join(p.messageCfg.Types, ", "))
 	}
+
+	if len(p.messageCfg.Scope.Values) > 0 && !contains(msg.Scope, p.messageCfg.Scope.Values) {
+		return fmt.Errorf("message scope should one of [%v]", strings.Join(p.messageCfg.Scope.Values, ", "))
+	}
+
 	return nil
 }
 
@@ -230,6 +239,21 @@ func contains(value string, content []string) bool {
 	return false
 }
 
-func firstLine(value string) string {
-	return strings.Split(value, "\n")[0]
+func splitCommitMessageContent(content string) (string, string) {
+	scanner := bufio.NewScanner(strings.NewReader(content))
+
+	scanner.Scan()
+	subject := scanner.Text()
+
+	var body strings.Builder
+	first := true
+	for scanner.Scan() {
+		if !first {
+			body.WriteString("\n")
+		}
+		body.WriteString(scanner.Text())
+		first = false
+	}
+
+	return subject, body.String()
 }

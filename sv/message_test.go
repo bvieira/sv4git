@@ -16,6 +16,17 @@ var ccfg = CommitMessageConfig{
 	Issue: CommitMessageIssueConfig{Regex: "[A-Z]+-[0-9]+"},
 }
 
+var ccfgWithScope = CommitMessageConfig{
+	Types: []string{"feat", "fix"},
+	Scope: CommitMessageScopeConfig{Values: []string{"", "scope"}},
+	Footer: map[string]CommitMessageFooterConfig{
+		"issue":           {Key: "jira", KeySynonyms: []string{"Jira"}},
+		"breaking-change": {Key: "BREAKING CHANGE", KeySynonyms: []string{"BREAKING CHANGES"}},
+		"refs":            {Key: "Refs", UseHash: true},
+	},
+	Issue: CommitMessageIssueConfig{Regex: "[A-Z]+-[0-9]+"},
+}
+
 var bcfg = BranchesConfig{
 	PrefixRegex: "([a-z]+\\/)?",
 	SuffixRegex: "(-.*)?",
@@ -59,31 +70,33 @@ BREAKING CHANGE: refactor to use JavaScript features not available in Node 6.`
 // multiline samples end
 
 func TestMessageProcessorImpl_Validate(t *testing.T) {
-	p := NewMessageProcessor(ccfg, bcfg)
-
 	tests := []struct {
 		name    string
+		cfg     CommitMessageConfig
 		message string
 		wantErr bool
 	}{
-		{"single line valid message", "feat: add something", false},
-		{"single line valid message with scope", "feat(scope): add something", false},
-		{"single line invalid type message", "something: add something", true},
-		{"single line invalid type message", "feat?: add something", true},
+		{"single line valid message", ccfg, "feat: add something", false},
+		{"single line valid message with scope", ccfg, "feat(scope): add something", false},
+		{"single line valid scope from list", ccfgWithScope, "feat(scope): add something", false},
+		{"single line invalid scope from list", ccfgWithScope, "feat(invalid): add something", true},
+		{"single line invalid type message", ccfg, "something: add something", true},
+		{"single line invalid type message", ccfg, "feat?: add something", true},
 
-		{"multi line valid message", `feat: add something
+		{"multi line valid message", ccfg, `feat: add something
 		
 		team: x`, false},
 
-		{"multi line invalid message", `feat add something
+		{"multi line invalid message", ccfg, `feat add something
 		
 		team: x`, true},
 
-		{"support ! for breaking change", "feat!: add something", false},
-		{"support ! with scope for breaking change", "feat(scope)!: add something", false},
+		{"support ! for breaking change", ccfg, "feat!: add something", false},
+		{"support ! with scope for breaking change", ccfg, "feat(scope)!: add something", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			p := NewMessageProcessor(tt.cfg, bcfg)
 			if err := p.Validate(tt.message); (err != nil) != tt.wantErr {
 				t.Errorf("MessageProcessorImpl.Validate() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -161,28 +174,6 @@ c`
 	fullFooter = `BREAKING CHANGE: breaks
 jira: JIRA-123`
 )
-
-func Test_firstLine(t *testing.T) {
-	tests := []struct {
-		name  string
-		value string
-		want  string
-	}{
-		{"empty string", "", ""},
-
-		{"single line string", "single line", "single line"},
-
-		{"multi line string", `first line
-		last line`, "first line"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := firstLine(tt.value); got != tt.want {
-				t.Errorf("firstLine() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
 
 func Test_hasIssueID(t *testing.T) {
 	tests := []struct {
@@ -308,6 +299,71 @@ func TestMessageProcessorImpl_Format(t *testing.T) {
 			}
 			if got2 != tt.wantFooter {
 				t.Errorf("MessageProcessorImpl.Format() footer got = %v, want %v", got2, tt.wantFooter)
+			}
+		})
+	}
+}
+
+var expectedBodyFullMessage = `
+see the issue for details
+
+on typos fixed.
+
+Reviewed-by: Z
+Refs #133`
+
+func Test_splitCommitMessageContent(t *testing.T) {
+	tests := []struct {
+		name        string
+		content     string
+		wantSubject string
+		wantBody    string
+	}{
+		{"single line commit", "feat: something", "feat: something", ""},
+		{"multi line commit", fullMessage, "fix: correct minor typos in code", expectedBodyFullMessage},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, got1 := splitCommitMessageContent(tt.content)
+			if got != tt.wantSubject {
+				t.Errorf("splitCommitMessageContent() subject got = %v, want %v", got, tt.wantSubject)
+			}
+			if got1 != tt.wantBody {
+				t.Errorf("splitCommitMessageContent() body got1 = [%v], want [%v]", got1, tt.wantBody)
+			}
+		})
+	}
+}
+
+//commitType, scope, description, hasBreakingChange
+func Test_parseSubjectMessage(t *testing.T) {
+	tests := []struct {
+		name                  string
+		message               string
+		wantType              string
+		wantScope             string
+		wantDescription       string
+		wantHasBreakingChange bool
+	}{
+		{"valid commit", "feat: something", "feat", "", "something", false},
+		{"valid commit with scope", "feat(scope): something", "feat", "scope", "something", false},
+		{"valid commit with breaking change", "feat(scope)!: something", "feat", "scope", "something", true},
+		{"missing description", "feat: ", "feat", "", "", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctype, scope, description, hasBreakingChange := parseSubjectMessage(tt.message)
+			if ctype != tt.wantType {
+				t.Errorf("parseSubjectMessage() type got = %v, want %v", ctype, tt.wantType)
+			}
+			if scope != tt.wantScope {
+				t.Errorf("parseSubjectMessage() scope got = %v, want %v", scope, tt.wantScope)
+			}
+			if description != tt.wantDescription {
+				t.Errorf("parseSubjectMessage() description got = %v, want %v", description, tt.wantDescription)
+			}
+			if hasBreakingChange != tt.wantHasBreakingChange {
+				t.Errorf("parseSubjectMessage() hasBreakingChange got = %v, want %v", hasBreakingChange, tt.wantHasBreakingChange)
 			}
 		})
 	}
