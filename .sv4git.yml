@@ -1,0 +1,21 @@
+version: "1.0"
+
+versioning:
+    update-major: []
+    update-minor:
+        - feat
+    update-patch:
+        - build
+        - ci
+        - chore
+        - fix
+        - perf
+        - refactor
+        - test
+
+commit-message:
+    footer:
+        issue:
+            key: issue
+    issue:
+        regex: '#[0-9]+'
