@@ -42,6 +42,9 @@ func main() {
 		if merr := mergo.Merge(&cfg, repoCfg, mergo.WithOverride); merr != nil {
 			log.Fatal(merr)
 		}
+		if len(repoCfg.ReleaseNotes.Headers) > 0 { // mergo is merging maps, headers will be overwritten
+			cfg.ReleaseNotes.Headers = repoCfg.ReleaseNotes.Headers
+		}
 	}
 
 	messageProcessor := sv.NewMessageProcessor(cfg.CommitMessage, cfg.Branches)
