@@ -12,15 +12,7 @@ type CommitMessageConfig struct {
 
 // IssueFooterConfig config for issue.
 func (c CommitMessageConfig) IssueFooterConfig() CommitMessageFooterConfig {
-	if v, exists := c.Footer[issueKey]; exists {
-		return v
-	}
-	return CommitMessageFooterConfig{}
-}
-
-// BreakingChangeFooterConfig config for breaking changes.
-func (c CommitMessageConfig) BreakingChangeFooterConfig() CommitMessageFooterConfig {
-	if v, exists := c.Footer[breakingKey]; exists {
+	if v, exists := c.Footer[issueMetadataKey]; exists {
 		return v
 	}
 	return CommitMessageFooterConfig{}

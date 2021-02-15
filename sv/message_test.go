@@ -9,9 +9,8 @@ var ccfg = CommitMessageConfig{
 	Types: []string{"feat", "fix"},
 	Scope: CommitMessageScopeConfig{},
 	Footer: map[string]CommitMessageFooterConfig{
-		"issue":           {Key: "jira", KeySynonyms: []string{"Jira"}},
-		"breaking-change": {Key: "BREAKING CHANGE", KeySynonyms: []string{"BREAKING CHANGES"}},
-		"refs":            {Key: "Refs", UseHash: true},
+		"issue": {Key: "jira", KeySynonyms: []string{"Jira"}},
+		"refs":  {Key: "Refs", UseHash: true},
 	},
 	Issue: CommitMessageIssueConfig{Regex: "[A-Z]+-[0-9]+"},
 }
@@ -20,9 +19,8 @@ var ccfgWithScope = CommitMessageConfig{
 	Types: []string{"feat", "fix"},
 	Scope: CommitMessageScopeConfig{Values: []string{"", "scope"}},
 	Footer: map[string]CommitMessageFooterConfig{
-		"issue":           {Key: "jira", KeySynonyms: []string{"Jira"}},
-		"breaking-change": {Key: "BREAKING CHANGE", KeySynonyms: []string{"BREAKING CHANGES"}},
-		"refs":            {Key: "Refs", UseHash: true},
+		"issue": {Key: "jira", KeySynonyms: []string{"Jira"}},
+		"refs":  {Key: "Refs", UseHash: true},
 	},
 	Issue: CommitMessageIssueConfig{Regex: "[A-Z]+-[0-9]+"},
 }
@@ -216,7 +214,7 @@ func Test_hasFooter(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := hasFooter(tt.message, "BREAKING CHANGE"); got != tt.want {
+			if got := hasFooter(tt.message); got != tt.want {
 				t.Errorf("hasFooter() = %v, want %v", got, tt.want)
 			}
 		})
@@ -255,11 +253,11 @@ func TestMessageProcessorImpl_Parse(t *testing.T) {
 		{"simple message", "feat: something awesome", "", CommitMessage{Type: "feat", Scope: "", Description: "something awesome", Body: "", IsBreakingChange: false, Metadata: map[string]string{}}},
 		{"message with scope", "feat(scope): something awesome", "", CommitMessage{Type: "feat", Scope: "scope", Description: "something awesome", Body: "", IsBreakingChange: false, Metadata: map[string]string{}}},
 		{"unmapped type", "unkn: something unknown", "", CommitMessage{Type: "unkn", Scope: "", Description: "something unknown", Body: "", IsBreakingChange: false, Metadata: map[string]string{}}},
-		{"jira and breaking change metadata", "feat: something new", completeBody, CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: completeBody, IsBreakingChange: true, Metadata: map[string]string{issueKey: "JIRA-123", breakingKey: "this change breaks everything"}}},
-		{"jira only metadata", "feat: something new", issueOnlyBody, CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: issueOnlyBody, IsBreakingChange: false, Metadata: map[string]string{issueKey: "JIRA-456"}}},
-		{"jira synonyms metadata", "feat: something new", issueSynonymsBody, CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: issueSynonymsBody, IsBreakingChange: false, Metadata: map[string]string{issueKey: "JIRA-789"}}},
+		{"jira and breaking change metadata", "feat: something new", completeBody, CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: completeBody, IsBreakingChange: true, Metadata: map[string]string{issueMetadataKey: "JIRA-123", breakingChangeMetadataKey: "this change breaks everything"}}},
+		{"jira only metadata", "feat: something new", issueOnlyBody, CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: issueOnlyBody, IsBreakingChange: false, Metadata: map[string]string{issueMetadataKey: "JIRA-456"}}},
+		{"jira synonyms metadata", "feat: something new", issueSynonymsBody, CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: issueSynonymsBody, IsBreakingChange: false, Metadata: map[string]string{issueMetadataKey: "JIRA-789"}}},
 		{"breaking change with exclamation mark", "feat!: something new", "", CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: "", IsBreakingChange: true, Metadata: map[string]string{}}},
-		{"hash metadata", "feat: something new", hashMetadataBody, CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: hashMetadataBody, IsBreakingChange: false, Metadata: map[string]string{issueKey: "JIRA-999", "refs": "#123"}}},
+		{"hash metadata", "feat: something new", hashMetadataBody, CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: hashMetadataBody, IsBreakingChange: false, Metadata: map[string]string{issueMetadataKey: "JIRA-999", "refs": "#123"}}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

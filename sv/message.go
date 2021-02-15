@@ -9,9 +9,9 @@ import (
 )
 
 const (
-	breakingKey = "breaking-change"
-	// IssueIDKey key to issue id metadata
-	issueKey = "issue"
+	breakingChangeFooterKey   = "BREAKING CHANGE"
+	breakingChangeMetadataKey = "breaking-change"
+	issueMetadataKey          = "issue"
 )
 
 // CommitMessage is a message using conventional commits.
@@ -28,22 +28,22 @@ type CommitMessage struct {
 func NewCommitMessage(ctype, scope, description, body, issue, breakingChanges string) CommitMessage {
 	metadata := make(map[string]string)
 	if issue != "" {
-		metadata[issueKey] = issue
+		metadata[issueMetadataKey] = issue
 	}
 	if breakingChanges != "" {
-		metadata[breakingKey] = breakingChanges
+		metadata[breakingChangeMetadataKey] = breakingChanges
 	}
 	return CommitMessage{Type: ctype, Scope: scope, Description: description, Body: body, IsBreakingChange: breakingChanges != "", Metadata: metadata}
 }
 
 // Issue return issue from metadata.
 func (m CommitMessage) Issue() string {
-	return m.Metadata[issueKey]
+	return m.Metadata[issueMetadataKey]
 }
 
 // BreakingMessage return breaking change message from metadata.
 func (m CommitMessage) BreakingMessage() string {
-	return m.Metadata[breakingKey]
+	return m.Metadata[breakingChangeMetadataKey]
 }
 
 // MessageProcessor interface.
@@ -111,7 +111,7 @@ func (p MessageProcessorImpl) Enhance(branch string, message string) (string, er
 
 	footer := fmt.Sprintf("%s: %s", p.messageCfg.IssueFooterConfig().Key, issue)
 
-	if !hasFooter(message, p.messageCfg.Footer[breakingKey].Key) {
+	if !hasFooter(message) {
 		return "\n" + footer, nil
 	}
 
@@ -145,9 +145,9 @@ func (p MessageProcessorImpl) Format(msg CommitMessage) (string, string, string)
 
 	var footer strings.Builder
 	if msg.BreakingMessage() != "" {
-		footer.WriteString(fmt.Sprintf("%s: %s", p.messageCfg.BreakingChangeFooterConfig().Key, msg.BreakingMessage()))
+		footer.WriteString(fmt.Sprintf("%s: %s", breakingChangeFooterKey, msg.BreakingMessage()))
 	}
-	if issue, exists := msg.Metadata[issueKey]; exists {
+	if issue, exists := msg.Metadata[issueMetadataKey]; exists {
 		if footer.Len() > 0 {
 			footer.WriteString("\n")
 		}
@@ -171,8 +171,8 @@ func (p MessageProcessorImpl) Parse(subject, body string) CommitMessage {
 			}
 		}
 	}
-
-	if _, exists := metadata[breakingKey]; exists {
+	if tagValue := extractFooterMetadata(breakingChangeFooterKey, body, false); tagValue != "" {
+		metadata[breakingChangeMetadataKey] = tagValue
 		hasBreakingChange = true
 	}
 
@@ -210,8 +210,8 @@ func extractFooterMetadata(key, text string, useHash bool) string {
 	return result[1]
 }
 
-func hasFooter(message, breakingChangeKey string) bool {
-	r := regexp.MustCompile("^[a-zA-Z-]+: .*|^[a-zA-Z-]+ #.*|^" + breakingChangeKey + ": .*")
+func hasFooter(message string) bool {
+	r := regexp.MustCompile("^[a-zA-Z-]+: .*|^[a-zA-Z-]+ #.*|^" + breakingChangeFooterKey + ": .*")
 
 	scanner := bufio.NewScanner(strings.NewReader(message))
 	lines := 0

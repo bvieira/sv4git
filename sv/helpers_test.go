@@ -13,7 +13,7 @@ func version(v string) semver.Version {
 
 func commitlog(t string, metadata map[string]string) GitCommitLog {
 	breaking := false
-	if _, found := metadata[breakingKey]; found {
+	if _, found := metadata[breakingChangeMetadataKey]; found {
 		breaking = true
 	}
 	return GitCommitLog{

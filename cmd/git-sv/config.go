@@ -82,8 +82,7 @@ func defaultConfig() Config {
 			Types: []string{"build", "ci", "chore", "docs", "feat", "fix", "perf", "refactor", "revert", "style", "test"},
 			Scope: sv.CommitMessageScopeConfig{},
 			Footer: map[string]sv.CommitMessageFooterConfig{
-				"issue":           {Key: "jira", KeySynonyms: []string{"Jira", "JIRA"}},
-				"breaking-change": {Key: "BREAKING CHANGE", KeySynonyms: []string{"BREAKING CHANGES"}},
+				"issue": {Key: "jira", KeySynonyms: []string{"Jira", "JIRA"}},
 			},
 			Issue: sv.CommitMessageIssueConfig{Regex: "[A-Z]+-[0-9]+"},
 		},
