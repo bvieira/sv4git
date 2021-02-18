@@ -3,30 +3,78 @@ package main
 import (
 	"log"
 	"os"
+	"path/filepath"
 	"sv4git/sv"
 
+	"github.com/imdario/mergo"
 	"github.com/urfave/cli/v2"
 )
 
 // Version for git-sv
 var Version = ""
 
+const (
+	configFilename     = "config.yml"
+	repoConfigFilename = ".sv4git.yml"
+)
+
 func main() {
 	log.SetFlags(0)
 
-	cfg := loadConfig()
+	envCfg := loadEnvConfig()
 
-	git := sv.NewGit(cfg.BreakingChangePrefixes, cfg.IssueIDPrefixes, cfg.TagPattern)
-	semverProcessor := sv.NewSemVerCommitsProcessor(cfg.IncludeUnknownTypeAsPatch, cfg.MajorVersionTypes, cfg.MinorVersionTypes, cfg.PatchVersionTypes)
-	releasenotesProcessor := sv.NewReleaseNoteProcessor(cfg.ReleaseNotesTags)
+	cfg := defaultConfig()
+
+	if envCfg.Home != "" {
+		if homeCfg, err := loadConfig(filepath.Join(envCfg.Home, configFilename)); err == nil {
+			if merr := mergo.Merge(&cfg, homeCfg, mergo.WithOverride); merr != nil {
+				log.Fatal(merr)
+			}
+		}
+	}
+
+	repoPath, rerr := getRepoPath()
+	if rerr != nil {
+		log.Fatal(rerr)
+	}
+
+	if repoCfg, err := loadConfig(filepath.Join(repoPath, repoConfigFilename)); err == nil {
+		if merr := mergo.Merge(&cfg, repoCfg, mergo.WithOverride); merr != nil {
+			log.Fatal(merr)
+		}
+		if len(repoCfg.ReleaseNotes.Headers) > 0 { // mergo is merging maps, headers will be overwritten
+			cfg.ReleaseNotes.Headers = repoCfg.ReleaseNotes.Headers
+		}
+	}
+
+	messageProcessor := sv.NewMessageProcessor(cfg.CommitMessage, cfg.Branches)
+	git := sv.NewGit(messageProcessor, cfg.Tag)
+	semverProcessor := sv.NewSemVerCommitsProcessor(cfg.Versioning, cfg.CommitMessage)
+	releasenotesProcessor := sv.NewReleaseNoteProcessor(cfg.ReleaseNotes)
 	outputFormatter := sv.NewOutputFormatter()
-	messageProcessor := sv.NewMessageProcessor(cfg.ValidateMessageSkipBranches, cfg.CommitMessageTypes, cfg.IssueKeyName, cfg.BranchIssueRegex, cfg.IssueRegex)
 
 	app := cli.NewApp()
 	app.Name = "sv"
 	app.Version = Version
 	app.Usage = "semantic version for git"
 	app.Commands = []*cli.Command{
+		{
+			Name:    "config",
+			Aliases: []string{"cfg"},
+			Usage:   "cli configuration",
+			Subcommands: []*cli.Command{
+				{
+					Name:   "default",
+					Usage:  "show default config",
+					Action: configDefaultHandler(),
+				},
+				{
+					Name:   "show",
+					Usage:  "show current config",
+					Action: configShowHandler(cfg),
+				},
+			},
+		},
 		{
 			Name:    "current-version",
 			Aliases: []string{"cv"},

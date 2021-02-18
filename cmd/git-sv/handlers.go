@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"sv4git/sv"
@@ -12,7 +13,31 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/urfave/cli/v2"
+	"gopkg.in/yaml.v3"
 )
+
+func configDefaultHandler() func(c *cli.Context) error {
+	cfg := defaultConfig()
+	return func(c *cli.Context) error {
+		content, err := yaml.Marshal(&cfg)
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(content))
+		return nil
+	}
+}
+
+func configShowHandler(cfg Config) func(c *cli.Context) error {
+	return func(c *cli.Context) error {
+		content, err := yaml.Marshal(&cfg)
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(content))
+		return nil
+	}
+}
 
 func currentVersionHandler(git sv.Git) func(c *cli.Context) error {
 	return func(c *cli.Context) error {
@@ -241,12 +266,12 @@ func tagHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor) func(c *c
 func commitHandler(cfg Config, git sv.Git, messageProcessor sv.MessageProcessor) func(c *cli.Context) error {
 	return func(c *cli.Context) error {
 
-		ctype, err := promptType()
+		ctype, err := promptType(cfg.CommitMessage.Types)
 		if err != nil {
 			return err
 		}
 
-		scope, err := promptScope()
+		scope, err := promptScope(cfg.CommitMessage.Scope.Values)
 		if err != nil {
 			return err
 		}
@@ -273,7 +298,7 @@ func commitHandler(cfg Config, git sv.Git, messageProcessor sv.MessageProcessor)
 		if err != nil {
 			return err
 		}
-		issue, err := promptIssueID(cfg.IssueKeyName, cfg.IssueRegex, branchIssue)
+		issue, err := promptIssueID(cfg.CommitMessage.IssueFooterConfig().Key, cfg.CommitMessage.Issue.Regex, branchIssue)
 		if err != nil {
 			return err
 		}
@@ -290,7 +315,7 @@ func commitHandler(cfg Config, git sv.Git, messageProcessor sv.MessageProcessor)
 			}
 		}
 
-		header, body, footer := messageProcessor.Format(ctype.Type, scope, subject, fullBody.String(), issue, breakingChanges)
+		header, body, footer := messageProcessor.Format(sv.NewCommitMessage(ctype.Type, scope, subject, fullBody.String(), issue, breakingChanges))
 
 		err = git.Commit(header, body, footer)
 		if err != nil {
@@ -351,7 +376,7 @@ func validateCommitMessageHandler(git sv.Git, messageProcessor sv.MessageProcess
 			return nil
 		}
 
-		filepath := fmt.Sprintf("%s/%s", c.String("path"), c.String("file"))
+		filepath := filepath.Join(c.String("path"), c.String("file"))
 
 		commitMessage, err := readFile(filepath)
 		if err != nil {

@@ -1,13 +1,35 @@
 package sv
 
 import (
+	"reflect"
 	"testing"
 )
 
-const (
-	branchIssueRegex = "^([a-z]+\\/)?([A-Z]+-[0-9]+)(-.*)?"
-	issueRegex       = "[A-Z]+-[0-9]+"
-)
+var ccfg = CommitMessageConfig{
+	Types: []string{"feat", "fix"},
+	Scope: CommitMessageScopeConfig{},
+	Footer: map[string]CommitMessageFooterConfig{
+		"issue": {Key: "jira", KeySynonyms: []string{"Jira"}},
+		"refs":  {Key: "Refs", UseHash: true},
+	},
+	Issue: CommitMessageIssueConfig{Regex: "[A-Z]+-[0-9]+"},
+}
+
+var ccfgWithScope = CommitMessageConfig{
+	Types: []string{"feat", "fix"},
+	Scope: CommitMessageScopeConfig{Values: []string{"", "scope"}},
+	Footer: map[string]CommitMessageFooterConfig{
+		"issue": {Key: "jira", KeySynonyms: []string{"Jira"}},
+		"refs":  {Key: "Refs", UseHash: true},
+	},
+	Issue: CommitMessageIssueConfig{Regex: "[A-Z]+-[0-9]+"},
+}
+
+var bcfg = BranchesConfig{
+	PrefixRegex: "([a-z]+\\/)?",
+	SuffixRegex: "(-.*)?",
+	Skip:        []string{"develop", "master"},
+}
 
 // messages samples start
 var fullMessage = `fix: correct minor typos in code
@@ -46,31 +68,33 @@ BREAKING CHANGE: refactor to use JavaScript features not available in Node 6.`
 // multiline samples end
 
 func TestMessageProcessorImpl_Validate(t *testing.T) {
-	p := NewMessageProcessor([]string{"develop", "master"}, []string{"feat", "fix"}, "jira", branchIssueRegex, issueRegex)
-
 	tests := []struct {
 		name    string
+		cfg     CommitMessageConfig
 		message string
 		wantErr bool
 	}{
-		{"single line valid message", "feat: add something", false},
-		{"single line valid message with scope", "feat(scope): add something", false},
-		{"single line invalid type message", "something: add something", true},
-		{"single line invalid type message", "feat?: add something", true},
+		{"single line valid message", ccfg, "feat: add something", false},
+		{"single line valid message with scope", ccfg, "feat(scope): add something", false},
+		{"single line valid scope from list", ccfgWithScope, "feat(scope): add something", false},
+		{"single line invalid scope from list", ccfgWithScope, "feat(invalid): add something", true},
+		{"single line invalid type message", ccfg, "something: add something", true},
+		{"single line invalid type message", ccfg, "feat?: add something", true},
 
-		{"multi line valid message", `feat: add something
+		{"multi line valid message", ccfg, `feat: add something
 		
 		team: x`, false},
 
-		{"multi line invalid message", `feat add something
+		{"multi line invalid message", ccfg, `feat add something
 		
 		team: x`, true},
 
-		{"support ! for breaking change", "feat!: add something", false},
-		{"support ! with scope for breaking change", "feat(scope)!: add something", false},
+		{"support ! for breaking change", ccfg, "feat!: add something", false},
+		{"support ! with scope for breaking change", ccfg, "feat(scope)!: add something", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			p := NewMessageProcessor(tt.cfg, bcfg)
 			if err := p.Validate(tt.message); (err != nil) != tt.wantErr {
 				t.Errorf("MessageProcessorImpl.Validate() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -79,7 +103,7 @@ func TestMessageProcessorImpl_Validate(t *testing.T) {
 }
 
 func TestMessageProcessorImpl_Enhance(t *testing.T) {
-	p := NewMessageProcessor([]string{"develop", "master"}, []string{"feat", "fix"}, "jira", branchIssueRegex, issueRegex)
+	p := NewMessageProcessor(ccfg, bcfg)
 
 	tests := []struct {
 		name    string
@@ -112,7 +136,7 @@ func TestMessageProcessorImpl_Enhance(t *testing.T) {
 }
 
 func TestMessageProcessorImpl_IssueID(t *testing.T) {
-	p := NewMessageProcessor([]string{"develop", "master"}, []string{"feat", "fix"}, "jira", branchIssueRegex, issueRegex)
+	p := NewMessageProcessor(ccfg, bcfg)
 
 	tests := []struct {
 		name    string
@@ -149,89 +173,33 @@ c`
 jira: JIRA-123`
 )
 
-func TestMessageProcessorImpl_Format(t *testing.T) {
-	p := NewMessageProcessor([]string{"develop", "master"}, []string{"feat", "fix"}, "jira", branchIssueRegex, issueRegex)
-
-	type args struct {
-		ctype           string
-		scope           string
-		subject         string
-		body            string
-		issue           string
-		breakingChanges string
-	}
-	tests := []struct {
-		name       string
-		args       args
-		wantHeader string
-		wantBody   string
-		wantFooter string
-	}{
-		{"type and subject", args{"feat", "", "subject", "", "", ""}, "feat: subject", "", ""},
-		{"type, scope and subject", args{"feat", "scope", "subject", "", "", ""}, "feat(scope): subject", "", ""},
-		{"type, scope, subject and issue", args{"feat", "scope", "subject", "", "JIRA-123", ""}, "feat(scope): subject", "", "jira: JIRA-123"},
-		{"type, scope, subject and breaking change", args{"feat", "scope", "subject", "", "", "breaks"}, "feat(scope): subject", "", "BREAKING CHANGE: breaks"},
-		{"full message", args{"feat", "scope", "subject", multilineBody, "JIRA-123", "breaks"}, "feat(scope): subject", multilineBody, fullFooter},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			header, body, footer := p.Format(tt.args.ctype, tt.args.scope, tt.args.subject, tt.args.body, tt.args.issue, tt.args.breakingChanges)
-			if header != tt.wantHeader {
-				t.Errorf("MessageProcessorImpl.Format() header = %v, want %v", header, tt.wantHeader)
-			}
-			if body != tt.wantBody {
-				t.Errorf("MessageProcessorImpl.Format() body = %v, want %v", body, tt.wantBody)
-			}
-			if footer != tt.wantFooter {
-				t.Errorf("MessageProcessorImpl.Format() footer = %v, want %v", footer, tt.wantFooter)
-			}
-		})
-	}
-}
-
-func Test_firstLine(t *testing.T) {
-	tests := []struct {
-		name  string
-		value string
-		want  string
-	}{
-		{"empty string", "", ""},
-
-		{"single line string", "single line", "single line"},
-
-		{"multi line string", `first line
-		last line`, "first line"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := firstLine(tt.value); got != tt.want {
-				t.Errorf("firstLine() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func Test_hasIssueID(t *testing.T) {
+	cfgColon := CommitMessageFooterConfig{Key: "jira"}
+	cfgHash := CommitMessageFooterConfig{Key: "jira", UseHash: true}
+
 	tests := []struct {
-		name         string
-		message      string
-		issueKeyName string
-		want         bool
+		name     string
+		message  string
+		issueCfg CommitMessageFooterConfig
+		want     bool
 	}{
-		{"single line without issue", "feat: something", "jira", false},
+		{"single line without issue", "feat: something", cfgColon, false},
 		{"multi line without issue", `feat: something
 		
-yay`, "jira", false},
+yay`, cfgColon, false},
 		{"multi line without jira issue", `feat: something
 		
-jira1: JIRA-123`, "jira", false},
+jira1: JIRA-123`, cfgColon, false},
 		{"multi line with issue", `feat: something
 		
-jira: JIRA-123`, "jira", true},
+jira: JIRA-123`, cfgColon, true},
+		{"multi line with issue and hash", `feat: something
+		
+jira #JIRA-123`, cfgHash, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := hasIssueID(tt.message, tt.issueKeyName); got != tt.want {
+			if got := hasIssueID(tt.message, tt.issueCfg); got != tt.want {
 				t.Errorf("hasIssueID() = %v, want %v", got, tt.want)
 			}
 		})
@@ -254,6 +222,152 @@ func Test_hasFooter(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := hasFooter(tt.message); got != tt.want {
 				t.Errorf("hasFooter() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// conventional commit tests
+
+var completeBody = `some descriptions
+
+jira: JIRA-123
+BREAKING CHANGE: this change breaks everything`
+
+var issueOnlyBody = `some descriptions
+
+jira: JIRA-456`
+
+var issueSynonymsBody = `some descriptions
+
+Jira: JIRA-789`
+
+var hashMetadataBody = `some descriptions
+
+Jira: JIRA-999
+Refs #123`
+
+func TestMessageProcessorImpl_Parse(t *testing.T) {
+	p := NewMessageProcessor(ccfg, bcfg)
+
+	tests := []struct {
+		name    string
+		subject string
+		body    string
+		want    CommitMessage
+	}{
+		{"simple message", "feat: something awesome", "", CommitMessage{Type: "feat", Scope: "", Description: "something awesome", Body: "", IsBreakingChange: false, Metadata: map[string]string{}}},
+		{"message with scope", "feat(scope): something awesome", "", CommitMessage{Type: "feat", Scope: "scope", Description: "something awesome", Body: "", IsBreakingChange: false, Metadata: map[string]string{}}},
+		{"unmapped type", "unkn: something unknown", "", CommitMessage{Type: "unkn", Scope: "", Description: "something unknown", Body: "", IsBreakingChange: false, Metadata: map[string]string{}}},
+		{"jira and breaking change metadata", "feat: something new", completeBody, CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: completeBody, IsBreakingChange: true, Metadata: map[string]string{issueMetadataKey: "JIRA-123", breakingChangeMetadataKey: "this change breaks everything"}}},
+		{"jira only metadata", "feat: something new", issueOnlyBody, CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: issueOnlyBody, IsBreakingChange: false, Metadata: map[string]string{issueMetadataKey: "JIRA-456"}}},
+		{"jira synonyms metadata", "feat: something new", issueSynonymsBody, CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: issueSynonymsBody, IsBreakingChange: false, Metadata: map[string]string{issueMetadataKey: "JIRA-789"}}},
+		{"breaking change with exclamation mark", "feat!: something new", "", CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: "", IsBreakingChange: true, Metadata: map[string]string{}}},
+		{"hash metadata", "feat: something new", hashMetadataBody, CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: hashMetadataBody, IsBreakingChange: false, Metadata: map[string]string{issueMetadataKey: "JIRA-999", "refs": "#123"}}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := p.Parse(tt.subject, tt.body); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("MessageProcessorImpl.Parse() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMessageProcessorImpl_Format(t *testing.T) {
+	p := NewMessageProcessor(ccfg, bcfg)
+
+	tests := []struct {
+		name       string
+		msg        CommitMessage
+		wantHeader string
+		wantBody   string
+		wantFooter string
+	}{
+		{"simple message", NewCommitMessage("feat", "", "something", "", "", ""), "feat: something", "", ""},
+		{"with issue", NewCommitMessage("feat", "", "something", "", "JIRA-123", ""), "feat: something", "", "jira: JIRA-123"},
+		{"with breaking change", NewCommitMessage("feat", "", "something", "", "", "breaks"), "feat: something", "", "BREAKING CHANGE: breaks"},
+		{"with scope", NewCommitMessage("feat", "scope", "something", "", "", ""), "feat(scope): something", "", ""},
+		{"with body", NewCommitMessage("feat", "", "something", "body", "", ""), "feat: something", "body", ""},
+		{"with multiline body", NewCommitMessage("feat", "", "something", multilineBody, "", ""), "feat: something", multilineBody, ""},
+		{"full message", NewCommitMessage("feat", "scope", "something", multilineBody, "JIRA-123", "breaks"), "feat(scope): something", multilineBody, fullFooter},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, got1, got2 := p.Format(tt.msg)
+			if got != tt.wantHeader {
+				t.Errorf("MessageProcessorImpl.Format() header got = %v, want %v", got, tt.wantHeader)
+			}
+			if got1 != tt.wantBody {
+				t.Errorf("MessageProcessorImpl.Format() body got = %v, want %v", got1, tt.wantBody)
+			}
+			if got2 != tt.wantFooter {
+				t.Errorf("MessageProcessorImpl.Format() footer got = %v, want %v", got2, tt.wantFooter)
+			}
+		})
+	}
+}
+
+var expectedBodyFullMessage = `
+see the issue for details
+
+on typos fixed.
+
+Reviewed-by: Z
+Refs #133`
+
+func Test_splitCommitMessageContent(t *testing.T) {
+	tests := []struct {
+		name        string
+		content     string
+		wantSubject string
+		wantBody    string
+	}{
+		{"single line commit", "feat: something", "feat: something", ""},
+		{"multi line commit", fullMessage, "fix: correct minor typos in code", expectedBodyFullMessage},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, got1 := splitCommitMessageContent(tt.content)
+			if got != tt.wantSubject {
+				t.Errorf("splitCommitMessageContent() subject got = %v, want %v", got, tt.wantSubject)
+			}
+			if got1 != tt.wantBody {
+				t.Errorf("splitCommitMessageContent() body got1 = [%v], want [%v]", got1, tt.wantBody)
+			}
+		})
+	}
+}
+
+//commitType, scope, description, hasBreakingChange
+func Test_parseSubjectMessage(t *testing.T) {
+	tests := []struct {
+		name                  string
+		message               string
+		wantType              string
+		wantScope             string
+		wantDescription       string
+		wantHasBreakingChange bool
+	}{
+		{"valid commit", "feat: something", "feat", "", "something", false},
+		{"valid commit with scope", "feat(scope): something", "feat", "scope", "something", false},
+		{"valid commit with breaking change", "feat(scope)!: something", "feat", "scope", "something", true},
+		{"missing description", "feat: ", "feat", "", "", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctype, scope, description, hasBreakingChange := parseSubjectMessage(tt.message)
+			if ctype != tt.wantType {
+				t.Errorf("parseSubjectMessage() type got = %v, want %v", ctype, tt.wantType)
+			}
+			if scope != tt.wantScope {
+				t.Errorf("parseSubjectMessage() scope got = %v, want %v", scope, tt.wantScope)
+			}
+			if description != tt.wantDescription {
+				t.Errorf("parseSubjectMessage() description got = %v, want %v", description, tt.wantDescription)
+			}
+			if hasBreakingChange != tt.wantHasBreakingChange {
+				t.Errorf("parseSubjectMessage() hasBreakingChange got = %v, want %v", hasBreakingChange, tt.wantHasBreakingChange)
 			}
 		})
 	}

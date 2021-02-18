@@ -10,7 +10,7 @@ type releaseNoteTemplateVariables struct {
 	Version         string
 	Date            string
 	Sections        map[string]ReleaseNoteSection
-	BreakingChanges []string
+	BreakingChanges BreakingChangeSection
 }
 
 const (
@@ -22,7 +22,7 @@ const (
 {{- end}}
 `
 
-	rnSectionItem = "- {{if .Scope}}**{{.Scope}}:** {{end}}{{.Subject}} ({{.Hash}}){{if .Metadata.issueid}} ({{.Metadata.issueid}}){{end}}"
+	rnSectionItem = "- {{if .Message.Scope}}**{{.Message.Scope}}:** {{end}}{{.Message.Description}} ({{.Hash}}){{if .Message.Metadata.issue}} ({{.Message.Metadata.issue}}){{end}}"
 
 	rnSection = `{{- if .}}
 
@@ -32,10 +32,10 @@ const (
 {{- end}}
 {{- end}}`
 
-	rnSectionBreakingChanges = `{{- if .}}
+	rnSectionBreakingChanges = `{{- if ne .Name ""}}
 
-### Breaking Changes
-{{range $k,$v := .}}
+### {{.Name}}
+{{range $k,$v := .Messages}}
 - {{$v}}
 {{- end}}
 {{- end}}`

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"regexp"
 	"strings"
 	"time"
 
@@ -16,11 +15,6 @@ import (
 const (
 	logSeparator = "##"
 	endLine      = "~~"
-
-	// BreakingChangesKey key to breaking change metadata
-	BreakingChangesKey = "breakingchange"
-	// IssueIDKey key to issue id metadata
-	IssueIDKey = "issueid"
 )
 
 // Git commands
@@ -35,13 +29,9 @@ type Git interface {
 
 // GitCommitLog description of a single commit log
 type GitCommitLog struct {
-	Date     string            `json:"date,omitempty"`
-	Hash     string            `json:"hash,omitempty"`
-	Type     string            `json:"type,omitempty"`
-	Scope    string            `json:"scope,omitempty"`
-	Subject  string            `json:"subject,omitempty"`
-	Body     string            `json:"body,omitempty"`
-	Metadata map[string]string `json:"metadata,omitempty"`
+	Date    string        `json:"date,omitempty"`
+	Hash    string        `json:"hash,omitempty"`
+	Message CommitMessage `json:"message,omitempty"`
 }
 
 // GitTag git tag info
@@ -74,15 +64,15 @@ func NewLogRange(t LogRangeType, start, end string) LogRange {
 
 // GitImpl git command implementation
 type GitImpl struct {
-	messageMetadata map[string][]string
-	tagPattern      string
+	messageProcessor MessageProcessor
+	tagCfg           TagConfig
 }
 
 // NewGit constructor
-func NewGit(breakinChangePrefixes, issueIDPrefixes []string, tagPattern string) *GitImpl {
+func NewGit(messageProcessor MessageProcessor, cfg TagConfig) *GitImpl {
 	return &GitImpl{
-		messageMetadata: map[string][]string{BreakingChangesKey: breakinChangePrefixes, IssueIDKey: issueIDPrefixes},
-		tagPattern:      tagPattern,
+		messageProcessor: messageProcessor,
+		tagCfg:           cfg,
 	}
 }
 
@@ -119,7 +109,7 @@ func (g GitImpl) Log(lr LogRange) ([]GitCommitLog, error) {
 	if err != nil {
 		return nil, combinedOutputErr(err, out)
 	}
-	return parseLogOutput(g.messageMetadata, string(out)), nil
+	return parseLogOutput(g.messageProcessor, string(out)), nil
 }
 
 // Commit runs git commit
@@ -132,7 +122,7 @@ func (g GitImpl) Commit(header, body, footer string) error {
 
 // Tag create a git tag
 func (g GitImpl) Tag(version semver.Version) error {
-	tag := fmt.Sprintf(g.tagPattern, version.Major(), version.Minor(), version.Patch())
+	tag := fmt.Sprintf(g.tagCfg.Pattern, version.Major(), version.Minor(), version.Patch())
 	tagMsg := fmt.Sprintf("Version %d.%d.%d", version.Major(), version.Minor(), version.Patch())
 
 	tagCommand := exec.Command("git", "tag", "-a", tag, "-m", tagMsg)
@@ -177,59 +167,26 @@ func parseTagsOutput(input string) ([]GitTag, error) {
 	return result, nil
 }
 
-func parseLogOutput(messageMetadata map[string][]string, log string) []GitCommitLog {
+func parseLogOutput(messageProcessor MessageProcessor, log string) []GitCommitLog {
 	scanner := bufio.NewScanner(strings.NewReader(log))
 	scanner.Split(splitAt([]byte(endLine)))
 	var logs []GitCommitLog
 	for scanner.Scan() {
 		if text := strings.TrimSpace(strings.Trim(scanner.Text(), "\"")); text != "" {
-			logs = append(logs, parseCommitLog(messageMetadata, text))
+			logs = append(logs, parseCommitLog(messageProcessor, text))
 		}
 	}
 	return logs
 }
 
-func parseCommitLog(messageMetadata map[string][]string, commit string) GitCommitLog {
+func parseCommitLog(messageProcessor MessageProcessor, commit string) GitCommitLog {
 	content := strings.Split(strings.Trim(commit, "\""), logSeparator)
-	commitType, scope, subject := parseCommitLogMessage(content[2])
-
-	metadata := make(map[string]string)
-	for key, prefixes := range messageMetadata {
-		for _, prefix := range prefixes {
-			if tagValue := extractTag(prefix, content[3]); tagValue != "" {
-				metadata[key] = tagValue
-				break
-			}
-		}
-	}
 
 	return GitCommitLog{
-		Date:     content[0],
-		Hash:     content[1],
-		Type:     commitType,
-		Scope:    scope,
-		Subject:  subject,
-		Body:     content[3],
-		Metadata: metadata,
+		Date:    content[0],
+		Hash:    content[1],
+		Message: messageProcessor.Parse(content[2], content[3]),
 	}
-}
-
-func parseCommitLogMessage(message string) (string, string, string) {
-	regex := regexp.MustCompile("([a-z]+)(\\((.*)\\))?: (.*)")
-	result := regex.FindStringSubmatch(message)
-	if len(result) != 5 {
-		return "", "", message
-	}
-	return result[1], result[3], strings.TrimSpace(result[4])
-}
-
-func extractTag(tag, text string) string {
-	regex := regexp.MustCompile(tag + " (.*)")
-	result := regex.FindStringSubmatch(text)
-	if len(result) < 2 {
-		return ""
-	}
-	return result[1]
 }
 
 func splitAt(b []byte) func(data []byte, atEOF bool) (advance int, token []byte, err error) {
