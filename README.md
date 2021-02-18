@@ -1,6 +1,15 @@
-# sv4git
-
-Semantic version for git
+<p align="center">
+  <h1 align="center">sv4git</h1>
+  <p align="center">semantic version for git cli</p>
+  <p align="center">
+    <a href="https://github.com/bvieira/sv4git/releases/latest"><img alt="Release" src="https://img.shields.io/github/release/bvieira/sv4git.svg?style=for-the-badge"></a>
+    <a href="https://github.com/bvieira/sv4git/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/bvieira/sv4git?style=for-the-badge"></a>
+    <a href="/LICENSE"><img alt="Software License" src="https://img.shields.io/badge/license-MIT-informational.svg?style=for-the-badge"></a>
+    <a href="https://github.com/bvieira/sv4git/actions?workflow=ci"><img alt="GitHub Actions" src="https://img.shields.io/github/workflow/status/bvieira/sv4git/ci?style=for-the-badge"></a>
+    <a href="https://goreportcard.com/report/github.com/bvieira/sv4git"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/bvieira/sv4git?style=for-the-badge"></a>
+    <a href="https://conventionalcommits.org"><img alt="Software License" src="https://img.shields.io/badge/Conventional%20Commits-1.0.0-informational.svg?style=for-the-badge"></a>
+  </p>
+</p>
 
 ## Getting Started
 
