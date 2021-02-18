@@ -1,6 +1,6 @@
 <p align="center">
   <h1 align="center">sv4git</h1>
-  <p align="center">semantic version for git cli</p>
+  <p align="center">semantic version for git</p>
   <p align="center">
     <a href="https://github.com/bvieira/sv4git/releases/latest"><img alt="Release" src="https://img.shields.io/github/release/bvieira/sv4git.svg?style=for-the-badge"></a>
     <a href="https://github.com/bvieira/sv4git/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/bvieira/sv4git?style=for-the-badge"></a>
