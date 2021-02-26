@@ -2,7 +2,6 @@ package sv
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -81,7 +80,7 @@ func (p MessageProcessorImpl) Validate(message string) error {
 	msg := p.Parse(subject, body)
 
 	if !regexp.MustCompile("^[a-z+]+(\\(.+\\))?!?: .+$").MatchString(subject) {
-		return errors.New("message should be valid according with conventional commits")
+		return fmt.Errorf("subject [%s] should be valid according with conventional commits", subject)
 	}
 
 	if msg.Type == "" || !contains(msg.Type, p.messageCfg.Types) {
