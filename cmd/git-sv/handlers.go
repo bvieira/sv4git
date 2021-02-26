@@ -376,6 +376,11 @@ func validateCommitMessageHandler(git sv.Git, messageProcessor sv.MessageProcess
 			return nil
 		}
 
+		if source := c.String("source"); source == "merge" {
+			warn("commit message validation skipped, ignoring source: %s...", source)
+			return nil
+		}
+
 		filepath := filepath.Join(c.String("path"), c.String("file"))
 
 		commitMessage, err := readFile(filepath)

@@ -144,7 +144,7 @@ func main() {
 		{
 			Name:    "validate-commit-message",
 			Aliases: []string{"vcm"},
-			Usage:   "use as prepare-commit-message hook to validate message",
+			Usage:   "use as prepare-commit-message hook to validate and enhance commit message",
 			Action:  validateCommitMessageHandler(git, messageProcessor),
 			Flags: []cli.Flag{
 				&cli.StringFlag{Name: "path", Required: true, Usage: "git working directory"},
