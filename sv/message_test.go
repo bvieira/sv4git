@@ -25,10 +25,13 @@ var ccfgWithScope = CommitMessageConfig{
 	Issue: CommitMessageIssueConfig{Regex: "[A-Z]+-[0-9]+"},
 }
 
-var bcfg = BranchesConfig{
-	PrefixRegex: "([a-z]+\\/)?",
-	SuffixRegex: "(-.*)?",
-	Skip:        []string{"develop", "master"},
+func newBranchCfg(skipDetached bool) BranchesConfig {
+	return BranchesConfig{
+		PrefixRegex:  "([a-z]+\\/)?",
+		SuffixRegex:  "(-.*)?",
+		Skip:         []string{"develop", "master"},
+		SkipDetached: &skipDetached,
+	}
 }
 
 // messages samples start
@@ -67,6 +70,30 @@ BREAKING CHANGE: refactor to use JavaScript features not available in Node 6.`
 
 // multiline samples end
 
+func TestMessageProcessorImpl_SkipBranch(t *testing.T) {
+	tests := []struct {
+		name     string
+		bcfg     BranchesConfig
+		branch   string
+		detached bool
+		want     bool
+	}{
+		{"normal branch", newBranchCfg(false), "JIRA-123", false, false},
+		{"dont ignore detached branch", newBranchCfg(false), "JIRA-123", true, false},
+		{"ignore branch on skip list", newBranchCfg(false), "master", false, true},
+		{"ignore detached branch", newBranchCfg(true), "JIRA-123", true, true},
+		{"null skip detached", BranchesConfig{Skip: []string{}}, "JIRA-123", true, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := NewMessageProcessor(ccfg, tt.bcfg)
+			if got := p.SkipBranch(tt.branch, tt.detached); got != tt.want {
+				t.Errorf("MessageProcessorImpl.SkipBranch() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestMessageProcessorImpl_Validate(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -94,7 +121,7 @@ func TestMessageProcessorImpl_Validate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := NewMessageProcessor(tt.cfg, bcfg)
+			p := NewMessageProcessor(tt.cfg, newBranchCfg(false))
 			if err := p.Validate(tt.message); (err != nil) != tt.wantErr {
 				t.Errorf("MessageProcessorImpl.Validate() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -103,7 +130,7 @@ func TestMessageProcessorImpl_Validate(t *testing.T) {
 }
 
 func TestMessageProcessorImpl_Enhance(t *testing.T) {
-	p := NewMessageProcessor(ccfg, bcfg)
+	p := NewMessageProcessor(ccfg, newBranchCfg(false))
 
 	tests := []struct {
 		name    string
@@ -136,7 +163,7 @@ func TestMessageProcessorImpl_Enhance(t *testing.T) {
 }
 
 func TestMessageProcessorImpl_IssueID(t *testing.T) {
-	p := NewMessageProcessor(ccfg, bcfg)
+	p := NewMessageProcessor(ccfg, newBranchCfg(false))
 
 	tests := []struct {
 		name    string
@@ -248,7 +275,7 @@ Jira: JIRA-999
 Refs #123`
 
 func TestMessageProcessorImpl_Parse(t *testing.T) {
-	p := NewMessageProcessor(ccfg, bcfg)
+	p := NewMessageProcessor(ccfg, newBranchCfg(false))
 
 	tests := []struct {
 		name    string
@@ -275,7 +302,7 @@ func TestMessageProcessorImpl_Parse(t *testing.T) {
 }
 
 func TestMessageProcessorImpl_Format(t *testing.T) {
-	p := NewMessageProcessor(ccfg, bcfg)
+	p := NewMessageProcessor(ccfg, newBranchCfg(false))
 
 	tests := []struct {
 		name       string

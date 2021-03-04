@@ -2,7 +2,6 @@ package sv
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -48,7 +47,7 @@ func (m CommitMessage) BreakingMessage() string {
 
 // MessageProcessor interface.
 type MessageProcessor interface {
-	SkipBranch(branch string) bool
+	SkipBranch(branch string, detached bool) bool
 	Validate(message string) error
 	Enhance(branch string, message string) (string, error)
 	IssueID(branch string) (string, error)
@@ -71,8 +70,8 @@ type MessageProcessorImpl struct {
 }
 
 // SkipBranch check if branch should be ignored.
-func (p MessageProcessorImpl) SkipBranch(branch string) bool {
-	return contains(branch, p.branchesCfg.Skip)
+func (p MessageProcessorImpl) SkipBranch(branch string, detached bool) bool {
+	return contains(branch, p.branchesCfg.Skip) || (p.branchesCfg.SkipDetached != nil && *p.branchesCfg.SkipDetached && detached)
 }
 
 // Validate commit message.
@@ -81,7 +80,7 @@ func (p MessageProcessorImpl) Validate(message string) error {
 	msg := p.Parse(subject, body)
 
 	if !regexp.MustCompile("^[a-z+]+(\\(.+\\))?!?: .+$").MatchString(subject) {
-		return errors.New("message should be valid according with conventional commits")
+		return fmt.Errorf("subject [%s] should be valid according with conventional commits", subject)
 	}
 
 	if msg.Type == "" || !contains(msg.Type, p.messageCfg.Types) {

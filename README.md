@@ -97,6 +97,7 @@ branches: # git branches config
         - master
         - main
         - developer
+    skip-detached: false # set true if a detached branch should be ignored on commit message validation
 
 commit-message:
     types: # supported commit types
@@ -203,7 +204,7 @@ COMMIT_MSG_FILE=$1
 COMMIT_SOURCE=$2
 SHA1=$3
 
-git sv vcm --path "$(pwd)" --file $COMMIT_MSG_FILE --source $COMMIT_SOURCE
+git sv vcm --path "$(pwd)" --file "$COMMIT_MSG_FILE" --source "$COMMIT_SOURCE"
 ```
 
 tip: you can configure a directory as your global git templates using the command below, check [git config docs](https://git-scm.com/docs/git-config#Documentation/git-config.txt-inittemplateDir) for more information!
