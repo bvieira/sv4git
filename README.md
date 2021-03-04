@@ -97,6 +97,7 @@ branches: # git branches config
         - master
         - main
         - developer
+    skip-detached: false # set true if a detached branch should be ignored on commit message validation
 
 commit-message:
     types: # supported commit types

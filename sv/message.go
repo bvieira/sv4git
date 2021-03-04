@@ -47,7 +47,7 @@ func (m CommitMessage) BreakingMessage() string {
 
 // MessageProcessor interface.
 type MessageProcessor interface {
-	SkipBranch(branch string) bool
+	SkipBranch(branch string, detached bool) bool
 	Validate(message string) error
 	Enhance(branch string, message string) (string, error)
 	IssueID(branch string) (string, error)
@@ -70,8 +70,8 @@ type MessageProcessorImpl struct {
 }
 
 // SkipBranch check if branch should be ignored.
-func (p MessageProcessorImpl) SkipBranch(branch string) bool {
-	return contains(branch, p.branchesCfg.Skip)
+func (p MessageProcessorImpl) SkipBranch(branch string, detached bool) bool {
+	return contains(branch, p.branchesCfg.Skip) || (p.branchesCfg.SkipDetached != nil && *p.branchesCfg.SkipDetached && detached)
 }
 
 // Validate commit message.

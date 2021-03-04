@@ -371,8 +371,10 @@ func changelogHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, rnP
 func validateCommitMessageHandler(git sv.Git, messageProcessor sv.MessageProcessor) func(c *cli.Context) error {
 	return func(c *cli.Context) error {
 		branch := git.Branch()
-		if messageProcessor.SkipBranch(branch) {
-			warn("commit message validation skipped, branch in ignore list...")
+		detached, derr := git.IsDetached()
+
+		if messageProcessor.SkipBranch(branch, derr == nil && detached) {
+			warn("commit message validation skipped, branch in ignore list or detached...")
 			return nil
 		}
 

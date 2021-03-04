@@ -3,6 +3,7 @@ package sv
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -25,6 +26,7 @@ type Git interface {
 	Tag(version semver.Version) error
 	Tags() ([]GitTag, error)
 	Branch() string
+	IsDetached() (bool, error)
 }
 
 // GitCommitLog description of a single commit log
@@ -152,6 +154,19 @@ func (GitImpl) Branch() string {
 		return ""
 	}
 	return strings.TrimSpace(strings.Trim(string(out), "\n"))
+}
+
+// IsDetached check if is detached.
+func (GitImpl) IsDetached() (bool, error) {
+	cmd := exec.Command("git", "symbolic-ref", "-q", "HEAD")
+	out, err := cmd.CombinedOutput()
+	if output := string(out); err != nil { //-q: do not issue an error message if the <name> is not a symbolic ref, but a detached HEAD; instead exit with non-zero status silently.
+		if output == "" {
+			return true, nil
+		}
+		return false, errors.New(output)
+	}
+	return false, nil
 }
 
 func parseTagsOutput(input string) ([]GitTag, error) {

@@ -62,6 +62,7 @@ func loadConfig(filepath string) (Config, error) {
 }
 
 func defaultConfig() Config {
+	skipDetached := false
 	return Config{
 		Version: "1.0",
 		Versioning: sv.VersioningConfig{
@@ -77,6 +78,7 @@ func defaultConfig() Config {
 			SuffixRegex:  "(-.*)?",
 			DisableIssue: false,
 			Skip:         []string{"master", "main", "developer"},
+			SkipDetached: &skipDetached,
 		},
 		CommitMessage: sv.CommitMessageConfig{
 			Types: []string{"build", "ci", "chore", "docs", "feat", "fix", "perf", "refactor", "revert", "style", "test"},
