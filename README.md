@@ -15,7 +15,7 @@
 
 ### Installing
 
-- Download the latest release and add the binary on your path
+- Download the latest release and add the binary to your path
 - Optional: Set `SV4GIT_HOME` to define user configs, check [config](#config) for more information.
 
 ### Config
@@ -117,7 +117,7 @@ commit-message:
         # don't forget to add "" on your list if you need to define scopes and keep it optional
         values: [] 
     footer:
-        issue:
+        issue: # use "issue: {}" if you wish to disable issue footer
             key: jira # name used to define an issue on footer metadata
             key-synonyms: # supported variations for footer metadata
                 - Jira
