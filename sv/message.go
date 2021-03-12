@@ -170,11 +170,13 @@ func (p MessageProcessorImpl) Parse(subject, body string) CommitMessage {
 
 	metadata := make(map[string]string)
 	for key, mdCfg := range p.messageCfg.Footer {
-		prefixes := append([]string{mdCfg.Key}, mdCfg.KeySynonyms...)
-		for _, prefix := range prefixes {
-			if tagValue := extractFooterMetadata(prefix, body, mdCfg.UseHash); tagValue != "" {
-				metadata[key] = tagValue
-				break
+		if mdCfg.Key != "" {
+			prefixes := append([]string{mdCfg.Key}, mdCfg.KeySynonyms...)
+			for _, prefix := range prefixes {
+				if tagValue := extractFooterMetadata(prefix, body, mdCfg.UseHash); tagValue != "" {
+					metadata[key] = tagValue
+					break
+				}
 			}
 		}
 	}

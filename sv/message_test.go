@@ -15,6 +15,15 @@ var ccfg = CommitMessageConfig{
 	Issue: CommitMessageIssueConfig{Regex: "[A-Z]+-[0-9]+"},
 }
 
+var ccfgEmptyIssue = CommitMessageConfig{
+	Types: []string{"feat", "fix"},
+	Scope: CommitMessageScopeConfig{},
+	Footer: map[string]CommitMessageFooterConfig{
+		"issue": {},
+	},
+	Issue: CommitMessageIssueConfig{Regex: "[A-Z]+-[0-9]+"},
+}
+
 var ccfgWithScope = CommitMessageConfig{
 	Types: []string{"feat", "fix"},
 	Scope: CommitMessageScopeConfig{Values: []string{"", "scope"}},
@@ -203,6 +212,7 @@ jira: JIRA-123`
 func Test_hasIssueID(t *testing.T) {
 	cfgColon := CommitMessageFooterConfig{Key: "jira"}
 	cfgHash := CommitMessageFooterConfig{Key: "jira", UseHash: true}
+	cfgEmpty := CommitMessageFooterConfig{}
 
 	tests := []struct {
 		name     string
@@ -223,6 +233,9 @@ jira: JIRA-123`, cfgColon, true},
 		{"multi line with issue and hash", `feat: something
 		
 jira #JIRA-123`, cfgHash, true},
+		{"empty config", `feat: something
+		
+jira #JIRA-123`, cfgEmpty, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -275,26 +288,26 @@ Jira: JIRA-999
 Refs #123`
 
 func TestMessageProcessorImpl_Parse(t *testing.T) {
-	p := NewMessageProcessor(ccfg, newBranchCfg(false))
-
 	tests := []struct {
 		name    string
+		cfg     CommitMessageConfig
 		subject string
 		body    string
 		want    CommitMessage
 	}{
-		{"simple message", "feat: something awesome", "", CommitMessage{Type: "feat", Scope: "", Description: "something awesome", Body: "", IsBreakingChange: false, Metadata: map[string]string{}}},
-		{"message with scope", "feat(scope): something awesome", "", CommitMessage{Type: "feat", Scope: "scope", Description: "something awesome", Body: "", IsBreakingChange: false, Metadata: map[string]string{}}},
-		{"unmapped type", "unkn: something unknown", "", CommitMessage{Type: "unkn", Scope: "", Description: "something unknown", Body: "", IsBreakingChange: false, Metadata: map[string]string{}}},
-		{"jira and breaking change metadata", "feat: something new", completeBody, CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: completeBody, IsBreakingChange: true, Metadata: map[string]string{issueMetadataKey: "JIRA-123", breakingChangeMetadataKey: "this change breaks everything"}}},
-		{"jira only metadata", "feat: something new", issueOnlyBody, CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: issueOnlyBody, IsBreakingChange: false, Metadata: map[string]string{issueMetadataKey: "JIRA-456"}}},
-		{"jira synonyms metadata", "feat: something new", issueSynonymsBody, CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: issueSynonymsBody, IsBreakingChange: false, Metadata: map[string]string{issueMetadataKey: "JIRA-789"}}},
-		{"breaking change with exclamation mark", "feat!: something new", "", CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: "", IsBreakingChange: true, Metadata: map[string]string{}}},
-		{"hash metadata", "feat: something new", hashMetadataBody, CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: hashMetadataBody, IsBreakingChange: false, Metadata: map[string]string{issueMetadataKey: "JIRA-999", "refs": "#123"}}},
+		{"simple message", ccfg, "feat: something awesome", "", CommitMessage{Type: "feat", Scope: "", Description: "something awesome", Body: "", IsBreakingChange: false, Metadata: map[string]string{}}},
+		{"message with scope", ccfg, "feat(scope): something awesome", "", CommitMessage{Type: "feat", Scope: "scope", Description: "something awesome", Body: "", IsBreakingChange: false, Metadata: map[string]string{}}},
+		{"unmapped type", ccfg, "unkn: something unknown", "", CommitMessage{Type: "unkn", Scope: "", Description: "something unknown", Body: "", IsBreakingChange: false, Metadata: map[string]string{}}},
+		{"jira and breaking change metadata", ccfg, "feat: something new", completeBody, CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: completeBody, IsBreakingChange: true, Metadata: map[string]string{issueMetadataKey: "JIRA-123", breakingChangeMetadataKey: "this change breaks everything"}}},
+		{"jira only metadata", ccfg, "feat: something new", issueOnlyBody, CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: issueOnlyBody, IsBreakingChange: false, Metadata: map[string]string{issueMetadataKey: "JIRA-456"}}},
+		{"jira synonyms metadata", ccfg, "feat: something new", issueSynonymsBody, CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: issueSynonymsBody, IsBreakingChange: false, Metadata: map[string]string{issueMetadataKey: "JIRA-789"}}},
+		{"breaking change with exclamation mark", ccfg, "feat!: something new", "", CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: "", IsBreakingChange: true, Metadata: map[string]string{}}},
+		{"hash metadata", ccfg, "feat: something new", hashMetadataBody, CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: hashMetadataBody, IsBreakingChange: false, Metadata: map[string]string{issueMetadataKey: "JIRA-999", "refs": "#123"}}},
+		{"empty issue cfg", ccfgEmptyIssue, "feat: something new", hashMetadataBody, CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: hashMetadataBody, IsBreakingChange: false, Metadata: map[string]string{}}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := p.Parse(tt.subject, tt.body); !reflect.DeepEqual(got, tt.want) {
+			if got := NewMessageProcessor(tt.cfg, newBranchCfg(false)).Parse(tt.subject, tt.body); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("MessageProcessorImpl.Parse() = %v, want %v", got, tt.want)
 			}
 		})
