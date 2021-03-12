@@ -301,7 +301,7 @@ func commitHandler(cfg Config, git sv.Git, messageProcessor sv.MessageProcessor)
 
 		var issue string
 		if cfg.CommitMessage.IssueFooterConfig().Key != "" && cfg.CommitMessage.Issue.Regex != "" {
-			issue, err = promptIssueID(cfg.CommitMessage.IssueFooterConfig().Key, cfg.CommitMessage.Issue.Regex, branchIssue)
+			issue, err = promptIssueID("issue id", cfg.CommitMessage.Issue.Regex, branchIssue)
 			if err != nil {
 				return err
 			}
