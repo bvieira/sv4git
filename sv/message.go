@@ -119,6 +119,10 @@ func (p MessageProcessorImpl) Enhance(branch string, message string) (string, er
 
 // IssueID try to extract issue id from branch, return empty if not found.
 func (p MessageProcessorImpl) IssueID(branch string) (string, error) {
+	if p.branchesCfg.DisableIssue || p.messageCfg.Issue.Regex == "" {
+		return "", nil
+	}
+
 	rstr := fmt.Sprintf("^%s(%s)%s$", p.branchesCfg.PrefixRegex, p.messageCfg.Issue.Regex, p.branchesCfg.SuffixRegex)
 	r, err := regexp.Compile(rstr)
 	if err != nil {
@@ -146,7 +150,7 @@ func (p MessageProcessorImpl) Format(msg CommitMessage) (string, string, string)
 	if msg.BreakingMessage() != "" {
 		footer.WriteString(fmt.Sprintf("%s: %s", breakingChangeFooterKey, msg.BreakingMessage()))
 	}
-	if issue, exists := msg.Metadata[issueMetadataKey]; exists {
+	if issue, exists := msg.Metadata[issueMetadataKey]; exists && p.messageCfg.IssueFooterConfig().Key != "" {
 		if footer.Len() > 0 {
 			footer.WriteString("\n")
 		}
