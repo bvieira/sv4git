@@ -298,9 +298,13 @@ func commitHandler(cfg Config, git sv.Git, messageProcessor sv.MessageProcessor)
 		if err != nil {
 			return err
 		}
-		issue, err := promptIssueID(cfg.CommitMessage.IssueFooterConfig().Key, cfg.CommitMessage.Issue.Regex, branchIssue)
-		if err != nil {
-			return err
+
+		var issue string
+		if cfg.CommitMessage.IssueFooterConfig().Key != "" && cfg.CommitMessage.Issue.Regex != "" {
+			issue, err = promptIssueID("issue id", cfg.CommitMessage.Issue.Regex, branchIssue)
+			if err != nil {
+				return err
+			}
 		}
 
 		hasBreakingChanges, err := promptConfirm("has breaking changes?")
