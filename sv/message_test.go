@@ -315,26 +315,26 @@ func TestMessageProcessorImpl_Parse(t *testing.T) {
 }
 
 func TestMessageProcessorImpl_Format(t *testing.T) {
-	p := NewMessageProcessor(ccfg, newBranchCfg(false))
-
 	tests := []struct {
 		name       string
+		cfg        CommitMessageConfig
 		msg        CommitMessage
 		wantHeader string
 		wantBody   string
 		wantFooter string
 	}{
-		{"simple message", NewCommitMessage("feat", "", "something", "", "", ""), "feat: something", "", ""},
-		{"with issue", NewCommitMessage("feat", "", "something", "", "JIRA-123", ""), "feat: something", "", "jira: JIRA-123"},
-		{"with breaking change", NewCommitMessage("feat", "", "something", "", "", "breaks"), "feat: something", "", "BREAKING CHANGE: breaks"},
-		{"with scope", NewCommitMessage("feat", "scope", "something", "", "", ""), "feat(scope): something", "", ""},
-		{"with body", NewCommitMessage("feat", "", "something", "body", "", ""), "feat: something", "body", ""},
-		{"with multiline body", NewCommitMessage("feat", "", "something", multilineBody, "", ""), "feat: something", multilineBody, ""},
-		{"full message", NewCommitMessage("feat", "scope", "something", multilineBody, "JIRA-123", "breaks"), "feat(scope): something", multilineBody, fullFooter},
+		{"simple message", ccfg, NewCommitMessage("feat", "", "something", "", "", ""), "feat: something", "", ""},
+		{"with issue", ccfg, NewCommitMessage("feat", "", "something", "", "JIRA-123", ""), "feat: something", "", "jira: JIRA-123"},
+		{"with breaking change", ccfg, NewCommitMessage("feat", "", "something", "", "", "breaks"), "feat: something", "", "BREAKING CHANGE: breaks"},
+		{"with scope", ccfg, NewCommitMessage("feat", "scope", "something", "", "", ""), "feat(scope): something", "", ""},
+		{"with body", ccfg, NewCommitMessage("feat", "", "something", "body", "", ""), "feat: something", "body", ""},
+		{"with multiline body", ccfg, NewCommitMessage("feat", "", "something", multilineBody, "", ""), "feat: something", multilineBody, ""},
+		{"full message", ccfg, NewCommitMessage("feat", "scope", "something", multilineBody, "JIRA-123", "breaks"), "feat(scope): something", multilineBody, fullFooter},
+		{"config without issue key", ccfgEmptyIssue, NewCommitMessage("feat", "", "something", "", "JIRA-123", ""), "feat: something", "", ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1, got2 := p.Format(tt.msg)
+			got, got1, got2 := NewMessageProcessor(tt.cfg, newBranchCfg(false)).Format(tt.msg)
 			if got != tt.wantHeader {
 				t.Errorf("MessageProcessorImpl.Format() header got = %v, want %v", got, tt.wantHeader)
 			}
