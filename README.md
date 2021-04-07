@@ -13,26 +13,30 @@
 
 ## Getting Started
 
+### Pre Requirements
+
+- Git 2.17+
+
 ### Installing
 
-- Download the latest release and add the binary to your path
-- Optional: Set `SV4GIT_HOME` to define user configs, check [config](#config) for more information.
+- Download the latest release and add the binary to your path.
+- Optional: Set `SV4GIT_HOME` to define user configs. Check the [Config](#config) topic for more information.
 
 ### Config
 
-There are 3 config levels when using sv4git: [default](#default), [user](#user), [repository](#repository). All 3 are merged using the follow priority: **repository > user > default**.
+There are 3 config levels when using sv4git: [default](#default), [user](#user), [repository](#repository). All of them are merged considering the follow priority: **repository > user > default**.
 
-To see current config, run:
+To see the current config, run:
 
 ```bash
 git sv cfg show
 ```
 
-#### Configuration types
+#### Configuration Types
 
 ##### Default
 
-To check what is the default configuration, run:
+To check the default configuration, run:
 
 ```bash
 git sv cfg default
@@ -40,13 +44,13 @@ git sv cfg default
 
 ##### User
 
-To configure define `SV4GIT_HOME` environment variable, eg.:
+For user config, it is necessary to define the `SV4GIT_HOME` environment variable, eg.:
 
 ```bash
-SV4GIT_HOME=/home/myuser/.sv4git # myuser is just an example
+SV4GIT_HOME=/home/myuser/.sv4git # myuser is just an example.
 ```
 
-And define the `config.yml` inside it, eg:
+And create a `config.yml` file inside it, eg.:
 
 ```bash
 .sv4git
@@ -55,7 +59,7 @@ And define the `config.yml` inside it, eg:
 
 ##### Repository
 
-Create a `.sv4git.yml` on the root of your repository, eg.: [.sv4git.yml](.sv4git.yml)
+Create a `.sv4git.yml` file on the root of your repository, eg.: [.sv4git.yml](.sv4git.yml).
 
 #### Configuration format
 
@@ -63,10 +67,10 @@ Create a `.sv4git.yml` on the root of your repository, eg.: [.sv4git.yml](.sv4gi
 version: "1.0" #config version
 
 versioning: # versioning bump
-    update-major: [] # commit types used to bump major
-    update-minor: # commit types used to bump minor
+    update-major: [] # Commit types used to bump major.
+    update-minor: # Commit types used to bump minor.
         - feat
-    update-patch: # commit types used to bump patch
+    update-patch: # Commit types used to bump patch.
         - build
         - ci
         - chore
@@ -76,31 +80,31 @@ versioning: # versioning bump
         - refactor
         - style
         - test
-    # when type is not present on update rules and is unknown (not mapped on commit message types), 
+    # When type is not present on update rules and is unknown (not mapped on commit message types); 
     # if ignore-unknown=false bump patch, if ignore-unknown=true do not bump version
-    ignore-unknown: false 
+    ignore-unknown: false
 
 tag:
-    pattern: '%d.%d.%d' # pattern used to create git tag
+    pattern: '%d.%d.%d' # Pattern used to create git tag.
 
 release-notes:
-    headers: # headers names for relase notes markdown, to disable a section, just remove the header line
+    headers: # Headers names for release notes markdown. To disable a section just remove the header line.
         breaking-change: Breaking Changes
         feat: Features
         fix: Bug Fixes
 
-branches: # git branches config
-    prefix: ([a-z]+\/)? # prefix used on branch name, should be a regex group
-    suffix: (-.*)? # suffix used on branch name, should be a regex group
-    disable-issue: false # set true if there is no need to recover issue id from branch name
-    skip: # list of branch names ignored on commit message validation
+branches: # Git branches config.
+    prefix: ([a-z]+\/)? # Prefix used on branch name, it should be a regex group.
+    suffix: (-.*)? # Suffix used on branch name, it should be a regex group.
+    disable-issue: false # Set true if there is no need to recover issue id from branch name.
+    skip: # List of branch names ignored on commit message validation.
         - master
         - main
         - developer
-    skip-detached: false # set true if a detached branch should be ignored on commit message validation
+    skip-detached: false # Set true if a detached branch should be ignored on commit message validation.
 
 commit-message:
-    types: # supported commit types
+    types: # Supported commit types.
         - build
         - ci
         - chore
@@ -113,23 +117,23 @@ commit-message:
         - style
         - test
     scope:
-        # define supported scopes, if blank, scope will not be validated, if not, only scope listed will be valid.
-        # don't forget to add "" on your list if you need to define scopes and keep it optional
+        # Define supported scopes, if blank, scope will not be validated, if not, only scope listed will be valid.
+        # Don't forget to add "" on your list if you need to define scopes and keep it optional.
         values: [] 
     footer:
-        issue: # use "issue: {}" if you wish to disable issue footer
-            key: jira # name used to define an issue on footer metadata
-            key-synonyms: # supported variations for footer metadata
+        issue: # Use "issue: {}" if you wish to disable issue footer.
+            key: jira # Name used to define an issue on footer metadata.
+            key-synonyms: # Supported variations for footer metadata.
                 - Jira
                 - JIRA
-            use-hash: false # if false, use :<space> separator, if true, use <space># separator
+            use-hash: false # If false, use :<space> separator. If true, use <space># separator.
     issue:
-        regex: '[A-Z]+-[0-9]+' # regex for issue id
+        regex: '[A-Z]+-[0-9]+' # Regex for issue id.
 ```
 
 ### Running
 
-run `git-sv` to get the list of available parameters
+Run `git-sv` to get the list of available parameters:
 
 ```bash
 git-sv
@@ -137,7 +141,7 @@ git-sv
 
 #### Run as git command
 
-if `git-sv` is configured on your path, you can use it like a git command
+If `git-sv` is configured on your path, you can use it like a git command:
 
 ```bash
 git sv
@@ -147,7 +151,7 @@ git sv next-version
 
 #### Usage
 
-use `--help` or `-h` to get usage information, don't forget that some commands have unique options too
+Use `--help` or `-h` to get usage information, don't forget that some commands have unique options too:
 
 ```bash
 # sv help
@@ -161,17 +165,17 @@ git-sv rn -h
 
 | Variable                     | description                                                   | has options or subcommands |
 | ---------------------------- | ------------------------------------------------------------- | :------------------------: |
-| config, cfg                  | show config information                                       |     :heavy_check_mark:     |
-| current-version, cv          | get last released version from git                            |            :x:             |
-| next-version, nv             | generate the next version based on git commit messages        |            :x:             |
-| commit-log, cl               | list all commit logs according to range as jsons              |     :heavy_check_mark:     |
-| commit-notes, cn             | generate a commit notes according to range                    |     :heavy_check_mark:     |
-| release-notes, rn            | generate release notes                                        |     :heavy_check_mark:     |
-| changelog, cgl               | generate changelog                                            |     :heavy_check_mark:     |
-| tag, tg                      | generate tag with version based on git commit messages        |            :x:             |
-| commit, cmt                  | execute git commit with convetional commit message helper     |            :x:             |
-| validate-commit-message, vcm | use as prepare-commit-message hook to validate commit message |     :heavy_check_mark:     |
-| help, h                      | shows a list of commands or help for one command              |            :x:             |
+| config, cfg                  | Show config information.                                      |     :heavy_check_mark:     |
+| current-version, cv          | Get last released version from git.                           |            :x:             |
+| next-version, nv             | Generate the next version based on git commit messages.       |            :x:             |
+| commit-log, cl               | List all commit logs according to range as jsons.             |     :heavy_check_mark:     |
+| commit-notes, cn             | Generate a commit notes according to range.                   |     :heavy_check_mark:     |
+| release-notes, rn            | Generate release notes.                                       |     :heavy_check_mark:     |
+| changelog, cgl               | Generate changelog.                                           |     :heavy_check_mark:     |
+| tag, tg                      | Generate tag with version based on git commit messages.       |            :x:             |
+| commit, cmt                  | Execute git commit with convetional commit message helper.    |            :x:             |
+| validate-commit-message, vcm | Use as prepare-commit-message hook to validate commit message.|     :heavy_check_mark:     |
+| help, h                      | Shows a list of commands or help for one command.             |            :x:             |
 
 ##### Use range
 
@@ -179,9 +183,9 @@ Commands like `commit-log` and `commit-notes` has a range option. Supported rang
 
 By default, it's used [--date=short](https://git-scm.com/docs/git-log#Documentation/git-log.txt---dateltformatgt) at `git log`, all dates returned from it will be in `YYYY-MM-DD` format.
 
-Range `tag` will use `git describe` to get the last tag available if `start` is empty, the others types won't use the existing tags, it's recommended to always use a start limit in a old repository with a lot of commits. This behavior was maintained to not break the retrocompatibility.
+Range `tag` will use `git describe` to get the last tag available if `start` is empty, the others types won't use the existing tags. It's recommended to always use a start limit in a old repository with a lot of commits. This behavior was maintained to not break the retrocompatibility.
 
-Range `date` use git log `--since` and `--until`, it's possible to use all supported formats from [git log](https://git-scm.com/docs/git-log#Documentation/git-log.txt---sinceltdategt), if `end` is in `YYYY-MM-DD` format, `sv` will add a day on git log command to make the end date inclusive.
+Range `date` use git log `--since` and `--until`. It's possible to use all supported formats from [git log](https://git-scm.com/docs/git-log#Documentation/git-log.txt---sinceltdategt). If `end` is in `YYYY-MM-DD` format, `sv` will add a day on git log command to make the end date inclusive.
 
 Range `tag` and `hash` are used on git log [revision range](https://git-scm.com/docs/git-log#Documentation/git-log.txt-ltrevisionrangegt). If `end` is empty, `HEAD` will be used instead.
 
@@ -195,7 +199,7 @@ git-sv commit-log --range tag
 
 ##### Use validate-commit-message as prepare-commit-msg hook
 
-Configure your .git/hooks/prepare-commit-msg
+Configure your `.git/hooks/prepare-commit-msg`:
 
 ```bash
 #!/bin/sh
@@ -207,17 +211,19 @@ SHA1=$3
 git sv vcm --path "$(pwd)" --file "$COMMIT_MSG_FILE" --source "$COMMIT_SOURCE"
 ```
 
-tip: you can configure a directory as your global git templates using the command below, check [git config docs](https://git-scm.com/docs/git-config#Documentation/git-config.txt-inittemplateDir) for more information!
+**Tip**: you can configure a directory as your global git templates using the command below: 
 
 ```bash
 git config --global init.templatedir '<YOUR TEMPLATE DIR>'
 ```
 
+Check [git config docs](https://git-scm.com/docs/git-config#Documentation/git-config.txt-inittemplateDir) for more information!
+
 ## Development
 
 ### Makefile
 
-run `make` to get the list of available actions
+Run `make` to get the list of available actions:
 
 ```bash
 make
@@ -227,15 +233,15 @@ make
 
 | Variable   | description            |
 | ---------- | ---------------------- |
-| BUILDOS    | build OS               |
-| BUILDARCH  | build arch             |
-| ECHOFLAGS  | flags used on echo     |
-| BUILDENVS  | var envs used on build |
-| BUILDFLAGS | flags used on build    |
+| BUILDOS    | Build OS.              |
+| BUILDARCH  | Build arch.            |
+| ECHOFLAGS  | Flags used on echo.    |
+| BUILDENVS  | Var envs used on build.|
+| BUILDFLAGS | Flags used on build.   |
 
 | Parameters | description                         |
 | ---------- | ----------------------------------- |
-| args       | parameters that will be used on run |
+| args       | Parameters that will be used on run.|
 
 ```bash
 #variables
@@ -251,7 +257,7 @@ make run args="-h"
 make build
 ```
 
-the binary will be created on `bin/$BUILDOS_$BUILDARCH/git-sv`
+The binary will be created on `bin/$BUILDOS_$BUILDARCH/git-sv`.
 
 ### Tests
 
