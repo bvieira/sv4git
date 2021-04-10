@@ -2,7 +2,6 @@ package sv
 
 import (
 	"bytes"
-	"fmt"
 	"text/template"
 )
 
@@ -96,7 +95,7 @@ func releaseNoteVariables(releasenote ReleaseNote) releaseNoteTemplateVariables 
 
 	var version = ""
 	if releasenote.Version != nil {
-		version = fmt.Sprintf("%d.%d.%d", releasenote.Version.Major(), releasenote.Version.Minor(), releasenote.Version.Patch())
+		version = releasenote.Version.String()
 	}
 	return releaseNoteTemplateVariables{
 		Version:         version,
