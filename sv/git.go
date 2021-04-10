@@ -80,7 +80,7 @@ func NewGit(messageProcessor MessageProcessor, cfg TagConfig) *GitImpl {
 
 // Describe runs git describe, it no tag found, return empty
 func (GitImpl) Describe() string {
-	cmd := exec.Command("git", "describe", "--abbrev=0")
+	cmd := exec.Command("git", "describe", "--abbrev=0", "--tags")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return ""
@@ -138,7 +138,7 @@ func (g GitImpl) Tag(version semver.Version) error {
 
 // Tags list repository tags
 func (g GitImpl) Tags() ([]GitTag, error) {
-	cmd := exec.Command("git", "tag", "-l", "--format", "%(taggerdate:iso8601)#%(refname:short)")
+	cmd := exec.Command("git", "for-each-ref", "--sort", "creatordate", "--format", "%(creatordate:iso8601)#%(refname:short)", "refs/tags")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return nil, combinedOutputErr(err, out)
