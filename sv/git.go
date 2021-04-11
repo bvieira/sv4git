@@ -20,7 +20,7 @@ const (
 
 // Git commands
 type Git interface {
-	Describe() string
+	LastTag() string
 	Log(lr LogRange) ([]GitCommitLog, error)
 	Commit(header, body, footer string) error
 	Tag(version semver.Version) error
@@ -78,9 +78,9 @@ func NewGit(messageProcessor MessageProcessor, cfg TagConfig) *GitImpl {
 	}
 }
 
-// Describe runs git describe, it no tag found, return empty
-func (GitImpl) Describe() string {
-	cmd := exec.Command("git", "describe", "--abbrev=0", "--tags")
+// LastTag get last tag, if no tag found, return empty
+func (GitImpl) LastTag() string {
+	cmd := exec.Command("git", "for-each-ref", "refs/tags", "--sort", "-creatordate", "--format", "%(refname:short)", "--count", "1")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return ""

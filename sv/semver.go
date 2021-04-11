@@ -26,7 +26,7 @@ func ToVersion(value string) (semver.Version, error) {
 
 // SemVerCommitsProcessor interface
 type SemVerCommitsProcessor interface {
-	NextVersion(version semver.Version, commits []GitCommitLog) semver.Version
+	NextVersion(version semver.Version, commits []GitCommitLog) (semver.Version, bool)
 }
 
 // SemVerCommitsProcessorImpl process versions using commit log
@@ -50,7 +50,7 @@ func NewSemVerCommitsProcessor(vcfg VersioningConfig, mcfg CommitMessageConfig) 
 }
 
 // NextVersion calculates next version based on commit log
-func (p SemVerCommitsProcessorImpl) NextVersion(version semver.Version, commits []GitCommitLog) semver.Version {
+func (p SemVerCommitsProcessorImpl) NextVersion(version semver.Version, commits []GitCommitLog) (semver.Version, bool) {
 	var versionToUpdate = none
 	for _, commit := range commits {
 		if v := p.versionTypeToUpdate(commit); v > versionToUpdate {
@@ -60,13 +60,13 @@ func (p SemVerCommitsProcessorImpl) NextVersion(version semver.Version, commits 
 
 	switch versionToUpdate {
 	case major:
-		return version.IncMajor()
+		return version.IncMajor(), true
 	case minor:
-		return version.IncMinor()
+		return version.IncMinor(), true
 	case patch:
-		return version.IncPatch()
+		return version.IncPatch(), true
 	default:
-		return version
+		return version, false
 	}
 }
 
