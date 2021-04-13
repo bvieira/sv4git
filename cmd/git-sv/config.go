@@ -6,9 +6,11 @@ import (
 	"io/ioutil"
 	"log"
 	"os/exec"
+	"reflect"
 	"strings"
 	"sv4git/sv"
 
+	"github.com/imdario/mergo"
 	"github.com/kelseyhightower/envconfig"
 	"gopkg.in/yaml.v3"
 )
@@ -89,4 +91,38 @@ func defaultConfig() Config {
 			Issue: sv.CommitMessageIssueConfig{Regex: "[A-Z]+-[0-9]+"},
 		},
 	}
+}
+
+func merge(dst *Config, src Config) error {
+	err := mergo.Merge(dst, src, mergo.WithOverride, mergo.WithTransformers(&mergeTransformer{}))
+	if err == nil {
+		if len(src.ReleaseNotes.Headers) > 0 { // mergo is merging maps, ReleaseNotes.Headers should be overwritten
+			dst.ReleaseNotes.Headers = src.ReleaseNotes.Headers
+		}
+	}
+	return err
+}
+
+type mergeTransformer struct {
+}
+
+func (t *mergeTransformer) Transformer(typ reflect.Type) func(dst, src reflect.Value) error {
+	if typ.Kind() == reflect.Slice {
+		return func(dst, src reflect.Value) error {
+			if dst.CanSet() && !src.IsNil() {
+				dst.Set(src)
+			}
+			return nil
+		}
+	}
+
+	if typ.Kind() == reflect.Ptr {
+		return func(dst, src reflect.Value) error {
+			if dst.CanSet() && !src.IsNil() {
+				dst.Set(src)
+			}
+			return nil
+		}
+	}
+	return nil
 }

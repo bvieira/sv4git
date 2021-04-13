@@ -4,10 +4,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"reflect"
 	"sv4git/sv"
 
-	"github.com/imdario/mergo"
 	"github.com/urfave/cli/v2"
 )
 
@@ -28,7 +26,7 @@ func main() {
 
 	if envCfg.Home != "" {
 		if homeCfg, err := loadConfig(filepath.Join(envCfg.Home, configFilename)); err == nil {
-			if merr := mergo.Merge(&cfg, homeCfg, mergo.WithOverride, mergo.WithTransformers(&nullTransformer{})); merr != nil {
+			if merr := merge(&cfg, homeCfg); merr != nil {
 				log.Fatal(merr)
 			}
 		}
@@ -40,7 +38,7 @@ func main() {
 	}
 
 	if repoCfg, err := loadConfig(filepath.Join(repoPath, repoConfigFilename)); err == nil {
-		if merr := mergo.Merge(&cfg, repoCfg, mergo.WithOverride, mergo.WithTransformers(&nullTransformer{})); merr != nil {
+		if merr := merge(&cfg, repoCfg); merr != nil {
 			log.Fatal(merr)
 		}
 		if len(repoCfg.ReleaseNotes.Headers) > 0 { // mergo is merging maps, headers will be overwritten
@@ -160,19 +158,4 @@ func main() {
 	if apperr != nil {
 		log.Fatal(apperr)
 	}
-}
-
-type nullTransformer struct {
-}
-
-func (t *nullTransformer) Transformer(typ reflect.Type) func(dst, src reflect.Value) error {
-	if typ.Kind() == reflect.Ptr {
-		return func(dst, src reflect.Value) error {
-			if dst.CanSet() && !src.IsNil() {
-				dst.Set(src)
-			}
-			return nil
-		}
-	}
-	return nil
 }
