@@ -15,6 +15,16 @@ var ccfg = CommitMessageConfig{
 	Issue: CommitMessageIssueConfig{Regex: "[A-Z]+-[0-9]+"},
 }
 
+var ccfgHash = CommitMessageConfig{
+	Types: []string{"feat", "fix"},
+	Scope: CommitMessageScopeConfig{},
+	Footer: map[string]CommitMessageFooterConfig{
+		"issue": {Key: "jira", KeySynonyms: []string{"Jira"}, UseHash: true},
+		"refs":  {Key: "Refs", UseHash: true},
+	},
+	Issue: CommitMessageIssueConfig{Regex: "[A-Z]+-[0-9]+"},
+}
+
 var ccfgEmptyIssue = CommitMessageConfig{
 	Types: []string{"feat", "fix"},
 	Scope: CommitMessageScopeConfig{},
@@ -139,27 +149,27 @@ func TestMessageProcessorImpl_Validate(t *testing.T) {
 }
 
 func TestMessageProcessorImpl_Enhance(t *testing.T) {
-	p := NewMessageProcessor(ccfg, newBranchCfg(false))
-
 	tests := []struct {
 		name    string
+		cfg     CommitMessageConfig
 		branch  string
 		message string
 		want    string
 		wantErr bool
 	}{
-		{"issue on branch name", "JIRA-123", "fix: fix something", "\njira: JIRA-123", false},
-		{"issue on branch name with description", "JIRA-123-some-description", "fix: fix something", "\njira: JIRA-123", false},
-		{"issue on branch name with prefix", "feature/JIRA-123", "fix: fix something", "\njira: JIRA-123", false},
-		{"with footer", "JIRA-123", fullMessage, "jira: JIRA-123", false},
-		{"with issue on footer", "JIRA-123", fullMessageWithJira, "", false},
-		{"issue on branch name with prefix and description", "feature/JIRA-123-some-description", "fix: fix something", "\njira: JIRA-123", false},
-		{"no issue on branch name", "branch", "fix: fix something", "", true},
-		{"unexpected branch name", "feature /JIRA-123", "fix: fix something", "", true},
+		{"issue on branch name", ccfg, "JIRA-123", "fix: fix something", "\njira: JIRA-123", false},
+		{"issue on branch name with description", ccfg, "JIRA-123-some-description", "fix: fix something", "\njira: JIRA-123", false},
+		{"issue on branch name with prefix", ccfg, "feature/JIRA-123", "fix: fix something", "\njira: JIRA-123", false},
+		{"with footer", ccfg, "JIRA-123", fullMessage, "jira: JIRA-123", false},
+		{"with issue on footer", ccfg, "JIRA-123", fullMessageWithJira, "", false},
+		{"issue on branch name with prefix and description", ccfg, "feature/JIRA-123-some-description", "fix: fix something", "\njira: JIRA-123", false},
+		{"no issue on branch name", ccfg, "branch", "fix: fix something", "", true},
+		{"unexpected branch name", ccfg, "feature /JIRA-123", "fix: fix something", "", true},
+		{"issue on branch name using hash", ccfgHash, "JIRA-123-some-description", "fix: fix something", "\njira #JIRA-123", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := p.Enhance(tt.branch, tt.message)
+			got, err := NewMessageProcessor(tt.cfg, newBranchCfg(false)).Enhance(tt.branch, tt.message)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MessageProcessorImpl.Enhance() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -325,6 +335,8 @@ func TestMessageProcessorImpl_Format(t *testing.T) {
 	}{
 		{"simple message", ccfg, NewCommitMessage("feat", "", "something", "", "", ""), "feat: something", "", ""},
 		{"with issue", ccfg, NewCommitMessage("feat", "", "something", "", "JIRA-123", ""), "feat: something", "", "jira: JIRA-123"},
+		{"with issue using hash", ccfgHash, NewCommitMessage("feat", "", "something", "", "JIRA-123", ""), "feat: something", "", "jira #JIRA-123"},
+		{"with issue using double hash", ccfgHash, NewCommitMessage("feat", "", "something", "", "#JIRA-123", ""), "feat: something", "", "jira #JIRA-123"},
 		{"with breaking change", ccfg, NewCommitMessage("feat", "", "something", "", "", "breaks"), "feat: something", "", "BREAKING CHANGE: breaks"},
 		{"with scope", ccfg, NewCommitMessage("feat", "scope", "something", "", "", ""), "feat(scope): something", "", ""},
 		{"with body", ccfg, NewCommitMessage("feat", "", "something", "body", "", ""), "feat: something", "body", ""},

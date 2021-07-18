@@ -108,13 +108,19 @@ func (p MessageProcessorImpl) Enhance(branch string, message string) (string, er
 		return "", fmt.Errorf("could not find issue id using configured regex")
 	}
 
-	footer := fmt.Sprintf("%s: %s", p.messageCfg.IssueFooterConfig().Key, issue)
-
+	footer := formatIssueFooter(p.messageCfg.IssueFooterConfig(), issue)
 	if !hasFooter(message) {
 		return "\n" + footer, nil
 	}
 
 	return footer, nil
+}
+
+func formatIssueFooter(cfg CommitMessageFooterConfig, issue string) string {
+	if cfg.UseHash {
+		return fmt.Sprintf("%s #%s", cfg.Key, strings.TrimPrefix(issue, "#"))
+	}
+	return fmt.Sprintf("%s: %s", cfg.Key, issue)
 }
 
 // IssueID try to extract issue id from branch, return empty if not found.
@@ -154,11 +160,7 @@ func (p MessageProcessorImpl) Format(msg CommitMessage) (string, string, string)
 		if footer.Len() > 0 {
 			footer.WriteString("\n")
 		}
-		if p.messageCfg.IssueFooterConfig().UseHash {
-			footer.WriteString(fmt.Sprintf("%s #%s", p.messageCfg.IssueFooterConfig().Key, strings.TrimPrefix(issue, "#")))
-		} else {
-			footer.WriteString(fmt.Sprintf("%s: %s", p.messageCfg.IssueFooterConfig().Key, issue))
-		}
+		footer.WriteString(formatIssueFooter(p.messageCfg.IssueFooterConfig(), issue))
 	}
 
 	return header.String(), msg.Body, footer.String()
