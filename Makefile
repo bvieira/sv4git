@@ -1,4 +1,4 @@
-.PHONY: usage build test run tidy release release-all
+.PHONY: usage build test test-coverage test-show-coverage run tidy release release-all
 
 OK_COLOR=\033[32;01m
 NO_COLOR=\033[0m
@@ -34,6 +34,16 @@ build: test
 test:
 	@echo $(ECHOFLAGS) "$(OK_COLOR)==> Running tests...$(NO_COLOR)"
 	@go test $(PKGS)
+
+## test-coverage: run tests with coverage
+test-coverage:
+	@echo $(ECHOFLAGS) "$(OK_COLOR)==> Running tests with coverage...$(NO_COLOR)"
+	@go test -race -covermode=atomic -coverprofile coverage.out ./...
+
+## test-show-coverage: show coverage
+test-show-coverage: test-coverage
+	@echo $(ECHOFLAGS) "$(OK_COLOR)==> Show test coverage...$(NO_COLOR)"
+	@go tool cover -html coverage.out
 
 ## run: run git-sv
 run:
