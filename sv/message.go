@@ -117,6 +117,9 @@ func (p MessageProcessorImpl) Enhance(branch string, message string) (string, er
 }
 
 func formatIssueFooter(cfg CommitMessageFooterConfig, issue string) string {
+	if !strings.HasPrefix(issue, cfg.AddValuePrefix) {
+		issue = cfg.AddValuePrefix + issue
+	}
 	if cfg.UseHash {
 		return fmt.Sprintf("%s #%s", cfg.Key, strings.TrimPrefix(issue, "#"))
 	}

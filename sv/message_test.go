@@ -25,6 +25,15 @@ var ccfgHash = CommitMessageConfig{
 	Issue: CommitMessageIssueConfig{Regex: "[A-Z]+-[0-9]+"},
 }
 
+var ccfgGitIssue = CommitMessageConfig{
+	Types: []string{"feat", "fix"},
+	Scope: CommitMessageScopeConfig{},
+	Footer: map[string]CommitMessageFooterConfig{
+		"issue": {Key: "issue", KeySynonyms: []string{"Issue"}, UseHash: false, AddValuePrefix: "#"},
+	},
+	Issue: CommitMessageIssueConfig{Regex: "#?[0-9]+"},
+}
+
 var ccfgEmptyIssue = CommitMessageConfig{
 	Types: []string{"feat", "fix"},
 	Scope: CommitMessageScopeConfig{},
@@ -166,6 +175,9 @@ func TestMessageProcessorImpl_Enhance(t *testing.T) {
 		{"no issue on branch name", ccfg, "branch", "fix: fix something", "", true},
 		{"unexpected branch name", ccfg, "feature /JIRA-123", "fix: fix something", "", true},
 		{"issue on branch name using hash", ccfgHash, "JIRA-123-some-description", "fix: fix something", "\njira #JIRA-123", false},
+		{"numeric issue on branch name", ccfgGitIssue, "#13", "fix: fix something", "\nissue: #13", false},
+		{"numeric issue on branch name without hash", ccfgGitIssue, "13", "fix: fix something", "\nissue: #13", false},
+		{"numeric issue on branch name with description without hash", ccfgGitIssue, "13-some-fix", "fix: fix something", "\nissue: #13", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -343,6 +355,8 @@ func TestMessageProcessorImpl_Format(t *testing.T) {
 		{"with multiline body", ccfg, NewCommitMessage("feat", "", "something", multilineBody, "", ""), "feat: something", multilineBody, ""},
 		{"full message", ccfg, NewCommitMessage("feat", "scope", "something", multilineBody, "JIRA-123", "breaks"), "feat(scope): something", multilineBody, fullFooter},
 		{"config without issue key", ccfgEmptyIssue, NewCommitMessage("feat", "", "something", "", "JIRA-123", ""), "feat: something", "", ""},
+		{"with issue and issue prefix", ccfgGitIssue, NewCommitMessage("feat", "", "something", "", "123", ""), "feat: something", "", "issue: #123"},
+		{"with #issue and issue prefix", ccfgGitIssue, NewCommitMessage("feat", "", "something", "", "#123", ""), "feat: something", "", "issue: #123"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

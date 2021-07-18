@@ -17,5 +17,6 @@ commit-message:
     footer:
         issue:
             key: issue
+            add-value-prefix: '#'
     issue:
-        regex: '#[0-9]+'
+        regex: '#?[0-9]+'

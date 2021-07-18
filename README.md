@@ -127,6 +127,7 @@ commit-message:
                 - Jira
                 - JIRA
             use-hash: false # If false, use :<space> separator. If true, use <space># separator.
+            add-value-prefix: '' # Add a prefix to issue value.
     issue:
         regex: '[A-Z]+-[0-9]+' # Regex for issue id.
 ```
