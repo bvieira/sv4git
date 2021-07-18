@@ -25,9 +25,10 @@ type CommitMessageScopeConfig struct {
 
 // CommitMessageFooterConfig config footer metadata.
 type CommitMessageFooterConfig struct {
-	Key         string   `yaml:"key"`
-	KeySynonyms []string `yaml:"key-synonyms"`
-	UseHash     bool     `yaml:"use-hash"`
+	Key            string   `yaml:"key"`
+	KeySynonyms    []string `yaml:"key-synonyms"`
+	UseHash        bool     `yaml:"use-hash"`
+	AddValuePrefix string   `yaml:"add-value-prefix"`
 }
 
 // CommitMessageIssueConfig issue preferences.
