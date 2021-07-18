@@ -18,6 +18,8 @@ BUILDARCH ?= amd64
 BUILDENVS ?= CGO_ENABLED=0 GOOS=$(BUILDOS) GOARCH=$(BUILDARCH)
 BUILDFLAGS ?= -a -installsuffix cgo --ldflags '-X main.Version=$(VERSION) -extldflags "-lm -lstdc++ -static"'
 
+COMPRESS_TYPE ?= targz
+
 usage: Makefile
 	@echo $(ECHOFLAGS) "to use make call:"
 	@echo $(ECHOFLAGS) "    make <action>"
@@ -58,7 +60,11 @@ tidy:
 ## release: prepare binary for release
 release:
 	make build
+ifeq ($(COMPRESS_TYPE), zip)
 	@zip -j bin/git-sv_$(VERSION)_$(BUILDOS)_$(BUILDARCH).zip bin/$(BUILDOS)_$(BUILDARCH)/$(BIN)
+else
+	@tar -czf bin/git-sv_$(VERSION)_$(BUILDOS)_$(BUILDARCH).tar.gz -C bin/$(BUILDOS)_$(BUILDARCH)/ $(BIN)
+endif
 
 ## release-all: prepare linux, darwin and windows binary for release (requires sv4git)
 release-all:
@@ -66,4 +72,4 @@ release-all:
 	
 	VERSION=$(shell git sv nv) BUILDOS=linux make release
 	VERSION=$(shell git sv nv) BUILDOS=darwin make release
-	VERSION=$(shell git sv nv) BUILDOS=windows make release
+	VERSION=$(shell git sv nv) COMPRESS_TYPE=zip BUILDOS=windows make release
