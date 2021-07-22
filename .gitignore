@@ -13,3 +13,10 @@ bin/
 *.out
 
 *.sample
+
+# Additional generated artifacts
+artifacts/
+
+# Mac metadata
+
+.DS_Store

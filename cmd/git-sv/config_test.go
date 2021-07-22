@@ -2,8 +2,9 @@ package main
 
 import (
 	"reflect"
-	"sv4git/sv"
 	"testing"
+
+	"github.com/bvieira/sv4git/sv"
 )
 
 func Test_merge(t *testing.T) {

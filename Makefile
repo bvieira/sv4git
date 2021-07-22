@@ -32,6 +32,16 @@ build: test
 	@echo $(ECHOFLAGS) "$(OK_COLOR)==> Building binary ($(BUILDOS)/$(BUILDARCH)/$(BIN))...$(NO_COLOR)"
 	@$(BUILDENVS) go build -v $(BUILDFLAGS) -o bin/$(BUILDOS)_$(BUILDARCH)/$(BIN) ./cmd/git-sv
 
+## list: run golangci-lint without autofix
+lint:
+	@echo $(ECHOFLAGS) "$(OK_COLOR)==> Running golangci-lint...$(NO_COLOR)"
+	@golangci-lint run ./... --config .golangci.yml
+
+## autofix: run golangci-lint with autofix enabled
+autofix:
+	@echo $(ECHOFLAGS) "$(OK_COLOR)==> Running golangci-lint...$(NO_COLOR)"
+	@golangci-lint run ./... --config .golangci.yml --fix
+
 ## test: run unit tests
 test:
 	@echo $(ECHOFLAGS) "$(OK_COLOR)==> Running tests...$(NO_COLOR)"
@@ -69,7 +79,7 @@ endif
 ## release-all: prepare linux, darwin and windows binary for release (requires sv4git)
 release-all:
 	@rm -rf bin
-	
+
 	VERSION=$(shell git sv nv) BUILDOS=linux make release
 	VERSION=$(shell git sv nv) BUILDOS=darwin make release
 	VERSION=$(shell git sv nv) COMPRESS_TYPE=zip BUILDOS=windows make release

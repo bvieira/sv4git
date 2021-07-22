@@ -8,8 +8,9 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-	"sv4git/sv"
 	"time"
+
+	"github.com/bvieira/sv4git/sv"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/urfave/cli/v2"
@@ -267,7 +268,6 @@ func tagHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor) func(c *c
 
 func commitHandler(cfg Config, git sv.Git, messageProcessor sv.MessageProcessor) func(c *cli.Context) error {
 	return func(c *cli.Context) error {
-
 		ctype, err := promptType(cfg.CommitMessage.Types)
 		if err != nil {
 			return err
@@ -333,7 +333,6 @@ func commitHandler(cfg Config, git sv.Git, messageProcessor sv.MessageProcessor)
 
 func changelogHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, rnProcessor sv.ReleaseNoteProcessor, formatter sv.OutputFormatter) func(c *cli.Context) error {
 	return func(c *cli.Context) error {
-
 		tags, err := git.Tags()
 		if err != nil {
 			return err
