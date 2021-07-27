@@ -80,7 +80,7 @@ versioning: # versioning bump
         - refactor
         - style
         - test
-    # When type is not present on update rules and is unknown (not mapped on commit message types); 
+    # When type is not present on update rules and is unknown (not mapped on commit message types);
     # if ignore-unknown=false bump patch, if ignore-unknown=true do not bump version
     ignore-unknown: false
 
@@ -119,7 +119,7 @@ commit-message:
     scope:
         # Define supported scopes, if blank, scope will not be validated, if not, only scope listed will be valid.
         # Don't forget to add "" on your list if you need to define scopes and keep it optional.
-        values: [] 
+        values: []
     footer:
         issue: # Use "issue: {}" if you wish to disable issue footer.
             key: jira # Name used to define an issue on footer metadata.
@@ -212,7 +212,7 @@ SHA1=$3
 git sv vcm --path "$(pwd)" --file "$COMMIT_MSG_FILE" --source "$COMMIT_SOURCE"
 ```
 
-**Tip**: you can configure a directory as your global git templates using the command below: 
+**Tip**: you can configure a directory as your global git templates using the command below:
 
 ```bash
 git config --global init.templatedir '<YOUR TEMPLATE DIR>'

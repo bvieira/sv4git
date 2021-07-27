@@ -4,7 +4,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"sv4git/sv"
+
+	"github.com/bvieira/sv4git/sv"
 
 	"github.com/urfave/cli/v2"
 )

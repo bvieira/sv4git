@@ -8,7 +8,8 @@ import (
 	"os/exec"
 	"reflect"
 	"strings"
-	"sv4git/sv"
+
+	"github.com/bvieira/sv4git/sv"
 
 	"github.com/imdario/mergo"
 	"github.com/kelseyhightower/envconfig"
@@ -103,8 +104,7 @@ func merge(dst *Config, src Config) error {
 	return err
 }
 
-type mergeTransformer struct {
-}
+type mergeTransformer struct{}
 
 func (t *mergeTransformer) Transformer(typ reflect.Type) func(dst, src reflect.Value) error {
 	if typ.Kind() == reflect.Slice {
