@@ -37,8 +37,8 @@ lint:
 	@echo $(ECHOFLAGS) "$(OK_COLOR)==> Running golangci-lint...$(NO_COLOR)"
 	@golangci-lint run ./... --config .golangci.yml
 
-## autofix: run golangci-lint with autofix enabled
-autofix:
+## lint-autofix: run golangci-lint with autofix enabled
+lint-autofix:
 	@echo $(ECHOFLAGS) "$(OK_COLOR)==> Running golangci-lint...$(NO_COLOR)"
 	@golangci-lint run ./... --config .golangci.yml --fix
 
