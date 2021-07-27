@@ -32,7 +32,7 @@ build: test
 	@echo $(ECHOFLAGS) "$(OK_COLOR)==> Building binary ($(BUILDOS)/$(BUILDARCH)/$(BIN))...$(NO_COLOR)"
 	@$(BUILDENVS) go build -v $(BUILDFLAGS) -o bin/$(BUILDOS)_$(BUILDARCH)/$(BIN) ./cmd/git-sv
 
-## list: run golangci-lint without autofix
+## lint: run golangci-lint without autofix
 lint:
 	@echo $(ECHOFLAGS) "$(OK_COLOR)==> Running golangci-lint...$(NO_COLOR)"
 	@golangci-lint run ./... --config .golangci.yml
