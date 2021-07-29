@@ -13,6 +13,9 @@ versioning:
         - refactor
         - test
 
+tag:
+    pattern: 'v%d.%d.%d'
+
 commit-message:
     footer:
         issue:
