@@ -4,7 +4,7 @@ package sv
 
 // CommitMessageConfig config a commit message.
 type CommitMessageConfig struct {
-	Types  []string                             `yaml:"types"`
+	Types  []string                             `yaml:"types,flow"`
 	Scope  CommitMessageScopeConfig             `yaml:"scope"`
 	Footer map[string]CommitMessageFooterConfig `yaml:"footer"`
 	Issue  CommitMessageIssueConfig             `yaml:"issue"`
@@ -26,7 +26,7 @@ type CommitMessageScopeConfig struct {
 // CommitMessageFooterConfig config footer metadata.
 type CommitMessageFooterConfig struct {
 	Key            string   `yaml:"key"`
-	KeySynonyms    []string `yaml:"key-synonyms"`
+	KeySynonyms    []string `yaml:"key-synonyms,flow"`
 	UseHash        bool     `yaml:"use-hash"`
 	AddValuePrefix string   `yaml:"add-value-prefix"`
 }
@@ -43,7 +43,7 @@ type BranchesConfig struct {
 	PrefixRegex  string   `yaml:"prefix"`
 	SuffixRegex  string   `yaml:"suffix"`
 	DisableIssue bool     `yaml:"disable-issue"`
-	Skip         []string `yaml:"skip"`
+	Skip         []string `yaml:"skip,flow"`
 	SkipDetached *bool    `yaml:"skip-detached"`
 }
 
@@ -51,9 +51,9 @@ type BranchesConfig struct {
 
 // VersioningConfig versioning preferences.
 type VersioningConfig struct {
-	UpdateMajor   []string `yaml:"update-major"`
-	UpdateMinor   []string `yaml:"update-minor"`
-	UpdatePatch   []string `yaml:"update-patch"`
+	UpdateMajor   []string `yaml:"update-major,flow"`
+	UpdateMinor   []string `yaml:"update-minor,flow"`
+	UpdatePatch   []string `yaml:"update-patch,flow"`
 	IgnoreUnknown bool     `yaml:"ignore-unknown"`
 }
 
