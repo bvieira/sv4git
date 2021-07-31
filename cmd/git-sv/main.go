@@ -164,8 +164,7 @@ func main() {
 		},
 	}
 
-	apperr := app.Run(os.Args)
-	if apperr != nil {
+	if apperr := app.Run(os.Args); apperr != nil {
 		log.Fatal(apperr)
 	}
 }
