@@ -141,19 +141,19 @@ git-sv rn -h
 
 ##### Available commands
 
-| Variable                     | description                                                   | has options or subcommands |
-| ---------------------------- | ------------------------------------------------------------- | :------------------------: |
-| config, cfg                  | Show config information.                                      |     :heavy_check_mark:     |
-| current-version, cv          | Get last released version from git.                           |            :x:             |
-| next-version, nv             | Generate the next version based on git commit messages.       |            :x:             |
-| commit-log, cl               | List all commit logs according to range as jsons.             |     :heavy_check_mark:     |
-| commit-notes, cn             | Generate a commit notes according to range.                   |     :heavy_check_mark:     |
-| release-notes, rn            | Generate release notes.                                       |     :heavy_check_mark:     |
-| changelog, cgl               | Generate changelog.                                           |     :heavy_check_mark:     |
-| tag, tg                      | Generate tag with version based on git commit messages.       |            :x:             |
-| commit, cmt                  | Execute git commit with convetional commit message helper.    |            :x:             |
-| validate-commit-message, vcm | Use as prepare-commit-message hook to validate commit message.|     :heavy_check_mark:     |
-| help, h                      | Shows a list of commands or help for one command.             |            :x:             |
+| Variable                     | description                                                    | has options or subcommands |
+| ---------------------------- | -------------------------------------------------------------- | :------------------------: |
+| config, cfg                  | Show config information.                                       |     :heavy_check_mark:     |
+| current-version, cv          | Get last released version from git.                            |            :x:             |
+| next-version, nv             | Generate the next version based on git commit messages.        |            :x:             |
+| commit-log, cl               | List all commit logs according to range as jsons.              |     :heavy_check_mark:     |
+| commit-notes, cn             | Generate a commit notes according to range.                    |     :heavy_check_mark:     |
+| release-notes, rn            | Generate release notes.                                        |     :heavy_check_mark:     |
+| changelog, cgl               | Generate changelog.                                            |     :heavy_check_mark:     |
+| tag, tg                      | Generate tag with version based on git commit messages.        |            :x:             |
+| commit, cmt                  | Execute git commit with convetional commit message helper.     |     :heavy_check_mark:     |
+| validate-commit-message, vcm | Use as prepare-commit-message hook to validate commit message. |     :heavy_check_mark:     |
+| help, h                      | Shows a list of commands or help for one command.              |            :x:             |
 
 ##### Use range
 
@@ -209,17 +209,17 @@ make
 
 #### Make configs
 
-| Variable   | description            |
-| ---------- | ---------------------- |
-| BUILDOS    | Build OS.              |
-| BUILDARCH  | Build arch.            |
-| ECHOFLAGS  | Flags used on echo.    |
-| BUILDENVS  | Var envs used on build.|
-| BUILDFLAGS | Flags used on build.   |
+| Variable   | description             |
+| ---------- | ----------------------- |
+| BUILDOS    | Build OS.               |
+| BUILDARCH  | Build arch.             |
+| ECHOFLAGS  | Flags used on echo.     |
+| BUILDENVS  | Var envs used on build. |
+| BUILDFLAGS | Flags used on build.    |
 
-| Parameters | description                         |
-| ---------- | ----------------------------------- |
-| args       | Parameters that will be used on run.|
+| Parameters | description                          |
+| ---------- | ------------------------------------ |
+| args       | Parameters that will be used on run. |
 
 ```bash
 #variables

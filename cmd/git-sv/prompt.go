@@ -80,7 +80,7 @@ func promptIssueID(issueLabel, issueRegex, defaultValue string) (string, error) 
 }
 
 func promptBreakingChanges() (string, error) {
-	return promptText("Breaking changes description", "[a-z].+", "")
+	return promptText("Breaking change description", "[a-z].+", "")
 }
 
 func promptSelect(label string, items interface{}, template *promptui.SelectTemplates) (int, error) {
