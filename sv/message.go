@@ -101,6 +101,7 @@ func (p MessageProcessorImpl) Validate(message string) error {
 	return nil
 }
 
+// ValidateType check if commit type is valid.
 func (p MessageProcessorImpl) ValidateType(ctype string) error {
 	if ctype == "" || !contains(ctype, p.messageCfg.Types) {
 		return fmt.Errorf("message type should be one of [%v]", strings.Join(p.messageCfg.Types, ", "))
@@ -108,6 +109,7 @@ func (p MessageProcessorImpl) ValidateType(ctype string) error {
 	return nil
 }
 
+// ValidateScope check if commit scope is valid.
 func (p MessageProcessorImpl) ValidateScope(scope string) error {
 	if len(p.messageCfg.Scope.Values) > 0 && !contains(scope, p.messageCfg.Scope.Values) {
 		return fmt.Errorf("message scope should one of [%v]", strings.Join(p.messageCfg.Scope.Values, ", "))
@@ -115,6 +117,7 @@ func (p MessageProcessorImpl) ValidateScope(scope string) error {
 	return nil
 }
 
+// ValidateDescription check if commit description is valid.
 func (p MessageProcessorImpl) ValidateDescription(description string) error {
 	if !regexp.MustCompile("^[a-z]+.*$").MatchString(description) {
 		return fmt.Errorf("description [%s] should begins with lowercase letter", description)

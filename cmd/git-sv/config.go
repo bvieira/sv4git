@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -24,7 +23,7 @@ func loadEnvConfig() EnvConfig {
 	var c EnvConfig
 	err := envconfig.Process("", &c)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal("failed to load env config, error: ", err.Error())
 	}
 	return c
 }
@@ -43,9 +42,14 @@ func getRepoPath() (string, error) {
 	cmd := exec.Command("git", "rev-parse", "--show-toplevel")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", errors.New(string(out))
+		return "", combinedOutputErr(err, out)
 	}
 	return strings.TrimSpace(string(out)), nil
+}
+
+func combinedOutputErr(err error, out []byte) error {
+	msg := strings.Split(string(out), "\n")
+	return fmt.Errorf("%v - %s", err, msg[0])
 }
 
 func loadConfig(filepath string) (Config, error) {
