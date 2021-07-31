@@ -23,7 +23,7 @@ type CommitMessage struct {
 	Metadata         map[string]string `json:"metadata,omitempty"`
 }
 
-// NewCommitMessage commit message constructor
+// NewCommitMessage commit message constructor.
 func NewCommitMessage(ctype, scope, description, body, issue, breakingChanges string) CommitMessage {
 	metadata := make(map[string]string)
 	if issue != "" {
@@ -58,7 +58,7 @@ type MessageProcessor interface {
 	Parse(subject, body string) CommitMessage
 }
 
-// NewMessageProcessor MessageProcessorImpl constructor
+// NewMessageProcessor MessageProcessorImpl constructor.
 func NewMessageProcessor(mcfg CommitMessageConfig, bcfg BranchesConfig) *MessageProcessorImpl {
 	return &MessageProcessorImpl{
 		messageCfg:  mcfg,
@@ -125,7 +125,7 @@ func (p MessageProcessorImpl) ValidateDescription(description string) error {
 // Enhance add metadata on commit message.
 func (p MessageProcessorImpl) Enhance(branch string, message string) (string, error) {
 	if p.branchesCfg.DisableIssue || p.messageCfg.IssueFooterConfig().Key == "" || hasIssueID(message, p.messageCfg.IssueFooterConfig()) {
-		return "", nil //enhance disabled
+		return "", nil // enhance disabled
 	}
 
 	issue, err := p.IssueID(branch)

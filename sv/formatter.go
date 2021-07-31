@@ -78,7 +78,7 @@ func (p OutputFormatterImpl) FormatReleaseNote(releasenote ReleaseNote) string {
 	return b.String()
 }
 
-// FormatChangelog format a changelog
+// FormatChangelog format a changelog.
 func (p OutputFormatterImpl) FormatChangelog(releasenotes []ReleaseNote) string {
 	var templateVars []releaseNoteTemplateVariables
 	for _, v := range releasenotes {
@@ -91,12 +91,12 @@ func (p OutputFormatterImpl) FormatChangelog(releasenotes []ReleaseNote) string 
 }
 
 func releaseNoteVariables(releasenote ReleaseNote) releaseNoteTemplateVariables {
-	var date = ""
+	date := ""
 	if !releasenote.Date.IsZero() {
 		date = releasenote.Date.Format("2006-01-02")
 	}
 
-	var version = ""
+	version := ""
 	if releasenote.Version != nil {
 		version = releasenote.Version.String()
 	}

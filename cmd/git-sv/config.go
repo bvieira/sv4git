@@ -10,13 +10,12 @@ import (
 	"strings"
 
 	"github.com/bvieira/sv4git/sv"
-
 	"github.com/imdario/mergo"
 	"github.com/kelseyhightower/envconfig"
 	"gopkg.in/yaml.v3"
 )
 
-// EnvConfig env vars for cli configuration
+// EnvConfig env vars for cli configuration.
 type EnvConfig struct {
 	Home string `envconfig:"SV4GIT_HOME" default:""`
 }
@@ -30,7 +29,7 @@ func loadEnvConfig() EnvConfig {
 	return c
 }
 
-// Config cli yaml config
+// Config cli yaml config.
 type Config struct {
 	Version       string                 `yaml:"version"`
 	Versioning    sv.VersioningConfig    `yaml:"versioning"`

@@ -62,7 +62,7 @@ func newBranchCfg(skipDetached bool) BranchesConfig {
 	}
 }
 
-// messages samples start
+// messages samples start.
 var fullMessage = `fix: correct minor typos in code
 
 see the issue for details
@@ -71,6 +71,7 @@ on typos fixed.
 
 Reviewed-by: Z
 Refs #133`
+
 var fullMessageWithJira = `fix: correct minor typos in code
 
 see the issue for details
@@ -80,6 +81,7 @@ on typos fixed.
 Reviewed-by: Z
 Refs #133
 jira: JIRA-456`
+
 var fullMessageRefs = `fix: correct minor typos in code
 
 see the issue for details
@@ -87,11 +89,13 @@ see the issue for details
 on typos fixed.
 
 Refs #133`
+
 var subjectAndBodyMessage = `fix: correct minor typos in code
 
 see the issue for details
 
 on typos fixed.`
+
 var subjectAndFooterMessage = `refactor!: drop support for Node 6
 
 BREAKING CHANGE: refactor to use JavaScript features not available in Node 6.`
@@ -470,7 +474,7 @@ func Test_splitCommitMessageContent(t *testing.T) {
 	}
 }
 
-//commitType, scope, description, hasBreakingChange
+//commitType, scope, description, hasBreakingChange.
 func Test_parseSubjectMessage(t *testing.T) {
 	tests := []struct {
 		name                  string

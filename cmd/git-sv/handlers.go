@@ -10,9 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bvieira/sv4git/sv"
-
 	"github.com/Masterminds/semver/v3"
+	"github.com/bvieira/sv4git/sv"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
 )

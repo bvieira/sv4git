@@ -18,7 +18,7 @@ const (
 	endLine      = "~~"
 )
 
-// Git commands
+// Git commands.
 type Git interface {
 	LastTag() string
 	Log(lr LogRange) ([]GitCommitLog, error)
@@ -29,48 +29,48 @@ type Git interface {
 	IsDetached() (bool, error)
 }
 
-// GitCommitLog description of a single commit log
+// GitCommitLog description of a single commit log.
 type GitCommitLog struct {
 	Date    string        `json:"date,omitempty"`
 	Hash    string        `json:"hash,omitempty"`
 	Message CommitMessage `json:"message,omitempty"`
 }
 
-// GitTag git tag info
+// GitTag git tag info.
 type GitTag struct {
 	Name string
 	Date time.Time
 }
 
-// LogRangeType type of log range
+// LogRangeType type of log range.
 type LogRangeType string
 
-// constants for log range type
+// constants for log range type.
 const (
 	TagRange  LogRangeType = "tag"
 	DateRange              = "date"
 	HashRange              = "hash"
 )
 
-// LogRange git log range
+// LogRange git log range.
 type LogRange struct {
 	rangeType LogRangeType
 	start     string
 	end       string
 }
 
-// NewLogRange LogRange constructor
+// NewLogRange LogRange constructor.
 func NewLogRange(t LogRangeType, start, end string) LogRange {
 	return LogRange{rangeType: t, start: start, end: end}
 }
 
-// GitImpl git command implementation
+// GitImpl git command implementation.
 type GitImpl struct {
 	messageProcessor MessageProcessor
 	tagCfg           TagConfig
 }
 
-// NewGit constructor
+// NewGit constructor.
 func NewGit(messageProcessor MessageProcessor, cfg TagConfig) *GitImpl {
 	return &GitImpl{
 		messageProcessor: messageProcessor,
@@ -78,7 +78,7 @@ func NewGit(messageProcessor MessageProcessor, cfg TagConfig) *GitImpl {
 	}
 }
 
-// LastTag get last tag, if no tag found, return empty
+// LastTag get last tag, if no tag found, return empty.
 func (GitImpl) LastTag() string {
 	cmd := exec.Command("git", "for-each-ref", "refs/tags", "--sort", "-creatordate", "--format", "%(refname:short)", "--count", "1")
 	out, err := cmd.CombinedOutput()
@@ -88,7 +88,7 @@ func (GitImpl) LastTag() string {
 	return strings.TrimSpace(strings.Trim(string(out), "\n"))
 }
 
-// Log return git log
+// Log return git log.
 func (g GitImpl) Log(lr LogRange) ([]GitCommitLog, error) {
 	format := "--pretty=format:\"%ad" + logSeparator + "%h" + logSeparator + "%s" + logSeparator + "%b" + endLine + "\""
 	params := []string{"log", "--date=short", format}
@@ -114,7 +114,7 @@ func (g GitImpl) Log(lr LogRange) ([]GitCommitLog, error) {
 	return parseLogOutput(g.messageProcessor, string(out)), nil
 }
 
-// Commit runs git commit
+// Commit runs git commit.
 func (g GitImpl) Commit(header, body, footer string) error {
 	cmd := exec.Command("git", "commit", "-m", header, "-m", "", "-m", body, "-m", "", "-m", footer)
 	cmd.Stdout = os.Stdout
@@ -122,7 +122,7 @@ func (g GitImpl) Commit(header, body, footer string) error {
 	return cmd.Run()
 }
 
-// Tag create a git tag
+// Tag create a git tag.
 func (g GitImpl) Tag(version semver.Version) error {
 	tag := fmt.Sprintf(g.tagCfg.Pattern, version.Major(), version.Minor(), version.Patch())
 	tagMsg := fmt.Sprintf("Version %d.%d.%d", version.Major(), version.Minor(), version.Patch())
@@ -136,7 +136,7 @@ func (g GitImpl) Tag(version semver.Version) error {
 	return pushCommand.Run()
 }
 
-// Tags list repository tags
+// Tags list repository tags.
 func (g GitImpl) Tags() ([]GitTag, error) {
 	cmd := exec.Command("git", "for-each-ref", "--sort", "creatordate", "--format", "%(creatordate:iso8601)#%(refname:short)", "refs/tags")
 	out, err := cmd.CombinedOutput()
@@ -146,7 +146,7 @@ func (g GitImpl) Tags() ([]GitTag, error) {
 	return parseTagsOutput(string(out))
 }
 
-// Branch get git branch
+// Branch get git branch.
 func (GitImpl) Branch() string {
 	cmd := exec.Command("git", "symbolic-ref", "--short", "HEAD")
 	out, err := cmd.CombinedOutput()

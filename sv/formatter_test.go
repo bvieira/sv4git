@@ -9,10 +9,13 @@ import (
 
 var dateChangelog = `## v1.0.0 (2020-05-01)
 `
+
 var emptyDateChangelog = `## v1.0.0
 `
+
 var emptyVersionChangelog = `## 2020-05-01
 `
+
 var fullChangeLog = `## v1.0.0 (2020-05-01)
 
 ### Features

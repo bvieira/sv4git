@@ -6,11 +6,10 @@ import (
 	"path/filepath"
 
 	"github.com/bvieira/sv4git/sv"
-
 	"github.com/urfave/cli/v2"
 )
 
-// Version for git-sv
+// Version for git-sv.
 var Version = ""
 
 const (
