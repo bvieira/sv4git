@@ -20,32 +20,7 @@ const (
 func main() {
 	log.SetFlags(0)
 
-	envCfg := loadEnvConfig()
-
-	cfg := defaultConfig()
-
-	if envCfg.Home != "" {
-		if homeCfg, err := loadConfig(filepath.Join(envCfg.Home, configFilename)); err == nil {
-			if merr := merge(&cfg, homeCfg); merr != nil {
-				log.Fatal("failed to merge user config, error: ", merr)
-			}
-		}
-	}
-
-	repoPath, rerr := getRepoPath()
-	if rerr != nil {
-		log.Fatal("failed to get repository path, error: ", rerr)
-	}
-
-	if repoCfg, err := loadConfig(filepath.Join(repoPath, repoConfigFilename)); err == nil {
-		if merr := merge(&cfg, repoCfg); merr != nil {
-			log.Fatal("failed to merge repo config, error: ", merr)
-		}
-		if len(repoCfg.ReleaseNotes.Headers) > 0 { // mergo is merging maps, headers will be overwritten
-			cfg.ReleaseNotes.Headers = repoCfg.ReleaseNotes.Headers
-		}
-	}
-
+	cfg := loadCfg()
 	messageProcessor := sv.NewMessageProcessor(cfg.CommitMessage, cfg.Branches)
 	git := sv.NewGit(messageProcessor, cfg.Tag)
 	semverProcessor := sv.NewSemVerCommitsProcessor(cfg.Versioning, cfg.CommitMessage)
@@ -167,4 +142,34 @@ func main() {
 	if apperr := app.Run(os.Args); apperr != nil {
 		log.Fatal("failed to run cli, error: ", apperr)
 	}
+}
+
+func loadCfg() Config {
+	envCfg := loadEnvConfig()
+
+	cfg := defaultConfig()
+
+	if envCfg.Home != "" {
+		if homeCfg, err := readConfig(filepath.Join(envCfg.Home, configFilename)); err == nil {
+			if merr := merge(&cfg, homeCfg); merr != nil {
+				log.Fatal("failed to merge user config, error: ", merr)
+			}
+		}
+	}
+
+	repoPath, rerr := getRepoPath()
+	if rerr != nil {
+		log.Fatal("failed to get repository path, error: ", rerr)
+	}
+
+	if repoCfg, err := readConfig(filepath.Join(repoPath, repoConfigFilename)); err == nil {
+		if merr := merge(&cfg, repoCfg); merr != nil {
+			log.Fatal("failed to merge repo config, error: ", merr)
+		}
+		if len(repoCfg.ReleaseNotes.Headers) > 0 { // mergo is merging maps, headers will be overwritten
+			cfg.ReleaseNotes.Headers = repoCfg.ReleaseNotes.Headers
+		}
+	}
+
+	return cfg
 }
