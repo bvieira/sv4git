@@ -82,7 +82,7 @@ func (p MessageProcessorImpl) Validate(message string) error {
 	subject, body := splitCommitMessageContent(message)
 	msg := p.Parse(subject, body)
 
-	if !regexp.MustCompile("^[a-z+]+(\\(.+\\))?!?: .+$").MatchString(subject) {
+	if !regexp.MustCompile(`^[a-z+]+(\(.+\))?!?: .+$`).MatchString(subject) {
 		return fmt.Errorf("subject [%s] should be valid according with conventional commits", subject)
 	}
 
@@ -229,7 +229,7 @@ func (p MessageProcessorImpl) Parse(subject, body string) CommitMessage {
 }
 
 func parseSubjectMessage(message string) (string, string, string, bool) {
-	regex := regexp.MustCompile("([a-z]+)(\\((.*)\\))?(!)?: (.*)")
+	regex := regexp.MustCompile(`([a-z]+)(\((.*)\))?(!)?: (.*)`)
 	result := regex.FindStringSubmatch(message)
 	if len(result) != 6 {
 		return "", "", message, false
