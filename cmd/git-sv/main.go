@@ -10,7 +10,7 @@ import (
 )
 
 // Version for git-sv.
-var Version = ""
+var Version = "source"
 
 const (
 	configFilename     = "config.yml"
