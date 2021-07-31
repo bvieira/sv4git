@@ -454,12 +454,12 @@ func validateCommitMessageHandler(git sv.Git, messageProcessor sv.MessageProcess
 		detached, derr := git.IsDetached()
 
 		if messageProcessor.SkipBranch(branch, derr == nil && detached) {
-			warn("commit message validation skipped, branch in ignore list or detached...")
+			warnf("commit message validation skipped, branch in ignore list or detached...")
 			return nil
 		}
 
 		if source := c.String("source"); source == "merge" {
-			warn("commit message validation skipped, ignoring source: %s...", source)
+			warnf("commit message validation skipped, ignoring source: %s...", source)
 			return nil
 		}
 
@@ -476,7 +476,7 @@ func validateCommitMessageHandler(git sv.Git, messageProcessor sv.MessageProcess
 
 		msg, err := messageProcessor.Enhance(branch, commitMessage)
 		if err != nil {
-			warn("could not enhance commit message, %s", err.Error())
+			warnf("could not enhance commit message, %s", err.Error())
 			return nil
 		}
 		if msg == "" {
