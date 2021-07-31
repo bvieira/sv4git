@@ -80,9 +80,9 @@ func (p OutputFormatterImpl) FormatReleaseNote(releasenote ReleaseNote) string {
 
 // FormatChangelog format a changelog.
 func (p OutputFormatterImpl) FormatChangelog(releasenotes []ReleaseNote) string {
-	var templateVars []releaseNoteTemplateVariables
-	for _, v := range releasenotes {
-		templateVars = append(templateVars, releaseNoteVariables(v))
+	templateVars := make([]releaseNoteTemplateVariables, len(releasenotes))
+	for i, v := range releasenotes {
+		templateVars[i] = releaseNoteVariables(v)
 	}
 
 	var b bytes.Buffer
