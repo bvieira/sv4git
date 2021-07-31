@@ -52,7 +52,7 @@ func combinedOutputErr(err error, out []byte) error {
 	return fmt.Errorf("%v - %s", err, msg[0])
 }
 
-func loadConfig(filepath string) (Config, error) {
+func readConfig(filepath string) (Config, error) {
 	content, rerr := ioutil.ReadFile(filepath)
 	if rerr != nil {
 		return Config{}, rerr
