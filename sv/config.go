@@ -40,8 +40,8 @@ type CommitMessageIssueConfig struct {
 
 // BranchesConfig branches preferences.
 type BranchesConfig struct {
-	PrefixRegex  string   `yaml:"prefix"`
-	SuffixRegex  string   `yaml:"suffix"`
+	Prefix       string   `yaml:"prefix"`
+	Suffix       string   `yaml:"suffix"`
 	DisableIssue bool     `yaml:"disable-issue"`
 	Skip         []string `yaml:"skip,flow"`
 	SkipDetached *bool    `yaml:"skip-detached"`

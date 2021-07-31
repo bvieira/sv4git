@@ -55,7 +55,7 @@ type ReleaseNote struct {
 	BreakingChanges BreakingChangeSection
 }
 
-// BreakingChangeSection breaking change section
+// BreakingChangeSection breaking change section.
 type BreakingChangeSection struct {
 	Name     string
 	Messages []string

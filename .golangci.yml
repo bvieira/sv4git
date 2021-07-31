@@ -1,26 +1,35 @@
 linters:
-  # disable-all: true
-  # enable:
-  #   - megacheck
-  #   - govet
-  enable-all: true
-  disable:
-   - scopelint
-   - paralleltest
-   - staticcheck
-   - noctx
-   - wsl
-   - lll
-   - forbidigo
-  #   - prealloc
-  # presets:
-  #   - bugs
-  #   - unused
-
-    # bugs|comment|complexity|error|format|import|metalinter|module|performance|sql|style|test|unused
-  fast: true
+  enable:
+    - tagliatelle
 
 run:
   skip-dirs:
     - build
     - artifacts
+
+linters-settings:
+  tagliatelle:
+    case:
+      use-field-name: true
+      rules:
+        json: camel
+        yaml: kebab
+        xml: camel
+        bson: camel
+        avro: snake
+        mapstructure: kebab
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - gocyclo
+        - errcheck
+        - dupl
+        - gosec
+        - gochecknoglobals
+        - testpackage
+    - path: cmd/git-sv/main.go
+      linters:
+        - gochecknoglobals
+        - funlen

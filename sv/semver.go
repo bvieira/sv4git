@@ -11,7 +11,7 @@ const (
 	major
 )
 
-// ToVersion parse string to semver.Version
+// ToVersion parse string to semver.Version.
 func ToVersion(value string) (semver.Version, error) {
 	version := value
 	if version == "" {
@@ -24,12 +24,12 @@ func ToVersion(value string) (semver.Version, error) {
 	return *v, nil
 }
 
-// SemVerCommitsProcessor interface
+// SemVerCommitsProcessor interface.
 type SemVerCommitsProcessor interface {
 	NextVersion(version semver.Version, commits []GitCommitLog) (semver.Version, bool)
 }
 
-// SemVerCommitsProcessorImpl process versions using commit log
+// SemVerCommitsProcessorImpl process versions using commit log.
 type SemVerCommitsProcessorImpl struct {
 	MajorVersionTypes         map[string]struct{}
 	MinorVersionTypes         map[string]struct{}
@@ -38,7 +38,7 @@ type SemVerCommitsProcessorImpl struct {
 	IncludeUnknownTypeAsPatch bool
 }
 
-// NewSemVerCommitsProcessor SemanticVersionCommitsProcessorImpl constructor
+// NewSemVerCommitsProcessor SemanticVersionCommitsProcessorImpl constructor.
 func NewSemVerCommitsProcessor(vcfg VersioningConfig, mcfg CommitMessageConfig) *SemVerCommitsProcessorImpl {
 	return &SemVerCommitsProcessorImpl{
 		IncludeUnknownTypeAsPatch: !vcfg.IgnoreUnknown,
@@ -49,9 +49,9 @@ func NewSemVerCommitsProcessor(vcfg VersioningConfig, mcfg CommitMessageConfig) 
 	}
 }
 
-// NextVersion calculates next version based on commit log
+// NextVersion calculates next version based on commit log.
 func (p SemVerCommitsProcessorImpl) NextVersion(version semver.Version, commits []GitCommitLog) (semver.Version, bool) {
-	var versionToUpdate = none
+	versionToUpdate := none
 	for _, commit := range commits {
 		if v := p.versionTypeToUpdate(commit); v > versionToUpdate {
 			versionToUpdate = v

@@ -23,7 +23,7 @@ type CommitMessage struct {
 	Metadata         map[string]string `json:"metadata,omitempty"`
 }
 
-// NewCommitMessage commit message constructor
+// NewCommitMessage commit message constructor.
 func NewCommitMessage(ctype, scope, description, body, issue, breakingChanges string) CommitMessage {
 	metadata := make(map[string]string)
 	if issue != "" {
@@ -58,7 +58,7 @@ type MessageProcessor interface {
 	Parse(subject, body string) CommitMessage
 }
 
-// NewMessageProcessor MessageProcessorImpl constructor
+// NewMessageProcessor MessageProcessorImpl constructor.
 func NewMessageProcessor(mcfg CommitMessageConfig, bcfg BranchesConfig) *MessageProcessorImpl {
 	return &MessageProcessorImpl{
 		messageCfg:  mcfg,
@@ -82,7 +82,7 @@ func (p MessageProcessorImpl) Validate(message string) error {
 	subject, body := splitCommitMessageContent(message)
 	msg := p.Parse(subject, body)
 
-	if !regexp.MustCompile("^[a-z+]+(\\(.+\\))?!?: .+$").MatchString(subject) {
+	if !regexp.MustCompile(`^[a-z+]+(\(.+\))?!?: .+$`).MatchString(subject) {
 		return fmt.Errorf("subject [%s] should be valid according with conventional commits", subject)
 	}
 
@@ -125,7 +125,7 @@ func (p MessageProcessorImpl) ValidateDescription(description string) error {
 // Enhance add metadata on commit message.
 func (p MessageProcessorImpl) Enhance(branch string, message string) (string, error) {
 	if p.branchesCfg.DisableIssue || p.messageCfg.IssueFooterConfig().Key == "" || hasIssueID(message, p.messageCfg.IssueFooterConfig()) {
-		return "", nil //enhance disabled
+		return "", nil // enhance disabled
 	}
 
 	issue, err := p.IssueID(branch)
@@ -160,7 +160,7 @@ func (p MessageProcessorImpl) IssueID(branch string) (string, error) {
 		return "", nil
 	}
 
-	rstr := fmt.Sprintf("^%s(%s)%s$", p.branchesCfg.PrefixRegex, p.messageCfg.Issue.Regex, p.branchesCfg.SuffixRegex)
+	rstr := fmt.Sprintf("^%s(%s)%s$", p.branchesCfg.Prefix, p.messageCfg.Issue.Regex, p.branchesCfg.Suffix)
 	r, err := regexp.Compile(rstr)
 	if err != nil {
 		return "", fmt.Errorf("could not compile issue regex: %s, error: %v", rstr, err.Error())
@@ -229,7 +229,7 @@ func (p MessageProcessorImpl) Parse(subject, body string) CommitMessage {
 }
 
 func parseSubjectMessage(message string) (string, string, string, bool) {
-	regex := regexp.MustCompile("([a-z]+)(\\((.*)\\))?(!)?: (.*)")
+	regex := regexp.MustCompile(`([a-z]+)(\((.*)\))?(!)?: (.*)`)
 	result := regex.FindStringSubmatch(message)
 	if len(result) != 6 {
 		return "", "", message, false

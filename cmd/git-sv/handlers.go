@@ -10,9 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bvieira/sv4git/sv"
-
 	"github.com/Masterminds/semver/v3"
+	"github.com/bvieira/sv4git/sv"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
 )
@@ -73,7 +72,7 @@ func nextVersionHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor) f
 	}
 }
 
-func commitLogHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor) func(c *cli.Context) error {
+func commitLogHandler(git sv.Git) func(c *cli.Context) error {
 	return func(c *cli.Context) error {
 		var commits []sv.GitCommitLog
 		var err error
@@ -149,8 +148,11 @@ func commitNotesHandler(git sv.Git, rnProcessor sv.ReleaseNoteProcessor, outputF
 			date, _ = time.Parse("2006-01-02", commits[0].Date)
 		}
 
-		releasenote := rnProcessor.Create(nil, date, commits)
-		fmt.Println(outputFormatter.FormatReleaseNote(releasenote))
+		output, err := outputFormatter.FormatReleaseNote(rnProcessor.Create(nil, date, commits))
+		if err != nil {
+			return fmt.Errorf("could not format release notes, message: %v", err)
+		}
+		fmt.Println(output)
 		return nil
 	}
 }
@@ -163,7 +165,7 @@ func releaseNotesHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, 
 		var err error
 
 		if tag := c.String("t"); tag != "" {
-			rnVersion, date, commits, err = getTagVersionInfo(git, semverProcessor, tag)
+			rnVersion, date, commits, err = getTagVersionInfo(git, tag)
 		} else {
 			// TODO: should generate release notes if version was not updated?
 			rnVersion, _, date, commits, err = getNextVersionInfo(git, semverProcessor)
@@ -174,12 +176,16 @@ func releaseNotesHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, 
 		}
 
 		releasenote := rnProcessor.Create(&rnVersion, date, commits)
-		fmt.Println(outputFormatter.FormatReleaseNote(releasenote))
+		output, err := outputFormatter.FormatReleaseNote(releasenote)
+		if err != nil {
+			return fmt.Errorf("could not format release notes, message: %v", err)
+		}
+		fmt.Println(output)
 		return nil
 	}
 }
 
-func getTagVersionInfo(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, tag string) (semver.Version, time.Time, []sv.GitCommitLog, error) {
+func getTagVersionInfo(git sv.Git, tag string) (semver.Version, time.Time, []sv.GitCommitLog, error) {
 	tagVersion, err := sv.ToVersion(tag)
 	if err != nil {
 		return semver.Version{}, time.Time{}, nil, fmt.Errorf("error parsing version: %s from tag, message: %v", tag, err)
@@ -281,7 +287,7 @@ func getCommitScope(cfg Config, p sv.MessageProcessor, input string, noScope boo
 	return input, p.ValidateScope(input)
 }
 
-func getCommitDescription(cfg Config, p sv.MessageProcessor, input string) (string, error) {
+func getCommitDescription(p sv.MessageProcessor, input string) (string, error) {
 	if input == "" {
 		return promptSubject()
 	}
@@ -366,7 +372,7 @@ func commitHandler(cfg Config, git sv.Git, messageProcessor sv.MessageProcessor)
 			return err
 		}
 
-		subject, err := getCommitDescription(cfg, messageProcessor, inputDescription)
+		subject, err := getCommitDescription(messageProcessor, inputDescription)
 		if err != nil {
 			return err
 		}
@@ -443,7 +449,11 @@ func changelogHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, rnP
 			releaseNotes = append(releaseNotes, rnProcessor.Create(&currentVer, tag.Date, commits))
 		}
 
-		fmt.Println(formatter.FormatChangelog(releaseNotes))
+		output, err := formatter.FormatChangelog(releaseNotes)
+		if err != nil {
+			return fmt.Errorf("could not format changelog, message: %v", err)
+		}
+		fmt.Println(output)
 
 		return nil
 	}
@@ -455,12 +465,12 @@ func validateCommitMessageHandler(git sv.Git, messageProcessor sv.MessageProcess
 		detached, derr := git.IsDetached()
 
 		if messageProcessor.SkipBranch(branch, derr == nil && detached) {
-			warn("commit message validation skipped, branch in ignore list or detached...")
+			warnf("commit message validation skipped, branch in ignore list or detached...")
 			return nil
 		}
 
 		if source := c.String("source"); source == "merge" {
-			warn("commit message validation skipped, ignoring source: %s...", source)
+			warnf("commit message validation skipped, ignoring source: %s...", source)
 			return nil
 		}
 
@@ -477,7 +487,7 @@ func validateCommitMessageHandler(git sv.Git, messageProcessor sv.MessageProcess
 
 		msg, err := messageProcessor.Enhance(branch, commitMessage)
 		if err != nil {
-			warn("could not enhance commit message, %s", err.Error())
+			warnf("could not enhance commit message, %s", err.Error())
 			return nil
 		}
 		if msg == "" {
