@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/bvieira/sv4git/sv"
+	"github.com/bvieira/sv4git/v2/sv"
 	"github.com/imdario/mergo"
 	"github.com/kelseyhightower/envconfig"
 	"gopkg.in/yaml.v3"

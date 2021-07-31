@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/bvieira/sv4git/sv"
+	"github.com/bvieira/sv4git/v2/sv"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
 )

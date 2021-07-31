@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/bvieira/sv4git/sv"
+	"github.com/bvieira/sv4git/v2/sv"
 	"github.com/urfave/cli/v2"
 )
 
