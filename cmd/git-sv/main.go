@@ -91,7 +91,7 @@ func main() {
 			Aliases:     []string{"cl"},
 			Usage:       "list all commit logs according to range as jsons",
 			Description: "The range filter is used based on git log filters, check https://git-scm.com/docs/git-log for more info. When flag range is \"tag\" and start is empty, last tag created will be used instead. When flag range is \"date\", if \"end\" is YYYY-MM-DD the range will be inclusive.",
-			Action:      commitLogHandler(git, semverProcessor),
+			Action:      commitLogHandler(git),
 			Flags: []cli.Flag{
 				&cli.StringFlag{Name: "t", Aliases: []string{"tag"}, Usage: "get commit log from a specific tag"},
 				&cli.StringFlag{Name: "r", Aliases: []string{"range"}, Usage: "type of range of commits, use: tag, date or hash", Value: string(sv.TagRange)},

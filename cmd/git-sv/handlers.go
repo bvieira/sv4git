@@ -72,7 +72,7 @@ func nextVersionHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor) f
 	}
 }
 
-func commitLogHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor) func(c *cli.Context) error {
+func commitLogHandler(git sv.Git) func(c *cli.Context) error {
 	return func(c *cli.Context) error {
 		var commits []sv.GitCommitLog
 		var err error
@@ -162,7 +162,7 @@ func releaseNotesHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, 
 		var err error
 
 		if tag := c.String("t"); tag != "" {
-			rnVersion, date, commits, err = getTagVersionInfo(git, semverProcessor, tag)
+			rnVersion, date, commits, err = getTagVersionInfo(git, tag)
 		} else {
 			// TODO: should generate release notes if version was not updated?
 			rnVersion, _, date, commits, err = getNextVersionInfo(git, semverProcessor)
@@ -178,7 +178,7 @@ func releaseNotesHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, 
 	}
 }
 
-func getTagVersionInfo(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, tag string) (semver.Version, time.Time, []sv.GitCommitLog, error) {
+func getTagVersionInfo(git sv.Git, tag string) (semver.Version, time.Time, []sv.GitCommitLog, error) {
 	tagVersion, err := sv.ToVersion(tag)
 	if err != nil {
 		return semver.Version{}, time.Time{}, nil, fmt.Errorf("error parsing version: %s from tag, message: %v", tag, err)
@@ -280,7 +280,7 @@ func getCommitScope(cfg Config, p sv.MessageProcessor, input string, noScope boo
 	return input, p.ValidateScope(input)
 }
 
-func getCommitDescription(cfg Config, p sv.MessageProcessor, input string) (string, error) {
+func getCommitDescription(p sv.MessageProcessor, input string) (string, error) {
 	if input == "" {
 		return promptSubject()
 	}
@@ -365,7 +365,7 @@ func commitHandler(cfg Config, git sv.Git, messageProcessor sv.MessageProcessor)
 			return err
 		}
 
-		subject, err := getCommitDescription(cfg, messageProcessor, inputDescription)
+		subject, err := getCommitDescription(messageProcessor, inputDescription)
 		if err != nil {
 			return err
 		}
