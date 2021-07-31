@@ -49,6 +49,9 @@ func (m CommitMessage) BreakingMessage() string {
 type MessageProcessor interface {
 	SkipBranch(branch string, detached bool) bool
 	Validate(message string) error
+	ValidateType(ctype string) error
+	ValidateScope(scope string) error
+	ValidateDescription(description string) error
 	Enhance(branch string, message string) (string, error)
 	IssueID(branch string) (string, error)
 	Format(msg CommitMessage) (string, string, string)
@@ -83,14 +86,39 @@ func (p MessageProcessorImpl) Validate(message string) error {
 		return fmt.Errorf("subject [%s] should be valid according with conventional commits", subject)
 	}
 
-	if msg.Type == "" || !contains(msg.Type, p.messageCfg.Types) {
+	if err := p.ValidateType(msg.Type); err != nil {
+		return err
+	}
+
+	if err := p.ValidateScope(msg.Scope); err != nil {
+		return err
+	}
+
+	if err := p.ValidateDescription(msg.Description); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p MessageProcessorImpl) ValidateType(ctype string) error {
+	if ctype == "" || !contains(ctype, p.messageCfg.Types) {
 		return fmt.Errorf("message type should be one of [%v]", strings.Join(p.messageCfg.Types, ", "))
 	}
+	return nil
+}
 
-	if len(p.messageCfg.Scope.Values) > 0 && !contains(msg.Scope, p.messageCfg.Scope.Values) {
+func (p MessageProcessorImpl) ValidateScope(scope string) error {
+	if len(p.messageCfg.Scope.Values) > 0 && !contains(scope, p.messageCfg.Scope.Values) {
 		return fmt.Errorf("message scope should one of [%v]", strings.Join(p.messageCfg.Scope.Values, ", "))
 	}
+	return nil
+}
 
+func (p MessageProcessorImpl) ValidateDescription(description string) error {
+	if !regexp.MustCompile("^[a-z]+.*$").MatchString(description) {
+		return fmt.Errorf("description [%s] should begins with lowercase letter", description)
+	}
 	return nil
 }
 

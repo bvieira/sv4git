@@ -141,6 +141,16 @@ func main() {
 			Aliases: []string{"cmt"},
 			Usage:   "execute git commit with convetional commit message helper",
 			Action:  commitHandler(cfg, git, messageProcessor),
+			Flags: []cli.Flag{
+				&cli.BoolFlag{Name: "no-scope", Aliases: []string{"nsc"}, Usage: "do not prompt for commit scope"},
+				&cli.BoolFlag{Name: "no-body", Aliases: []string{"nbd"}, Usage: "do not prompt for commit body"},
+				&cli.BoolFlag{Name: "no-issue", Aliases: []string{"nis"}, Usage: "do not prompt for commit issue, will try to recover from branch if enabled"},
+				&cli.BoolFlag{Name: "no-breaking", Aliases: []string{"nbc"}, Usage: "do not prompt for breaking changes"},
+				&cli.StringFlag{Name: "type", Aliases: []string{"t"}, Usage: "define commit type"},
+				&cli.StringFlag{Name: "scope", Aliases: []string{"s"}, Usage: "define commit scope"},
+				&cli.StringFlag{Name: "description", Aliases: []string{"d"}, Usage: "define commit description"},
+				&cli.StringFlag{Name: "breaking-change", Aliases: []string{"b"}, Usage: "define commit breaking change message"},
+			},
 		},
 		{
 			Name:    "validate-commit-message",

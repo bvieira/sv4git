@@ -157,6 +157,71 @@ func TestMessageProcessorImpl_Validate(t *testing.T) {
 	}
 }
 
+func TestMessageProcessorImpl_ValidateType(t *testing.T) {
+	tests := []struct {
+		name    string
+		cfg     CommitMessageConfig
+		ctype   string
+		wantErr bool
+	}{
+		{"valid type", ccfg, "feat", false},
+		{"invalid type", ccfg, "aaa", true},
+		{"empty type", ccfg, "", true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := NewMessageProcessor(tt.cfg, newBranchCfg(false))
+			if err := p.ValidateType(tt.ctype); (err != nil) != tt.wantErr {
+				t.Errorf("MessageProcessorImpl.ValidateType() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestMessageProcessorImpl_ValidateScope(t *testing.T) {
+	tests := []struct {
+		name    string
+		cfg     CommitMessageConfig
+		scope   string
+		wantErr bool
+	}{
+		{"any scope", ccfg, "aaa", false},
+		{"valid scope with scope list", ccfgWithScope, "scope", false},
+		{"invalid scope with scope list", ccfgWithScope, "aaa", true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := NewMessageProcessor(tt.cfg, newBranchCfg(false))
+			if err := p.ValidateScope(tt.scope); (err != nil) != tt.wantErr {
+				t.Errorf("MessageProcessorImpl.ValidateScope() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestMessageProcessorImpl_ValidateDescription(t *testing.T) {
+	tests := []struct {
+		name        string
+		cfg         CommitMessageConfig
+		description string
+		wantErr     bool
+	}{
+		{"empty description", ccfg, "", true},
+		{"sigle letter description", ccfg, "a", false},
+		{"number description", ccfg, "1", true},
+		{"valid description", ccfg, "add some feature", false},
+		{"invalid capital letter description", ccfg, "Add some feature", true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := NewMessageProcessor(tt.cfg, newBranchCfg(false))
+			if err := p.ValidateDescription(tt.description); (err != nil) != tt.wantErr {
+				t.Errorf("MessageProcessorImpl.ValidateDescription() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
 func TestMessageProcessorImpl_Enhance(t *testing.T) {
 	tests := []struct {
 		name    string

@@ -266,62 +266,127 @@ func tagHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor) func(c *c
 	}
 }
 
+func getCommitType(cfg Config, p sv.MessageProcessor, input string) (string, error) {
+	if input == "" {
+		t, err := promptType(cfg.CommitMessage.Types)
+		return t.Type, err
+	}
+	return input, p.ValidateType(input)
+}
+
+func getCommitScope(cfg Config, p sv.MessageProcessor, input string, noScope bool) (string, error) {
+	if input == "" && !noScope {
+		return promptScope(cfg.CommitMessage.Scope.Values)
+	}
+	return input, p.ValidateScope(input)
+}
+
+func getCommitDescription(cfg Config, p sv.MessageProcessor, input string) (string, error) {
+	if input == "" {
+		return promptSubject()
+	}
+	return input, p.ValidateDescription(input)
+}
+
+func getCommitBody(noBody bool) (string, error) {
+	if noBody {
+		return "", nil
+	}
+
+	var fullBody strings.Builder
+	for body, err := promptBody(); body != "" || err != nil; body, err = promptBody() {
+		if err != nil {
+			return "", err
+		}
+		if fullBody.Len() > 0 {
+			fullBody.WriteString("\n")
+		}
+		if body != "" {
+			fullBody.WriteString(body)
+		}
+	}
+	return fullBody.String(), nil
+}
+
+func getCommitIssue(cfg Config, p sv.MessageProcessor, branch string, noIssue bool) (string, error) {
+	branchIssue, err := p.IssueID(branch)
+	if err != nil {
+		return "", err
+	}
+
+	if cfg.CommitMessage.IssueFooterConfig().Key == "" || cfg.CommitMessage.Issue.Regex == "" {
+		return "", nil
+	}
+
+	if noIssue {
+		return branchIssue, nil
+	}
+
+	return promptIssueID("issue id", cfg.CommitMessage.Issue.Regex, branchIssue)
+}
+
+func getCommitBreakingChange(noBreaking bool, input string) (string, error) {
+	if noBreaking {
+		return "", nil
+	}
+
+	if strings.TrimSpace(input) != "" {
+		return input, nil
+	}
+
+	hasBreakingChanges, err := promptConfirm("has breaking change?")
+	if err != nil {
+		return "", err
+	}
+	if !hasBreakingChanges {
+		return "", nil
+	}
+
+	return promptBreakingChanges()
+}
+
 func commitHandler(cfg Config, git sv.Git, messageProcessor sv.MessageProcessor) func(c *cli.Context) error {
 	return func(c *cli.Context) error {
-		ctype, err := promptType(cfg.CommitMessage.Types)
+		noBreaking := c.Bool("no-breaking")
+		noBody := c.Bool("no-body")
+		noIssue := c.Bool("no-issue")
+		noScope := c.Bool("no-scope")
+		inputType := c.String("type")
+		inputScope := c.String("scope")
+		inputDescription := c.String("description")
+		inputBreakingChange := c.String("breaking-change")
+
+		ctype, err := getCommitType(cfg, messageProcessor, inputType)
 		if err != nil {
 			return err
 		}
 
-		scope, err := promptScope(cfg.CommitMessage.Scope.Values)
+		scope, err := getCommitScope(cfg, messageProcessor, inputScope, noScope)
 		if err != nil {
 			return err
 		}
 
-		subject, err := promptSubject()
+		subject, err := getCommitDescription(cfg, messageProcessor, inputDescription)
 		if err != nil {
 			return err
 		}
 
-		var fullBody strings.Builder
-		for body, err := promptBody(); body != "" || err != nil; body, err = promptBody() {
-			if err != nil {
-				return err
-			}
-			if fullBody.Len() > 0 {
-				fullBody.WriteString("\n")
-			}
-			if body != "" {
-				fullBody.WriteString(body)
-			}
-		}
-
-		branchIssue, err := messageProcessor.IssueID(git.Branch())
+		fullBody, err := getCommitBody(noBody)
 		if err != nil {
 			return err
 		}
 
-		var issue string
-		if cfg.CommitMessage.IssueFooterConfig().Key != "" && cfg.CommitMessage.Issue.Regex != "" {
-			issue, err = promptIssueID("issue id", cfg.CommitMessage.Issue.Regex, branchIssue)
-			if err != nil {
-				return err
-			}
-		}
-
-		hasBreakingChanges, err := promptConfirm("has breaking changes?")
+		issue, err := getCommitIssue(cfg, messageProcessor, git.Branch(), noIssue)
 		if err != nil {
 			return err
 		}
-		breakingChanges := ""
-		if hasBreakingChanges {
-			breakingChanges, err = promptBreakingChanges()
-			if err != nil {
-				return err
-			}
+
+		breakingChange, err := getCommitBreakingChange(noBreaking, inputBreakingChange)
+		if err != nil {
+			return err
 		}
 
-		header, body, footer := messageProcessor.Format(sv.NewCommitMessage(ctype.Type, scope, subject, fullBody.String(), issue, breakingChanges))
+		header, body, footer := messageProcessor.Format(sv.NewCommitMessage(ctype, scope, subject, fullBody, issue, breakingChange))
 
 		err = git.Commit(header, body, footer)
 		if err != nil {
