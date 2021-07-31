@@ -27,19 +27,19 @@ func main() {
 	if envCfg.Home != "" {
 		if homeCfg, err := loadConfig(filepath.Join(envCfg.Home, configFilename)); err == nil {
 			if merr := merge(&cfg, homeCfg); merr != nil {
-				log.Fatal(merr)
+				log.Fatal("failed to merge user config, error: ", merr)
 			}
 		}
 	}
 
 	repoPath, rerr := getRepoPath()
 	if rerr != nil {
-		log.Fatal(rerr)
+		log.Fatal("failed to get repository path, error: ", rerr)
 	}
 
 	if repoCfg, err := loadConfig(filepath.Join(repoPath, repoConfigFilename)); err == nil {
 		if merr := merge(&cfg, repoCfg); merr != nil {
-			log.Fatal(merr)
+			log.Fatal("failed to merge repo config, error: ", merr)
 		}
 		if len(repoCfg.ReleaseNotes.Headers) > 0 { // mergo is merging maps, headers will be overwritten
 			cfg.ReleaseNotes.Headers = repoCfg.ReleaseNotes.Headers
@@ -165,6 +165,6 @@ func main() {
 	}
 
 	if apperr := app.Run(os.Args); apperr != nil {
-		log.Fatal(apperr)
+		log.Fatal("failed to run cli, error: ", apperr)
 	}
 }
