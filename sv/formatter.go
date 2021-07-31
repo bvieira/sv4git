@@ -9,6 +9,7 @@ type releaseNoteTemplateVariables struct {
 	Version         string
 	Date            string
 	Sections        map[string]ReleaseNoteSection
+	Order           []string
 	BreakingChanges BreakingChangeSection
 }
 
@@ -23,13 +24,13 @@ const (
 
 	rnSectionItem = "- {{if .Message.Scope}}**{{.Message.Scope}}:** {{end}}{{.Message.Description}} ({{.Hash}}){{if .Message.Metadata.issue}} ({{.Message.Metadata.issue}}){{end}}"
 
-	rnSection = `{{- if .}}
+	rnSection = `{{- if .}}{{- if ne .Name ""}}
 
 ### {{.Name}}
 {{range $k,$v := .Items}}
 {{template "rnSectionItem" $v}}
 {{- end}}
-{{- end}}`
+{{- end}}{{- end}}`
 
 	rnSectionBreakingChanges = `{{- if ne .Name ""}}
 
@@ -40,8 +41,10 @@ const (
 {{- end}}`
 
 	rnTemplate = `## {{if .Version}}v{{.Version}}{{end}}{{if and .Date .Version}} ({{end}}{{.Date}}{{if and .Version .Date}}){{end}}
-{{- template "rnSection" .Sections.feat}}
-{{- template "rnSection" .Sections.fix}}
+{{- $sections := .Sections }}
+{{- range $key := .Order }}
+{{- template "rnSection" (index $sections $key) }}
+{{- end}}
 {{- template "rnSectionBreakingChanges" .BreakingChanges}}
 `
 )
@@ -101,6 +104,7 @@ func releaseNoteVariables(releasenote ReleaseNote) releaseNoteTemplateVariables 
 		Version:         version,
 		Date:            date,
 		Sections:        releasenote.Sections,
+		Order:           []string{"feat", "fix", "refactor", "perf", "test", "build", "ci", "chore", "docs", "style"},
 		BreakingChanges: releasenote.BreakingChanges,
 	}
 }

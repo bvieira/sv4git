@@ -68,18 +68,8 @@ version: "1.0" #config version
 
 versioning: # versioning bump
     update-major: [] # Commit types used to bump major.
-    update-minor: # Commit types used to bump minor.
-        - feat
-    update-patch: # Commit types used to bump patch.
-        - build
-        - ci
-        - chore
-        - docs
-        - fix
-        - perf
-        - refactor
-        - style
-        - test
+    update-minor: [feat] # Commit types used to bump minor.
+    update-patch: [build, ci, chore, fix, perf, refactor, test] # Commit types used to bump patch.
     # When type is not present on update rules and is unknown (not mapped on commit message types);
     # if ignore-unknown=false bump patch, if ignore-unknown=true do not bump version
     ignore-unknown: false
@@ -88,7 +78,10 @@ tag:
     pattern: '%d.%d.%d' # Pattern used to create git tag.
 
 release-notes:
-    headers: # Headers names for release notes markdown. To disable a section just remove the header line.
+    # Headers names for release notes markdown. To disable a section just remove the header line.
+    # It's possible to add other commit types, the release note will be created respecting the following order:
+    # feat, fix, refactor, perf, test, build, ci, chore, docs, style, breaking-change
+    headers: 
         breaking-change: Breaking Changes
         feat: Features
         fix: Bug Fixes
@@ -97,25 +90,11 @@ branches: # Git branches config.
     prefix: ([a-z]+\/)? # Prefix used on branch name, it should be a regex group.
     suffix: (-.*)? # Suffix used on branch name, it should be a regex group.
     disable-issue: false # Set true if there is no need to recover issue id from branch name.
-    skip: # List of branch names ignored on commit message validation.
-        - master
-        - main
-        - developer
+    skip: [master, main, developer] # List of branch names ignored on commit message validation.
     skip-detached: false # Set true if a detached branch should be ignored on commit message validation.
 
 commit-message:
-    types: # Supported commit types.
-        - build
-        - ci
-        - chore
-        - docs
-        - feat
-        - fix
-        - perf
-        - refactor
-        - revert
-        - style
-        - test
+    types: [build, ci, chore, docs, feat, fix, perf, refactor, revert, style, test] # Supported commit types.
     scope:
         # Define supported scopes, if blank, scope will not be validated, if not, only scope listed will be valid.
         # Don't forget to add "" on your list if you need to define scopes and keep it optional.
@@ -123,9 +102,7 @@ commit-message:
     footer:
         issue: # Use "issue: {}" if you wish to disable issue footer.
             key: jira # Name used to define an issue on footer metadata.
-            key-synonyms: # Supported variations for footer metadata.
-                - Jira
-                - JIRA
+            key-synonyms: [Jira, JIRA] # Supported variations for footer metadata.
             use-hash: false # If false, use :<space> separator. If true, use <space># separator.
             add-value-prefix: '' # Add a prefix to issue value.
     issue:
