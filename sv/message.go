@@ -160,7 +160,7 @@ func (p MessageProcessorImpl) IssueID(branch string) (string, error) {
 		return "", nil
 	}
 
-	rstr := fmt.Sprintf("^%s(%s)%s$", p.branchesCfg.PrefixRegex, p.messageCfg.Issue.Regex, p.branchesCfg.SuffixRegex)
+	rstr := fmt.Sprintf("^%s(%s)%s$", p.branchesCfg.Prefix, p.messageCfg.Issue.Regex, p.branchesCfg.Suffix)
 	r, err := regexp.Compile(rstr)
 	if err != nil {
 		return "", fmt.Errorf("could not compile issue regex: %s, error: %v", rstr, err.Error())

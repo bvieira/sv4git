@@ -76,8 +76,8 @@ func defaultConfig() Config {
 		Tag:          sv.TagConfig{Pattern: "%d.%d.%d"},
 		ReleaseNotes: sv.ReleaseNotesConfig{Headers: map[string]string{"fix": "Bug Fixes", "feat": "Features", "breaking-change": "Breaking Changes"}},
 		Branches: sv.BranchesConfig{
-			PrefixRegex:  "([a-z]+\\/)?",
-			SuffixRegex:  "(-.*)?",
+			Prefix:       "([a-z]+\\/)?",
+			Suffix:       "(-.*)?",
 			DisableIssue: false,
 			Skip:         []string{"master", "main", "developer"},
 			SkipDetached: &skipDetached,

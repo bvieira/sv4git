@@ -55,8 +55,8 @@ var ccfgWithScope = CommitMessageConfig{
 
 func newBranchCfg(skipDetached bool) BranchesConfig {
 	return BranchesConfig{
-		PrefixRegex:  "([a-z]+\\/)?",
-		SuffixRegex:  "(-.*)?",
+		Prefix:       "([a-z]+\\/)?",
+		Suffix:       "(-.*)?",
 		Skip:         []string{"develop", "master"},
 		SkipDetached: &skipDetached,
 	}
