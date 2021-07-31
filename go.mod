@@ -1,4 +1,4 @@
-module github.com/bvieira/sv4git
+module github.com/bvieira/sv4git/v2
 
 go 1.16
 
