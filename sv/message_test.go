@@ -474,7 +474,6 @@ func Test_splitCommitMessageContent(t *testing.T) {
 	}
 }
 
-//commitType, scope, description, hasBreakingChange.
 func Test_parseSubjectMessage(t *testing.T) {
 	tests := []struct {
 		name                  string
