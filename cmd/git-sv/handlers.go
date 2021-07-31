@@ -148,8 +148,11 @@ func commitNotesHandler(git sv.Git, rnProcessor sv.ReleaseNoteProcessor, outputF
 			date, _ = time.Parse("2006-01-02", commits[0].Date)
 		}
 
-		releasenote := rnProcessor.Create(nil, date, commits)
-		fmt.Println(outputFormatter.FormatReleaseNote(releasenote))
+		output, err := outputFormatter.FormatReleaseNote(rnProcessor.Create(nil, date, commits))
+		if err != nil {
+			return fmt.Errorf("could not format release notes, message: %v", err)
+		}
+		fmt.Println(output)
 		return nil
 	}
 }
@@ -173,7 +176,11 @@ func releaseNotesHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, 
 		}
 
 		releasenote := rnProcessor.Create(&rnVersion, date, commits)
-		fmt.Println(outputFormatter.FormatReleaseNote(releasenote))
+		output, err := outputFormatter.FormatReleaseNote(releasenote)
+		if err != nil {
+			return fmt.Errorf("could not format release notes, message: %v", err)
+		}
+		fmt.Println(output)
 		return nil
 	}
 }
@@ -442,7 +449,11 @@ func changelogHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, rnP
 			releaseNotes = append(releaseNotes, rnProcessor.Create(&currentVer, tag.Date, commits))
 		}
 
-		fmt.Println(formatter.FormatChangelog(releaseNotes))
+		output, err := formatter.FormatChangelog(releaseNotes)
+		if err != nil {
+			return fmt.Errorf("could not format changelog, message: %v", err)
+		}
+		fmt.Println(output)
 
 		return nil
 	}

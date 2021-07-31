@@ -51,8 +51,8 @@ const (
 
 // OutputFormatter output formatter interface.
 type OutputFormatter interface {
-	FormatReleaseNote(releasenote ReleaseNote) string
-	FormatChangelog(releasenotes []ReleaseNote) string
+	FormatReleaseNote(releasenote ReleaseNote) (string, error)
+	FormatChangelog(releasenotes []ReleaseNote) (string, error)
 }
 
 // OutputFormatterImpl formater for release note and changelog.
@@ -72,22 +72,26 @@ func NewOutputFormatter() *OutputFormatterImpl {
 }
 
 // FormatReleaseNote format a release note.
-func (p OutputFormatterImpl) FormatReleaseNote(releasenote ReleaseNote) string {
+func (p OutputFormatterImpl) FormatReleaseNote(releasenote ReleaseNote) (string, error) {
 	var b bytes.Buffer
-	p.releasenoteTemplate.Execute(&b, releaseNoteVariables(releasenote))
-	return b.String()
+	if err := p.releasenoteTemplate.Execute(&b, releaseNoteVariables(releasenote)); err != nil {
+		return "", err
+	}
+	return b.String(), nil
 }
 
 // FormatChangelog format a changelog.
-func (p OutputFormatterImpl) FormatChangelog(releasenotes []ReleaseNote) string {
+func (p OutputFormatterImpl) FormatChangelog(releasenotes []ReleaseNote) (string, error) {
 	templateVars := make([]releaseNoteTemplateVariables, len(releasenotes))
 	for i, v := range releasenotes {
 		templateVars[i] = releaseNoteVariables(v)
 	}
 
 	var b bytes.Buffer
-	p.changelogTemplate.Execute(&b, templateVars)
-	return b.String()
+	if err := p.changelogTemplate.Execute(&b, templateVars); err != nil {
+		return "", err
+	}
+	return b.String(), nil
 }
 
 func releaseNoteVariables(releasenote ReleaseNote) releaseNoteTemplateVariables {

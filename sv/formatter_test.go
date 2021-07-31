@@ -39,19 +39,25 @@ func TestOutputFormatterImpl_FormatReleaseNote(t *testing.T) {
 	date, _ := time.Parse("2006-01-02", "2020-05-01")
 
 	tests := []struct {
-		name  string
-		input ReleaseNote
-		want  string
+		name    string
+		input   ReleaseNote
+		want    string
+		wantErr bool
 	}{
-		{"with date", emptyReleaseNote("1.0.0", date.Truncate(time.Minute)), dateChangelog},
-		{"without date", emptyReleaseNote("1.0.0", time.Time{}.Truncate(time.Minute)), emptyDateChangelog},
-		{"without version", emptyReleaseNote("", date.Truncate(time.Minute)), emptyVersionChangelog},
-		{"full changelog", fullReleaseNote("1.0.0", date.Truncate(time.Minute)), fullChangeLog},
+		{"with date", emptyReleaseNote("1.0.0", date.Truncate(time.Minute)), dateChangelog, false},
+		{"without date", emptyReleaseNote("1.0.0", time.Time{}.Truncate(time.Minute)), emptyDateChangelog, false},
+		{"without version", emptyReleaseNote("", date.Truncate(time.Minute)), emptyVersionChangelog, false},
+		{"full changelog", fullReleaseNote("1.0.0", date.Truncate(time.Minute)), fullChangeLog, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewOutputFormatter().FormatReleaseNote(tt.input); got != tt.want {
+			got, err := NewOutputFormatter().FormatReleaseNote(tt.input)
+			if got != tt.want {
 				t.Errorf("OutputFormatterImpl.FormatReleaseNote() = %v, want %v", got, tt.want)
+			}
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("OutputFormatterImpl.FormatReleaseNote() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
