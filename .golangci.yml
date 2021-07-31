@@ -1,16 +1,6 @@
 linters:
-  enable-all: true
-  disable:
-   - scopelint
-   - paralleltest
-   - noctx
-   - godox
-   - wsl
-   - lll
-   - forbidigo
-   - nlreturn
-   - gomnd
-  fast: true
+  enable:
+    - tagliatelle
 
 run:
   skip-dirs:
