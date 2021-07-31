@@ -149,7 +149,7 @@ func main() {
 				&cli.StringFlag{Name: "type", Aliases: []string{"t"}, Usage: "define commit type"},
 				&cli.StringFlag{Name: "scope", Aliases: []string{"s"}, Usage: "define commit scope"},
 				&cli.StringFlag{Name: "description", Aliases: []string{"d"}, Usage: "define commit description"},
-				&cli.StringFlag{Name: "breaking-change", Aliases: []string{"bc"}, Usage: "define commit breaking change message"},
+				&cli.StringFlag{Name: "breaking-change", Aliases: []string{"b"}, Usage: "define commit breaking change message"},
 			},
 		},
 		{
