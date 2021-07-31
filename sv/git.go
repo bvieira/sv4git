@@ -48,8 +48,8 @@ type LogRangeType string
 // constants for log range type.
 const (
 	TagRange  LogRangeType = "tag"
-	DateRange              = "date"
-	HashRange              = "hash"
+	DateRange LogRangeType = "date"
+	HashRange LogRangeType = "hash"
 )
 
 // LogRange git log range.
