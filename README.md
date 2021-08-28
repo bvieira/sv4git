@@ -22,6 +22,12 @@
 - Download the latest release and add the binary to your path.
 - Optional: Set `SV4GIT_HOME` to define user configs. Check the [Config](#config) topic for more information.
 
+If you want to install from source using `go install`, just run:
+
+```bash
+go install github.com/bvieira/sv4git/v2/cmd/git-sv@latest
+```
+
 ### Config
 
 There are 3 config levels when using sv4git: [default](#default), [user](#user), [repository](#repository). All of them are merged considering the follow priority: **repository > user > default**.
