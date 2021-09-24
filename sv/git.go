@@ -23,7 +23,7 @@ type Git interface {
 	LastTag() string
 	Log(lr LogRange) ([]GitCommitLog, error)
 	Commit(header, body, footer string) error
-	Tag(version semver.Version) error
+	Tag(version semver.Version) (string, error)
 	Tags() ([]GitTag, error)
 	Branch() string
 	IsDetached() (bool, error)
@@ -123,17 +123,20 @@ func (g GitImpl) Commit(header, body, footer string) error {
 }
 
 // Tag create a git tag.
-func (g GitImpl) Tag(version semver.Version) error {
+func (g GitImpl) Tag(version semver.Version) (string, error) {
 	tag := fmt.Sprintf(g.tagCfg.Pattern, version.Major(), version.Minor(), version.Patch())
 	tagMsg := fmt.Sprintf("Version %d.%d.%d", version.Major(), version.Minor(), version.Patch())
 
 	tagCommand := exec.Command("git", "tag", "-a", tag, "-m", tagMsg)
-	if err := tagCommand.Run(); err != nil {
-		return err
+	if out, err := tagCommand.CombinedOutput(); err != nil {
+		return tag, combinedOutputErr(err, out)
 	}
 
 	pushCommand := exec.Command("git", "push", "origin", tag)
-	return pushCommand.Run()
+	if out, err := pushCommand.CombinedOutput(); err != nil {
+		return tag, combinedOutputErr(err, out)
+	}
+	return tag, nil
 }
 
 // Tags list repository tags.

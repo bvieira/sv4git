@@ -2,18 +2,21 @@ name: ci
 
 on:
   push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+    branches: [master]
+    paths-ignore:
+      - "**.md"
+      - "**/.gitignore"
+      - ".github/workflows/**"
 
 jobs:
 
-  golangci:
+  lint:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: golangci-lint
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: Run golangci lint
         uses: golangci/golangci-lint-action@v2
         with:
           version: latest
@@ -22,15 +25,78 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-
-    - name: Set up Go 1.x
+    - name: Check out code
+      uses: actions/checkout@v2
+    - name: Set up Go
       uses: actions/setup-go@v2
       with:
         go-version: ^1.16
-      id: go
-
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
-
     - name: Build
       run: make build
+
+  tag:
+    name: Tag
+    runs-on: ubuntu-latest
+    needs: [lint, build]
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set GitHub Actions as commit author
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Setup sv4git
+        run: |
+          curl -s https://api.github.com/repos/bvieira/sv4git/releases/latest | jq -r '.assets[] | select(.browser_download_url | contains("linux")) | .browser_download_url' | wget -O /tmp/sv4git.tar.gz -qi - \
+            && tar -C /usr/local/bin -xzf /tmp/sv4git.tar.gz
+
+      - name: Create tag
+        id: create-tag
+        run: | 
+          git sv tag
+          VERSION=$(git sv cv)
+          echo "::set-output name=tag::v$VERSION"
+    outputs:
+      tag: ${{ steps.create-tag.outputs.tag }}
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs: [tag]
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup sv4git
+        run: |
+          curl -s https://api.github.com/repos/bvieira/sv4git/releases/latest | jq -r '.assets[] | select(.browser_download_url | contains("linux")) | .browser_download_url' | wget -O /tmp/sv4git.tar.gz -qi - \
+            && tar -C /usr/local/bin -xzf /tmp/sv4git.tar.gz
+
+      - name: Set up Go
+        id: go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.16
+
+      - name: Create release notes
+        run: |
+          git sv rn -t "${{ needs.tag.outputs.tag }}" > release-notes.md
+      
+      - name: Build releases
+        run: make release-all
+      
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          body_path: release-notes.md
+          tag_name: ${{ needs.tag.outputs.tag }}
+          fail_on_unmatched_files: true
+          files: |
+            bin/git-sv_*
