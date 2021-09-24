@@ -263,9 +263,9 @@ func tagHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor) func(c *c
 		}
 
 		nextVer, _ := semverProcessor.NextVersion(currentVer, commits)
-		fmt.Printf("%d.%d.%d\n", nextVer.Major(), nextVer.Minor(), nextVer.Patch())
-
-		if err := git.Tag(nextVer); err != nil {
+		tagname, err := git.Tag(nextVer)
+		fmt.Println(tagname)
+		if err != nil {
 			return fmt.Errorf("error generating tag version: %s, message: %v", nextVer.String(), err)
 		}
 		return nil
