@@ -128,12 +128,15 @@ func (g GitImpl) Tag(version semver.Version) error {
 	tagMsg := fmt.Sprintf("Version %d.%d.%d", version.Major(), version.Minor(), version.Patch())
 
 	tagCommand := exec.Command("git", "tag", "-a", tag, "-m", tagMsg)
-	if err := tagCommand.Run(); err != nil {
-		return err
+	if out, err := tagCommand.CombinedOutput(); err != nil {
+		return combinedOutputErr(err, out)
 	}
 
 	pushCommand := exec.Command("git", "push", "origin", tag)
-	return pushCommand.Run()
+	if out, err := pushCommand.CombinedOutput(); err != nil {
+		return combinedOutputErr(err, out)
+	}
+	return nil
 }
 
 // Tags list repository tags.
