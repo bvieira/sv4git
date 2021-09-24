@@ -140,7 +140,7 @@ func main() {
 	}
 
 	if apperr := app.Run(os.Args); apperr != nil {
-		log.Fatal("failed to run cli, error: ", apperr)
+		log.Fatal("ERROR: ", apperr)
 	}
 }
 
