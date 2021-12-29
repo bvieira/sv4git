@@ -17,10 +17,12 @@ func TestSemVerCommitsProcessorImpl_NextVersion(t *testing.T) {
 		wantUpdated   bool
 	}{
 		{"no update", true, version("0.0.0"), []GitCommitLog{}, version("0.0.0"), false},
+		{"no update without version", true, nil, []GitCommitLog{}, nil, false},
 		{"no update on unknown type", true, version("0.0.0"), []GitCommitLog{commitlog("a", map[string]string{})}, version("0.0.0"), false},
 		{"no update on unmapped known type", false, version("0.0.0"), []GitCommitLog{commitlog("none", map[string]string{})}, version("0.0.0"), false},
 		{"update patch on unknown type", false, version("0.0.0"), []GitCommitLog{commitlog("a", map[string]string{})}, version("0.0.1"), true},
 		{"patch update", false, version("0.0.0"), []GitCommitLog{commitlog("patch", map[string]string{})}, version("0.0.1"), true},
+		{"patch update without version", false, nil, []GitCommitLog{commitlog("patch", map[string]string{})}, nil, true},
 		{"minor update", false, version("0.0.0"), []GitCommitLog{commitlog("patch", map[string]string{}), commitlog("minor", map[string]string{})}, version("0.1.0"), true},
 		{"major update", false, version("0.0.0"), []GitCommitLog{commitlog("patch", map[string]string{}), commitlog("major", map[string]string{})}, version("1.0.0"), true},
 		{"breaking change update", false, version("0.0.0"), []GitCommitLog{commitlog("patch", map[string]string{}), commitlog("patch", map[string]string{"breaking-change": "break"})}, version("1.0.0"), true},
