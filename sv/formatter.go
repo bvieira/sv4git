@@ -6,7 +6,7 @@ import (
 )
 
 type releaseNoteTemplateVariables struct {
-	Version         string
+	Release         string
 	Date            string
 	Sections        map[string]ReleaseNoteSection
 	Order           []string
@@ -40,7 +40,7 @@ const (
 {{- end}}
 {{- end}}`
 
-	rnTemplate = `## {{if .Version}}v{{.Version}}{{end}}{{if and .Date .Version}} ({{end}}{{.Date}}{{if and .Version .Date}}){{end}}
+	rnTemplate = `## {{if .Release}}{{.Release}}{{end}}{{if and .Date .Release}} ({{end}}{{.Date}}{{if and .Date .Release}}){{end}}
 {{- $sections := .Sections }}
 {{- range $key := .Order }}
 {{- template "rnSection" (index $sections $key) }}
@@ -100,12 +100,14 @@ func releaseNoteVariables(releasenote ReleaseNote) releaseNoteTemplateVariables 
 		date = releasenote.Date.Format("2006-01-02")
 	}
 
-	version := ""
+	release := ""
 	if releasenote.Version != nil {
-		version = releasenote.Version.String()
+		release = "v" + releasenote.Version.String()
+	} else if releasenote.Tag != "" {
+		release = releasenote.Tag
 	}
 	return releaseNoteTemplateVariables{
-		Version:         version,
+		Release:         release,
 		Date:            date,
 		Sections:        releasenote.Sections,
 		Order:           []string{"feat", "fix", "refactor", "perf", "test", "build", "ci", "chore", "docs", "style"},

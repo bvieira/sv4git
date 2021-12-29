@@ -11,9 +11,9 @@ func TestSemVerCommitsProcessorImpl_NextVersion(t *testing.T) {
 	tests := []struct {
 		name          string
 		ignoreUnknown bool
-		version       semver.Version
+		version       *semver.Version
 		commits       []GitCommitLog
-		want          semver.Version
+		want          *semver.Version
 		wantUpdated   bool
 	}{
 		{"no update", true, version("0.0.0"), []GitCommitLog{}, version("0.0.0"), false},
@@ -43,11 +43,11 @@ func TestToVersion(t *testing.T) {
 	tests := []struct {
 		name    string
 		input   string
-		want    semver.Version
+		want    *semver.Version
 		wantErr bool
 	}{
 		{"empty version", "", version("0.0.0"), false},
-		{"invalid version", "abc", semver.Version{}, true},
+		{"invalid version", "abc", nil, true},
 		{"valid version", "1.2.3", version("1.2.3"), false},
 	}
 	for _, tt := range tests {

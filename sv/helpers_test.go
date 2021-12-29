@@ -6,9 +6,9 @@ import (
 	"github.com/Masterminds/semver/v3"
 )
 
-func version(v string) semver.Version {
+func version(v string) *semver.Version {
 	r, _ := semver.NewVersion(v)
-	return *r
+	return r
 }
 
 func commitlog(ctype string, metadata map[string]string) GitCommitLog {
@@ -26,13 +26,14 @@ func commitlog(ctype string, metadata map[string]string) GitCommitLog {
 	}
 }
 
-func releaseNote(version *semver.Version, date time.Time, sections map[string]ReleaseNoteSection, breakingChanges []string) ReleaseNote {
+func releaseNote(version *semver.Version, tag string, date time.Time, sections map[string]ReleaseNoteSection, breakingChanges []string) ReleaseNote {
 	var bchanges BreakingChangeSection
 	if len(breakingChanges) > 0 {
 		bchanges = BreakingChangeSection{Name: "Breaking Changes", Messages: breakingChanges}
 	}
 	return ReleaseNote{
 		Version:         version,
+		Tag:             tag,
 		Date:            date.Truncate(time.Minute),
 		Sections:        sections,
 		BreakingChanges: bchanges,
