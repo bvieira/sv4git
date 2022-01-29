@@ -65,3 +65,33 @@ func TestToVersion(t *testing.T) {
 		})
 	}
 }
+
+func TestIsValidVersion(t *testing.T) {
+	tests := []struct {
+		name  string
+		value string
+		want  bool
+	}{
+		{"simple version", "1.0.0", true},
+		{"with v prefix version", "v1.0.0", true},
+		{"prerelease version", "1.0.0-alpha", true},
+		{"prerelease version", "1.0.0-alpha.1", true},
+		{"prerelease version", "1.0.0-0.3.7", true},
+		{"prerelease version", "1.0.0-x.7.z.92", true},
+		{"prerelease version", "1.0.0-x-y-z.-", true},
+		{"metadata version", "1.0.0-alpha+001", true},
+		{"metadata version", "1.0.0+20130313144700", true},
+		{"metadata version", "1.0.0-beta+exp.sha.5114f85", true},
+		{"metadata version", "1.0.0+21AF26D3-117B344092BD", true},
+		{"incomplete version", "1", true},
+		{"invalid version", "invalid", false},
+		{"invalid prefix version", "random1.0.0", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := IsValidVersion(tt.value); got != tt.want {
+				t.Errorf("IsValidVersion(%s) = %v, want %v", tt.value, got, tt.want)
+			}
+		})
+	}
+}

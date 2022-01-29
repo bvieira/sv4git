@@ -412,6 +412,7 @@ func changelogHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, rnP
 		size := c.Int("size")
 		all := c.Bool("all")
 		addNextVersion := c.Bool("add-next-version")
+		semanticVersionOnly := c.Bool("semantic-version-only")
 
 		if addNextVersion {
 			rnVersion, updated, date, commits, uerr := getNextVersionInfo(git, semverProcessor)
@@ -430,6 +431,10 @@ func changelogHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, rnP
 			previousTag := ""
 			if i+1 < len(tags) {
 				previousTag = tags[i+1].Name
+			}
+
+			if semanticVersionOnly && !sv.IsValidVersion(tag.Name) {
+				continue
 			}
 
 			commits, err := git.Log(sv.NewLogRange(sv.TagRange, previousTag, tag.Name))

@@ -102,6 +102,7 @@ func main() {
 				&cli.IntFlag{Name: "size", Value: 10, Aliases: []string{"n"}, Usage: "get changelog from last 'n' tags"},
 				&cli.BoolFlag{Name: "all", Usage: "ignore size parameter, get changelog for every tag"},
 				&cli.BoolFlag{Name: "add-next-version", Usage: "add next version on change log (commits since last tag, but only if there is a new version to release)"},
+				&cli.BoolFlag{Name: "semantic-version-only", Usage: "only show tags 'SemVer-ish'"},
 			},
 		},
 		{

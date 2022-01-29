@@ -11,6 +11,12 @@ const (
 	major
 )
 
+// IsValidVersion return true when a version is valid.
+func IsValidVersion(value string) bool {
+	_, err := semver.NewVersion(value)
+	return err == nil
+}
+
 // ToVersion parse string to semver.Version.
 func ToVersion(value string) (*semver.Version, error) {
 	version := value
