@@ -8,7 +8,7 @@ import (
 
 // ReleaseNoteProcessor release note processor interface.
 type ReleaseNoteProcessor interface {
-	Create(version *semver.Version, date time.Time, commits []GitCommitLog) ReleaseNote
+	Create(version *semver.Version, tag string, date time.Time, commits []GitCommitLog) ReleaseNote
 }
 
 // ReleaseNoteProcessorImpl release note based on commit log.
@@ -22,7 +22,7 @@ func NewReleaseNoteProcessor(cfg ReleaseNotesConfig) *ReleaseNoteProcessorImpl {
 }
 
 // Create create a release note based on commits.
-func (p ReleaseNoteProcessorImpl) Create(version *semver.Version, date time.Time, commits []GitCommitLog) ReleaseNote {
+func (p ReleaseNoteProcessorImpl) Create(version *semver.Version, tag string, date time.Time, commits []GitCommitLog) ReleaseNote {
 	sections := make(map[string]ReleaseNoteSection)
 	var breakingChanges []string
 	for _, commit := range commits {
@@ -44,12 +44,13 @@ func (p ReleaseNoteProcessorImpl) Create(version *semver.Version, date time.Time
 	if name, exists := p.cfg.Headers[breakingChangeMetadataKey]; exists && len(breakingChanges) > 0 {
 		breakingChangeSection = BreakingChangeSection{Name: name, Messages: breakingChanges}
 	}
-	return ReleaseNote{Version: version, Date: date.Truncate(time.Minute), Sections: sections, BreakingChanges: breakingChangeSection}
+	return ReleaseNote{Version: version, Tag: tag, Date: date.Truncate(time.Minute), Sections: sections, BreakingChanges: breakingChangeSection}
 }
 
 // ReleaseNote release note.
 type ReleaseNote struct {
 	Version         *semver.Version
+	Tag             string
 	Date            time.Time
 	Sections        map[string]ReleaseNoteSection
 	BreakingChanges BreakingChangeSection

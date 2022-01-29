@@ -148,7 +148,7 @@ func commitNotesHandler(git sv.Git, rnProcessor sv.ReleaseNoteProcessor, outputF
 			date, _ = time.Parse("2006-01-02", commits[0].Date)
 		}
 
-		output, err := outputFormatter.FormatReleaseNote(rnProcessor.Create(nil, date, commits))
+		output, err := outputFormatter.FormatReleaseNote(rnProcessor.Create(nil, "", date, commits))
 		if err != nil {
 			return fmt.Errorf("could not format release notes, message: %v", err)
 		}
@@ -160,11 +160,12 @@ func commitNotesHandler(git sv.Git, rnProcessor sv.ReleaseNoteProcessor, outputF
 func releaseNotesHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, rnProcessor sv.ReleaseNoteProcessor, outputFormatter sv.OutputFormatter) func(c *cli.Context) error {
 	return func(c *cli.Context) error {
 		var commits []sv.GitCommitLog
-		var rnVersion semver.Version
+		var rnVersion *semver.Version
+		var tag string
 		var date time.Time
 		var err error
 
-		if tag := c.String("t"); tag != "" {
+		if tag = c.String("t"); tag != "" {
 			rnVersion, date, commits, err = getTagVersionInfo(git, tag)
 		} else {
 			// TODO: should generate release notes if version was not updated?
@@ -175,7 +176,7 @@ func releaseNotesHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, 
 			return err
 		}
 
-		releasenote := rnProcessor.Create(&rnVersion, date, commits)
+		releasenote := rnProcessor.Create(rnVersion, tag, date, commits)
 		output, err := outputFormatter.FormatReleaseNote(releasenote)
 		if err != nil {
 			return fmt.Errorf("could not format release notes, message: %v", err)
@@ -185,20 +186,17 @@ func releaseNotesHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, 
 	}
 }
 
-func getTagVersionInfo(git sv.Git, tag string) (semver.Version, time.Time, []sv.GitCommitLog, error) {
-	tagVersion, err := sv.ToVersion(tag)
-	if err != nil {
-		return semver.Version{}, time.Time{}, nil, fmt.Errorf("error parsing version: %s from tag, message: %v", tag, err)
-	}
+func getTagVersionInfo(git sv.Git, tag string) (*semver.Version, time.Time, []sv.GitCommitLog, error) {
+	tagVersion, _ := sv.ToVersion(tag)
 
 	previousTag, currentTag, err := getTags(git, tag)
 	if err != nil {
-		return semver.Version{}, time.Time{}, nil, fmt.Errorf("error listing tags, message: %v", err)
+		return nil, time.Time{}, nil, fmt.Errorf("error listing tags, message: %v", err)
 	}
 
 	commits, err := git.Log(sv.NewLogRange(sv.TagRange, previousTag, tag))
 	if err != nil {
-		return semver.Version{}, time.Time{}, nil, fmt.Errorf("error getting git log from tag: %s, message: %v", tag, err)
+		return nil, time.Time{}, nil, fmt.Errorf("error getting git log from tag: %s, message: %v", tag, err)
 	}
 
 	return tagVersion, currentTag.Date, commits, nil
@@ -231,20 +229,17 @@ func find(tag string, tags []sv.GitTag) int {
 	return -1
 }
 
-func getNextVersionInfo(git sv.Git, semverProcessor sv.SemVerCommitsProcessor) (semver.Version, bool, time.Time, []sv.GitCommitLog, error) {
+func getNextVersionInfo(git sv.Git, semverProcessor sv.SemVerCommitsProcessor) (*semver.Version, bool, time.Time, []sv.GitCommitLog, error) {
 	lastTag := git.LastTag()
-
-	currentVer, err := sv.ToVersion(lastTag)
-	if err != nil {
-		return semver.Version{}, false, time.Time{}, nil, fmt.Errorf("error parsing version: %s from git tag, message: %v", lastTag, err)
-	}
 
 	commits, err := git.Log(sv.NewLogRange(sv.TagRange, lastTag, ""))
 	if err != nil {
-		return semver.Version{}, false, time.Time{}, nil, fmt.Errorf("error getting git log, message: %v", err)
+		return nil, false, time.Time{}, nil, fmt.Errorf("error getting git log, message: %v", err)
 	}
 
+	currentVer, _ := sv.ToVersion(lastTag)
 	version, updated := semverProcessor.NextVersion(currentVer, commits)
+
 	return version, updated, time.Now(), commits, nil
 }
 
@@ -263,7 +258,7 @@ func tagHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor) func(c *c
 		}
 
 		nextVer, _ := semverProcessor.NextVersion(currentVer, commits)
-		tagname, err := git.Tag(nextVer)
+		tagname, err := git.Tag(*nextVer)
 		fmt.Println(tagname)
 		if err != nil {
 			return fmt.Errorf("error generating tag version: %s, message: %v", nextVer.String(), err)
@@ -417,6 +412,7 @@ func changelogHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, rnP
 		size := c.Int("size")
 		all := c.Bool("all")
 		addNextVersion := c.Bool("add-next-version")
+		semanticVersionOnly := c.Bool("semantic-version-only")
 
 		if addNextVersion {
 			rnVersion, updated, date, commits, uerr := getNextVersionInfo(git, semverProcessor)
@@ -424,7 +420,7 @@ func changelogHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, rnP
 				return uerr
 			}
 			if updated {
-				releaseNotes = append(releaseNotes, rnProcessor.Create(&rnVersion, date, commits))
+				releaseNotes = append(releaseNotes, rnProcessor.Create(rnVersion, "", date, commits))
 			}
 		}
 		for i, tag := range tags {
@@ -437,16 +433,17 @@ func changelogHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, rnP
 				previousTag = tags[i+1].Name
 			}
 
+			if semanticVersionOnly && !sv.IsValidVersion(tag.Name) {
+				continue
+			}
+
 			commits, err := git.Log(sv.NewLogRange(sv.TagRange, previousTag, tag.Name))
 			if err != nil {
 				return fmt.Errorf("error getting git log from tag: %s, message: %v", tag.Name, err)
 			}
 
-			currentVer, err := sv.ToVersion(tag.Name)
-			if err != nil {
-				return fmt.Errorf("error parsing version: %s from git tag, message: %v", tag.Name, err)
-			}
-			releaseNotes = append(releaseNotes, rnProcessor.Create(&currentVer, tag.Date, commits))
+			currentVer, _ := sv.ToVersion(tag.Name)
+			releaseNotes = append(releaseNotes, rnProcessor.Create(currentVer, tag.Name, tag.Date, commits))
 		}
 
 		output, err := formatter.FormatChangelog(releaseNotes)

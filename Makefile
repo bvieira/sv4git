@@ -80,6 +80,10 @@ endif
 release-all:
 	@rm -rf bin
 
-	VERSION=$(shell git sv nv) BUILDOS=linux make release
-	VERSION=$(shell git sv nv) BUILDOS=darwin make release
-	VERSION=$(shell git sv nv) COMPRESS_TYPE=zip BUILDOS=windows make release
+	VERSION=$(shell git sv nv)                   BUILDOS=linux   BUILDARCH=amd64 make release
+	VERSION=$(shell git sv nv)                   BUILDOS=darwin  BUILDARCH=amd64 make release
+	VERSION=$(shell git sv nv) COMPRESS_TYPE=zip BUILDOS=windows BUILDARCH=amd64 make release
+
+	VERSION=$(shell git sv nv)                   BUILDOS=linux   BUILDARCH=arm64 make release
+	VERSION=$(shell git sv nv)                   BUILDOS=darwin  BUILDARCH=arm64 make release
+	VERSION=$(shell git sv nv) COMPRESS_TYPE=zip BUILDOS=windows BUILDARCH=arm64 make release
