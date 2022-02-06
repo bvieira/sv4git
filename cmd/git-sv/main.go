@@ -1,6 +1,8 @@
 package main
 
 import (
+	"embed"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
@@ -17,6 +19,16 @@ const (
 	repoConfigFilename = ".sv4git.yml"
 )
 
+var (
+	//go:embed resources/templates/*.tpl
+	defaultTemplatesFS embed.FS
+)
+
+func templateFS() fs.FS {
+	defaultTemplatesFS, _ := fs.Sub(defaultTemplatesFS, "resources/templates")
+	return defaultTemplatesFS
+}
+
 func main() {
 	log.SetFlags(0)
 
@@ -25,7 +37,7 @@ func main() {
 	git := sv.NewGit(messageProcessor, cfg.Tag)
 	semverProcessor := sv.NewSemVerCommitsProcessor(cfg.Versioning, cfg.CommitMessage)
 	releasenotesProcessor := sv.NewReleaseNoteProcessor(cfg.ReleaseNotes)
-	outputFormatter := sv.NewOutputFormatter()
+	outputFormatter := sv.NewOutputFormatter(templateFS())
 
 	app := cli.NewApp()
 	app.Name = "sv"
@@ -146,10 +158,9 @@ func main() {
 }
 
 func loadCfg() Config {
-	envCfg := loadEnvConfig()
-
 	cfg := defaultConfig()
 
+	envCfg := loadEnvConfig()
 	if envCfg.Home != "" {
 		if homeCfg, err := readConfig(filepath.Join(envCfg.Home, configFilename)); err == nil {
 			if merr := merge(&cfg, homeCfg); merr != nil {
@@ -160,7 +171,7 @@ func loadCfg() Config {
 
 	repoPath, rerr := getRepoPath()
 	if rerr != nil {
-		log.Fatal("failed to get repository path, error: ", rerr)
+		log.Fatal("failed to discovery repository top level, error: ", rerr)
 	}
 
 	if repoCfg, err := readConfig(filepath.Join(repoPath, repoConfigFilename)); err == nil {

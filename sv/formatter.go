@@ -2,7 +2,7 @@ package sv
 
 import (
 	"bytes"
-	"embed"
+	"io/fs"
 	"text/template"
 )
 
@@ -13,11 +13,6 @@ type releaseNoteTemplateVariables struct {
 	Order           []string
 	BreakingChanges BreakingChangeSection
 }
-
-var (
-	//go:embed resources/templates/*
-	defaultTemplatesFS embed.FS
-)
 
 // OutputFormatter output formatter interface.
 type OutputFormatter interface {
@@ -31,8 +26,8 @@ type OutputFormatterImpl struct {
 }
 
 // NewOutputFormatter TemplateProcessor constructor.
-func NewOutputFormatter() *OutputFormatterImpl {
-	tpls := template.Must(template.New("templates").ParseFS(defaultTemplatesFS, "resources/templates/*"))
+func NewOutputFormatter(templatesFS fs.FS) *OutputFormatterImpl {
+	tpls := template.Must(template.New("templates").ParseFS(templatesFS, "*"))
 	return &OutputFormatterImpl{templates: tpls}
 }
 
