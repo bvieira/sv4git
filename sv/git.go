@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 
@@ -31,9 +32,11 @@ type Git interface {
 
 // GitCommitLog description of a single commit log.
 type GitCommitLog struct {
-	Date    string        `json:"date,omitempty"`
-	Hash    string        `json:"hash,omitempty"`
-	Message CommitMessage `json:"message,omitempty"`
+	Date       string        `json:"date,omitempty"`
+	Timestamp  int           `json:"timestamp,omitempty"`
+	AuthorName string        `json:"authorName,omitempty"`
+	Hash       string        `json:"hash,omitempty"`
+	Message    CommitMessage `json:"message,omitempty"`
 }
 
 // GitTag git tag info.
@@ -90,7 +93,7 @@ func (GitImpl) LastTag() string {
 
 // Log return git log.
 func (g GitImpl) Log(lr LogRange) ([]GitCommitLog, error) {
-	format := "--pretty=format:\"%ad" + logSeparator + "%h" + logSeparator + "%s" + logSeparator + "%b" + endLine + "\""
+	format := "--pretty=format:\"%ad" + logSeparator + "%at" + logSeparator + "%cN" + logSeparator + "%h" + logSeparator + "%s" + logSeparator + "%b" + endLine + "\""
 	params := []string{"log", "--date=short", format}
 
 	if lr.start != "" || lr.end != "" {
@@ -200,10 +203,13 @@ func parseLogOutput(messageProcessor MessageProcessor, log string) []GitCommitLo
 func parseCommitLog(messageProcessor MessageProcessor, commit string) GitCommitLog {
 	content := strings.Split(strings.Trim(commit, "\""), logSeparator)
 
+	timestamp, _ := strconv.Atoi(content[1])
 	return GitCommitLog{
-		Date:    content[0],
-		Hash:    content[1],
-		Message: messageProcessor.Parse(content[2], content[3]),
+		Date:       content[0],
+		Timestamp:  timestamp,
+		AuthorName: content[2],
+		Hash:       content[3],
+		Message:    messageProcessor.Parse(content[4], content[5]),
 	}
 }
 
