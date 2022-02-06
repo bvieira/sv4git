@@ -1,11 +1,16 @@
 package sv
 
 import (
+	"bytes"
+	"os"
 	"testing"
+	"text/template"
 	"time"
 
 	"github.com/Masterminds/semver/v3"
 )
+
+var templatesFS = os.DirFS("../cmd/git-sv/resources/templates")
 
 var dateChangelog = `## v1.0.0 (2020-05-01)
 `
@@ -55,7 +60,7 @@ func TestOutputFormatterImpl_FormatReleaseNote(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewOutputFormatter().FormatReleaseNote(tt.input)
+			got, err := NewOutputFormatter(templatesFS).FormatReleaseNote(tt.input)
 			if got != tt.want {
 				t.Errorf("OutputFormatterImpl.FormatReleaseNote() = %v, want %v", got, tt.want)
 			}
@@ -84,4 +89,51 @@ func fullReleaseNote(tag string, date time.Time) ReleaseNote {
 		"fix":   newReleaseNoteSection("Bug Fixes", []GitCommitLog{commitlog("fix", map[string]string{})}),
 	}
 	return releaseNote(v, tag, date, sections, []string{"break change message"})
+}
+
+func Test_checkTemplatesExecution(t *testing.T) {
+	tpls := template.Must(template.New("templates").ParseFS(templatesFS, "*"))
+	tests := []struct {
+		template  string
+		variables interface{}
+	}{
+		{"changelog-md.tpl", changelogVariables("v1.0.0", "v1.0.1")},
+		{"releasenotes-md.tpl", releaseNotesVariables("v1.0.0")},
+	}
+	for _, tt := range tests {
+		t.Run(tt.template, func(t *testing.T) {
+			var b bytes.Buffer
+			err := tpls.ExecuteTemplate(&b, tt.template, tt.variables)
+			if err != nil {
+				t.Errorf("invalid template err = %v", err)
+				return
+			}
+			if len(b.Bytes()) <= 0 {
+				t.Errorf("empty template")
+			}
+		})
+	}
+}
+
+func releaseNotesVariables(release string) releaseNoteTemplateVariables {
+	return releaseNoteTemplateVariables{
+		Release: release,
+		Date:    "2006-01-02",
+		Sections: map[string]ReleaseNoteSection{
+			"build": newReleaseNoteSection("Build", []GitCommitLog{commitlog("build", map[string]string{})}),
+			"feat":  newReleaseNoteSection("Features", []GitCommitLog{commitlog("feat", map[string]string{})}),
+			"fix":   newReleaseNoteSection("Bug Fixes", []GitCommitLog{commitlog("fix", map[string]string{})}),
+		},
+		Order:           []string{"feat", "fix", "refactor", "perf", "test", "build", "ci", "chore", "docs", "style"},
+		BreakingChanges: BreakingChangeSection{"Breaking Changes", []string{"break change message"}},
+	}
+}
+
+func changelogVariables(releases ...string) []releaseNoteTemplateVariables {
+	var variables []releaseNoteTemplateVariables
+	for _, r := range releases {
+		variables = append(variables, releaseNotesVariables(r))
+	}
+	return variables
+
 }
