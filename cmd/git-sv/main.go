@@ -17,6 +17,7 @@ var Version = "source"
 const (
 	configFilename     = "config.yml"
 	repoConfigFilename = ".sv4git.yml"
+	configDir          = ".sv4git"
 )
 
 var (
@@ -24,20 +25,28 @@ var (
 	defaultTemplatesFS embed.FS
 )
 
-func templateFS() fs.FS {
-	defaultTemplatesFS, _ := fs.Sub(defaultTemplatesFS, "resources/templates")
-	return defaultTemplatesFS
+func templateFS(filepath string) fs.FS {
+	if _, err := os.Stat(filepath); err != nil {
+		defaultTemplatesFS, _ := fs.Sub(defaultTemplatesFS, "resources/templates")
+		return defaultTemplatesFS
+	}
+	return os.DirFS(filepath)
 }
 
 func main() {
 	log.SetFlags(0)
 
-	cfg := loadCfg()
+	repoPath, rerr := getRepoPath()
+	if rerr != nil {
+		log.Fatal("failed to discovery repository top level, error: ", rerr)
+	}
+
+	cfg := loadCfg(repoPath)
 	messageProcessor := sv.NewMessageProcessor(cfg.CommitMessage, cfg.Branches)
 	git := sv.NewGit(messageProcessor, cfg.Tag)
 	semverProcessor := sv.NewSemVerCommitsProcessor(cfg.Versioning, cfg.CommitMessage)
 	releasenotesProcessor := sv.NewReleaseNoteProcessor(cfg.ReleaseNotes)
-	outputFormatter := sv.NewOutputFormatter(templateFS())
+	outputFormatter := sv.NewOutputFormatter(templateFS(filepath.Join(repoPath, configDir, "templates")))
 
 	app := cli.NewApp()
 	app.Name = "sv"
@@ -157,7 +166,7 @@ func main() {
 	}
 }
 
-func loadCfg() Config {
+func loadCfg(repoPath string) Config {
 	cfg := defaultConfig()
 
 	envCfg := loadEnvConfig()
@@ -167,11 +176,6 @@ func loadCfg() Config {
 				log.Fatal("failed to merge user config, error: ", merr)
 			}
 		}
-	}
-
-	repoPath, rerr := getRepoPath()
-	if rerr != nil {
-		log.Fatal("failed to discovery repository top level, error: ", rerr)
 	}
 
 	if repoCfg, err := readConfig(filepath.Join(repoPath, repoConfigFilename)); err == nil {
