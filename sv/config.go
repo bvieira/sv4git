@@ -68,5 +68,29 @@ type TagConfig struct {
 
 // ReleaseNotesConfig release notes preferences.
 type ReleaseNotesConfig struct {
-	Headers map[string]string `yaml:"headers"`
+	Headers  map[string]string           `yaml:"headers"`
+	Sections []ReleaseNotesSectionConfig `yaml:"sections"`
 }
+
+func (cfg ReleaseNotesConfig) sectionConfig(sectionType string) *ReleaseNotesSectionConfig {
+	for _, sectionCfg := range cfg.Sections {
+		if sectionCfg.SectionType == sectionType {
+			return &sectionCfg
+		}
+	}
+	return nil
+}
+
+// ReleaseNotesSectionConfig preferences for a single section on release notes.
+type ReleaseNotesSectionConfig struct {
+	Name        string   `yaml:"name"`
+	SectionType string   `yaml:"section-type"`
+	CommitTypes []string `yaml:"commit-types"`
+}
+
+const (
+	// ReleaseNotesSectionTypeCommits ReleaseNotesSectionConfig.SectionType value.
+	ReleaseNotesSectionTypeCommits = "commits"
+	// ReleaseNotesSectionTypeBreakingChange ReleaseNotesSectionConfig.SectionType value.
+	ReleaseNotesSectionTypeBreakingChange = "breaking-change"
+)

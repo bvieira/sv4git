@@ -77,8 +77,14 @@ func defaultConfig() Config {
 			UpdatePatch:   []string{"build", "ci", "chore", "docs", "fix", "perf", "refactor", "style", "test"},
 			IgnoreUnknown: false,
 		},
-		Tag:          sv.TagConfig{Pattern: "%d.%d.%d"},
-		ReleaseNotes: sv.ReleaseNotesConfig{Headers: map[string]string{"fix": "Bug Fixes", "feat": "Features", "breaking-change": "Breaking Changes"}},
+		Tag: sv.TagConfig{Pattern: "%d.%d.%d"},
+		ReleaseNotes: sv.ReleaseNotesConfig{
+			Sections: []sv.ReleaseNotesSectionConfig{
+				{Name: "Features", SectionType: "commits", CommitTypes: []string{"feat"}},
+				{Name: "Bug Fixes", SectionType: "commits", CommitTypes: []string{"fix"}},
+				{Name: "Breaking Changes", SectionType: "breaking-change"},
+			},
+		},
 		Branches: sv.BranchesConfig{
 			Prefix:       "([a-z]+\\/)?",
 			Suffix:       "(-.*)?",
@@ -128,4 +134,36 @@ func (t *mergeTransformer) Transformer(typ reflect.Type) func(dst, src reflect.V
 		}
 	}
 	return nil
+}
+
+func migrateConfig(cfg Config) Config {
+	if cfg.ReleaseNotes.Headers == nil {
+		return cfg
+	}
+	warnf("config 'release-notes.headers' is deprecated, please use 'sections' instead!")
+
+	return Config{
+		Version:    cfg.Version,
+		Versioning: cfg.Versioning,
+		Tag:        cfg.Tag,
+		ReleaseNotes: sv.ReleaseNotesConfig{
+			Sections: migrateReleaseNotesConfig(cfg.ReleaseNotes.Headers),
+		},
+		Branches:      cfg.Branches,
+		CommitMessage: cfg.CommitMessage,
+	}
+}
+
+func migrateReleaseNotesConfig(headers map[string]string) []sv.ReleaseNotesSectionConfig {
+	order := []string{"feat", "fix", "refactor", "perf", "test", "build", "ci", "chore", "docs", "style"}
+	var sections []sv.ReleaseNotesSectionConfig
+	for _, key := range order {
+		if name, exists := headers[key]; exists {
+			sections = append(sections, sv.ReleaseNotesSectionConfig{Name: name, SectionType: sv.ReleaseNotesSectionTypeCommits, CommitTypes: []string{key}})
+		}
+	}
+	if name, exists := headers["breaking-change"]; exists {
+		sections = append(sections, sv.ReleaseNotesSectionConfig{Name: name, SectionType: sv.ReleaseNotesSectionTypeBreakingChange})
+	}
+	return sections
 }
