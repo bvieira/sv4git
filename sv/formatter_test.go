@@ -84,11 +84,11 @@ func emptyReleaseNote(tag string, date time.Time) ReleaseNote {
 func fullReleaseNote(tag string, date time.Time) ReleaseNote {
 	v, _ := semver.NewVersion(tag)
 	sections := map[string]ReleaseNoteSection{
-		"build": newReleaseNoteSection("Build", []GitCommitLog{commitlog("build", map[string]string{})}),
-		"feat":  newReleaseNoteSection("Features", []GitCommitLog{commitlog("feat", map[string]string{})}),
-		"fix":   newReleaseNoteSection("Bug Fixes", []GitCommitLog{commitlog("fix", map[string]string{})}),
+		"build": newReleaseNoteSection("Build", []string{"build"}, []GitCommitLog{commitlog("build", map[string]string{}, "a")}),
+		"feat":  newReleaseNoteSection("Features", []string{"feat"}, []GitCommitLog{commitlog("feat", map[string]string{}, "a")}),
+		"fix":   newReleaseNoteSection("Bug Fixes", []string{"fix"}, []GitCommitLog{commitlog("fix", map[string]string{}, "a")}),
 	}
-	return releaseNote(v, tag, date, sections, []string{"break change message"})
+	return releaseNote(v, tag, date, sections, []string{"break change message"}, map[string]struct{}{"a": {}})
 }
 
 func Test_checkTemplatesExecution(t *testing.T) {
@@ -119,12 +119,11 @@ func releaseNotesVariables(release string) releaseNoteTemplateVariables {
 	return releaseNoteTemplateVariables{
 		Release: release,
 		Date:    "2006-01-02",
-		Sections: map[string]ReleaseNoteSection{
-			"build": newReleaseNoteSection("Build", []GitCommitLog{commitlog("build", map[string]string{})}),
-			"feat":  newReleaseNoteSection("Features", []GitCommitLog{commitlog("feat", map[string]string{})}),
-			"fix":   newReleaseNoteSection("Bug Fixes", []GitCommitLog{commitlog("fix", map[string]string{})}),
+		Sections: []ReleaseNoteSection{
+			newReleaseNoteSection("Features", []string{"feat"}, []GitCommitLog{commitlog("feat", map[string]string{}, "a")}),
+			newReleaseNoteSection("Bug Fixes", []string{"fix"}, []GitCommitLog{commitlog("fix", map[string]string{}, "a")}),
+			newReleaseNoteSection("Build", []string{"build"}, []GitCommitLog{commitlog("build", map[string]string{}, "a")}),
 		},
-		Order:           []string{"feat", "fix", "refactor", "perf", "test", "build", "ci", "chore", "docs", "style"},
 		BreakingChanges: BreakingChangeSection{"Breaking Changes", []string{"break change message"}},
 	}
 }

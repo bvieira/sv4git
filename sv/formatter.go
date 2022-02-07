@@ -3,15 +3,20 @@ package sv
 import (
 	"bytes"
 	"io/fs"
+	"sort"
+	"strings"
 	"text/template"
+
+	"github.com/Masterminds/semver/v3"
 )
 
 type releaseNoteTemplateVariables struct {
 	Release         string
+	Version         *semver.Version
 	Date            string
-	Sections        map[string]ReleaseNoteSection
-	Order           []string
+	Sections        []ReleaseNoteSection
 	BreakingChanges BreakingChangeSection
+	AuthorNames     []string
 }
 
 // OutputFormatter output formatter interface.
@@ -60,17 +65,58 @@ func releaseNoteVariables(releasenote ReleaseNote) releaseNoteTemplateVariables 
 		date = releasenote.Date.Format("2006-01-02")
 	}
 
-	release := ""
+	release := releasenote.Tag
 	if releasenote.Version != nil {
 		release = "v" + releasenote.Version.String()
-	} else if releasenote.Tag != "" {
-		release = releasenote.Tag
 	}
 	return releaseNoteTemplateVariables{
 		Release:         release,
+		Version:         releasenote.Version,
 		Date:            date,
-		Sections:        releasenote.Sections,
-		Order:           []string{"feat", "fix", "refactor", "perf", "test", "build", "ci", "chore", "docs", "style"},
+		Sections:        toTemplateSections(releasenote.Sections),
 		BreakingChanges: releasenote.BreakingChanges,
+		AuthorNames:     toSortedArray(releasenote.AuthorsNames),
 	}
+}
+
+func toTemplateSections(sections map[string]ReleaseNoteSection) []ReleaseNoteSection {
+	result := make([]ReleaseNoteSection, len(sections))
+	i := 0
+	for _, section := range sections {
+		result[i] = section
+		i++
+	}
+
+	order := map[string]int{"feat": 0, "fix": 1, "refactor": 2, "perf": 3, "test": 4, "build": 5, "ci": 6, "chore": 7, "docs": 8, "style": 9}
+	sort.SliceStable(result, func(i, j int) bool {
+		priority1, disambiguity1 := priority(result[i].Types, order)
+		priority2, disambiguity2 := priority(result[j].Types, order)
+		if priority1 == priority2 {
+			return disambiguity1 < disambiguity2
+		}
+		return priority1 < priority2
+	})
+	return result
+}
+
+func priority(types []string, order map[string]int) (int, string) {
+	sort.Strings(types)
+	p := -1
+	for _, t := range types {
+		if p == -1 || order[t] < p {
+			p = order[t]
+		}
+	}
+	return p, strings.Join(types, "-")
+}
+
+func toSortedArray(input map[string]struct{}) []string {
+	result := make([]string, len(input))
+	i := 0
+	for k := range input {
+		result[i] = k
+		i++
+	}
+	sort.Strings(result)
+	return result
 }
