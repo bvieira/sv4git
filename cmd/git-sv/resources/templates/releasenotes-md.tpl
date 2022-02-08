@@ -1,5 +1,8 @@
-## {{if .Release}}{{.Release}}{{end}}{{if and .Date .Release}} ({{end}}{{.Date}}{{if and .Date .Release}}){{end}}
+## {{if .Release}}{{.Release}}{{end}}{{if and (not .Date.IsZero) .Release}} ({{end}}{{timefmt .Date "2006-01-02"}}{{if and (not .Date.IsZero) .Release}}){{end}}
 {{- range $section := .Sections }}
-{{- template "rn-md-section.tpl" $section }}
+{{- if (eq $section.SectionType "commits") }}
+{{- template "rn-md-section-commits.tpl" $section }}
+{{- else if (eq $section.SectionType "breaking-changes")}}
+{{- template "rn-md-section-breaking-changes.tpl" $section }}
 {{- end}}
-{{- template "rn-md-section-breaking-changes.tpl" .BreakingChanges}}
+{{- end}}

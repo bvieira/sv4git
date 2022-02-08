@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"os"
 	"testing"
-	"text/template"
 	"time"
 
 	"github.com/Masterminds/semver/v3"
@@ -83,16 +82,17 @@ func emptyReleaseNote(tag string, date time.Time) ReleaseNote {
 
 func fullReleaseNote(tag string, date time.Time) ReleaseNote {
 	v, _ := semver.NewVersion(tag)
-	sections := map[string]ReleaseNoteSection{
-		"build": newReleaseNoteSection("Build", []string{"build"}, []GitCommitLog{commitlog("build", map[string]string{}, "a")}),
-		"feat":  newReleaseNoteSection("Features", []string{"feat"}, []GitCommitLog{commitlog("feat", map[string]string{}, "a")}),
-		"fix":   newReleaseNoteSection("Bug Fixes", []string{"fix"}, []GitCommitLog{commitlog("fix", map[string]string{}, "a")}),
+	sections := []ReleaseNoteSection{
+		newReleaseNoteCommitsSection("Features", []string{"feat"}, []GitCommitLog{commitlog("feat", map[string]string{}, "a")}),
+		newReleaseNoteCommitsSection("Bug Fixes", []string{"fix"}, []GitCommitLog{commitlog("fix", map[string]string{}, "a")}),
+		newReleaseNoteCommitsSection("Build", []string{"build"}, []GitCommitLog{commitlog("build", map[string]string{}, "a")}),
+		ReleaseNoteBreakingChangeSection{"Breaking Changes", []string{"break change message"}},
 	}
-	return releaseNote(v, tag, date, sections, []string{"break change message"}, map[string]struct{}{"a": {}})
+	return releaseNote(v, tag, date, sections, map[string]struct{}{"a": {}})
 }
 
 func Test_checkTemplatesExecution(t *testing.T) {
-	tpls := template.Must(template.New("templates").ParseFS(templatesFS, "*"))
+	tpls := NewOutputFormatter(templatesFS).templates
 	tests := []struct {
 		template  string
 		variables interface{}
@@ -118,13 +118,13 @@ func Test_checkTemplatesExecution(t *testing.T) {
 func releaseNotesVariables(release string) releaseNoteTemplateVariables {
 	return releaseNoteTemplateVariables{
 		Release: release,
-		Date:    "2006-01-02",
+		Date:    time.Date(2006, 1, 02, 0, 0, 0, 0, time.UTC),
 		Sections: []ReleaseNoteSection{
-			newReleaseNoteSection("Features", []string{"feat"}, []GitCommitLog{commitlog("feat", map[string]string{}, "a")}),
-			newReleaseNoteSection("Bug Fixes", []string{"fix"}, []GitCommitLog{commitlog("fix", map[string]string{}, "a")}),
-			newReleaseNoteSection("Build", []string{"build"}, []GitCommitLog{commitlog("build", map[string]string{}, "a")}),
+			newReleaseNoteCommitsSection("Features", []string{"feat"}, []GitCommitLog{commitlog("feat", map[string]string{}, "a")}),
+			newReleaseNoteCommitsSection("Bug Fixes", []string{"fix"}, []GitCommitLog{commitlog("fix", map[string]string{}, "a")}),
+			newReleaseNoteCommitsSection("Build", []string{"build"}, []GitCommitLog{commitlog("build", map[string]string{}, "a")}),
+			ReleaseNoteBreakingChangeSection{"Breaking Changes", []string{"break change message"}},
 		},
-		BreakingChanges: BreakingChangeSection{"Breaking Changes", []string{"break change message"}},
 	}
 }
 

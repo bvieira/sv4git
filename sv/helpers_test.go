@@ -27,23 +27,18 @@ func commitlog(ctype string, metadata map[string]string, author string) GitCommi
 	}
 }
 
-func releaseNote(version *semver.Version, tag string, date time.Time, sections map[string]ReleaseNoteSection, breakingChanges []string, authorsNames map[string]struct{}) ReleaseNote {
-	var bchanges BreakingChangeSection
-	if len(breakingChanges) > 0 {
-		bchanges = BreakingChangeSection{Name: "Breaking Changes", Messages: breakingChanges}
-	}
+func releaseNote(version *semver.Version, tag string, date time.Time, sections []ReleaseNoteSection, authorsNames map[string]struct{}) ReleaseNote {
 	return ReleaseNote{
-		Version:         version,
-		Tag:             tag,
-		Date:            date.Truncate(time.Minute),
-		Sections:        sections,
-		BreakingChanges: bchanges,
-		AuthorsNames:    authorsNames,
+		Version:      version,
+		Tag:          tag,
+		Date:         date.Truncate(time.Minute),
+		Sections:     sections,
+		AuthorsNames: authorsNames,
 	}
 }
 
-func newReleaseNoteSection(name string, types []string, items []GitCommitLog) ReleaseNoteSection {
-	return ReleaseNoteSection{
+func newReleaseNoteCommitsSection(name string, types []string, items []GitCommitLog) ReleaseNoteCommitsSection {
+	return ReleaseNoteCommitsSection{
 		Name:  name,
 		Types: types,
 		Items: items,

@@ -91,6 +91,6 @@ type ReleaseNotesSectionConfig struct {
 const (
 	// ReleaseNotesSectionTypeCommits ReleaseNotesSectionConfig.SectionType value.
 	ReleaseNotesSectionTypeCommits = "commits"
-	// ReleaseNotesSectionTypeBreakingChange ReleaseNotesSectionConfig.SectionType value.
-	ReleaseNotesSectionTypeBreakingChange = "breaking-change"
+	// ReleaseNotesSectionTypeBreakingChanges ReleaseNotesSectionConfig.SectionType value.
+	ReleaseNotesSectionTypeBreakingChanges = "breaking-changes"
 )

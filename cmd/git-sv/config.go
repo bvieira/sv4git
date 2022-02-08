@@ -80,9 +80,9 @@ func defaultConfig() Config {
 		Tag: sv.TagConfig{Pattern: "%d.%d.%d"},
 		ReleaseNotes: sv.ReleaseNotesConfig{
 			Sections: []sv.ReleaseNotesSectionConfig{
-				{Name: "Features", SectionType: "commits", CommitTypes: []string{"feat"}},
-				{Name: "Bug Fixes", SectionType: "commits", CommitTypes: []string{"fix"}},
-				{Name: "Breaking Changes", SectionType: "breaking-change"},
+				{Name: "Features", SectionType: sv.ReleaseNotesSectionTypeCommits, CommitTypes: []string{"feat"}},
+				{Name: "Bug Fixes", SectionType: sv.ReleaseNotesSectionTypeCommits, CommitTypes: []string{"fix"}},
+				{Name: "Breaking Changes", SectionType: sv.ReleaseNotesSectionTypeBreakingChanges},
 			},
 		},
 		Branches: sv.BranchesConfig{
@@ -163,7 +163,7 @@ func migrateReleaseNotesConfig(headers map[string]string) []sv.ReleaseNotesSecti
 		}
 	}
 	if name, exists := headers["breaking-change"]; exists {
-		sections = append(sections, sv.ReleaseNotesSectionConfig{Name: name, SectionType: sv.ReleaseNotesSectionTypeBreakingChange})
+		sections = append(sections, sv.ReleaseNotesSectionConfig{Name: name, SectionType: sv.ReleaseNotesSectionTypeBreakingChanges})
 	}
 	return sections
 }
