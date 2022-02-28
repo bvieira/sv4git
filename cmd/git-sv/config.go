@@ -70,7 +70,7 @@ func readConfig(filepath string) (Config, error) {
 func defaultConfig() Config {
 	skipDetached := false
 	return Config{
-		Version: "1.0",
+		Version: "1.1",
 		Versioning: sv.VersioningConfig{
 			UpdateMajor:   []string{},
 			UpdateMinor:   []string{"feat"},
@@ -136,11 +136,11 @@ func (t *mergeTransformer) Transformer(typ reflect.Type) func(dst, src reflect.V
 	return nil
 }
 
-func migrateConfig(cfg Config) Config {
+func migrateConfig(cfg Config, filename string) Config {
 	if cfg.ReleaseNotes.Headers == nil {
 		return cfg
 	}
-	warnf("config 'release-notes.headers' is deprecated, please use 'sections' instead!")
+	warnf("config 'release-notes.headers' on %s is deprecated, please use 'sections' instead!", filename)
 
 	return Config{
 		Version:    cfg.Version,

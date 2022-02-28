@@ -171,15 +171,17 @@ func loadCfg(repoPath string) Config {
 
 	envCfg := loadEnvConfig()
 	if envCfg.Home != "" {
-		if homeCfg, err := readConfig(filepath.Join(envCfg.Home, configFilename)); err == nil {
-			if merr := merge(&cfg, homeCfg); merr != nil {
+		homeCfgFilepath := filepath.Join(envCfg.Home, configFilename)
+		if homeCfg, err := readConfig(homeCfgFilepath); err == nil {
+			if merr := merge(&cfg, migrateConfig(homeCfg, homeCfgFilepath)); merr != nil {
 				log.Fatal("failed to merge user config, error: ", merr)
 			}
 		}
 	}
 
-	if repoCfg, err := readConfig(filepath.Join(repoPath, repoConfigFilename)); err == nil {
-		if merr := merge(&cfg, repoCfg); merr != nil {
+	repoCfgFilepath := filepath.Join(repoPath, repoConfigFilename)
+	if repoCfg, err := readConfig(repoCfgFilepath); err == nil {
+		if merr := merge(&cfg, migrateConfig(repoCfg, repoCfgFilepath)); merr != nil {
 			log.Fatal("failed to merge repo config, error: ", merr)
 		}
 		if len(repoCfg.ReleaseNotes.Headers) > 0 { // mergo is merging maps, headers will be overwritten

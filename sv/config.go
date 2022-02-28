@@ -68,7 +68,7 @@ type TagConfig struct {
 
 // ReleaseNotesConfig release notes preferences.
 type ReleaseNotesConfig struct {
-	Headers  map[string]string           `yaml:"headers"`
+	Headers  map[string]string           `yaml:"headers,omitempty"`
 	Sections []ReleaseNotesSectionConfig `yaml:"sections"`
 }
 
@@ -85,7 +85,7 @@ func (cfg ReleaseNotesConfig) sectionConfig(sectionType string) *ReleaseNotesSec
 type ReleaseNotesSectionConfig struct {
 	Name        string   `yaml:"name"`
 	SectionType string   `yaml:"section-type"`
-	CommitTypes []string `yaml:"commit-types"`
+	CommitTypes []string `yaml:"commit-types,flow,omitempty"`
 }
 
 const (
