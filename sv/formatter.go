@@ -34,7 +34,7 @@ type OutputFormatterImpl struct {
 func NewOutputFormatter(templatesFS fs.FS) *OutputFormatterImpl {
 	templateFNs := map[string]interface{}{
 		"timefmt":    timeFormat,
-		"getSection": getSection,
+		"getsection": getSection,
 	}
 	tpls := template.Must(template.New("templates").Funcs(templateFNs).ParseFS(templatesFS, "*"))
 	return &OutputFormatterImpl{templates: tpls}
@@ -87,20 +87,4 @@ func toSortedArray(input map[string]struct{}) []string {
 	}
 	sort.Strings(result)
 	return result
-}
-
-func timeFormat(t time.Time, format string) string {
-	if t.IsZero() {
-		return ""
-	}
-	return t.Format(format)
-}
-
-func getSection(sections []ReleaseNoteSection, name string) ReleaseNoteSection {
-	for _, section := range sections {
-		if section.SectionName() == name {
-			return section
-		}
-	}
-	return nil
 }
