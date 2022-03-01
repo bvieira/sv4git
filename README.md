@@ -178,14 +178,14 @@ Version
   Metadata   string
   Original   string
 
-ReleaseNoteCommitsSection (SectionType == commits)
+ReleaseNoteCommitsSection // SectionType == commits
   SectionType      string
   SectionName      string
   Types            []string
   Items            []GitCommitLog
   HasMultipleTypes bool
 
-ReleaseNoteBreakingChangeSection (SectionType == breaking-changes)
+ReleaseNoteBreakingChangeSection // SectionType == breaking-changes
   SectionType string
   SectionName string
   Messages    []string
@@ -208,7 +208,7 @@ CommitMessage
 
 ##### Functions
 
-Beside the [go template functions](https://pkg.go.dev/text/template#hdr-Functions), the folowing functions are availiable to use in the templates. Check [formatter_functions.go](sv/formatter_functions.go) to see the function implementation.
+Beside the [go template functions](https://pkg.go.dev/text/template#hdr-Functions), the folowing functions are availiable to use in the templates. Check [formatter_functions.go](sv/formatter_functions.go) to see the functions implementation.
 
 ###### timefmt
 
