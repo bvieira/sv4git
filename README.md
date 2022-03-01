@@ -91,8 +91,9 @@ tag:
     pattern: '%d.%d.%d' # Pattern used to create git tag.
 
 release-notes:
-    # Deprecated!!! please use 'sections' instead! Headers names for release notes markdown. To disable a section 
-    # just remove the header line. It's possible to add other commit types, the release note will be created 
+    # Deprecated!!! please use 'sections' instead!
+    # Headers names for release notes markdown. To disable a section just remove the header 
+    # line. It's possible to add other commit types, the release note will be created 
     # respecting the following order: feat, fix, refactor, perf, test, build, ci, chore, docs, style, breaking-change.
     headers: 
         breaking-change: Breaking Changes
@@ -100,7 +101,7 @@ release-notes:
         fix: Bug Fixes
     
     sections: # Array with each section of release note. Check template section for more information.
-        - name: Features # Name used on section name.
+        - name: Features # Name used on section.
           section-type: commits # Type of the section, supported types: commits, breaking-changes.
           commit-types: [feat] # Commit types for commit section-type, one commit type cannot be in more than one section.
         - name: Bug Fixes
@@ -134,7 +135,7 @@ commit-message:
 
 #### Templates
 
-**sv4git** uses go templates to format the output for `release-notes` and `changelog`, to see how the default template is configured check [template directory](cmd/git-sv/resources/templates). On v2.7.0+, its possible to overwrite the default configuration by adding `.sv4git/templates` on your repository. The cli expects that at least 2 files exists on your directory: `changelog-md.tpl` and `releasenotes-md.tpl`.
+**sv4git** uses *go templates* to format the output for `release-notes` and `changelog`, to see how the default template is configured check [template directory](cmd/git-sv/resources/templates). On v2.7.0+, its possible to overwrite the default configuration by adding `.sv4git/templates` on your repository. The cli expects that at least 2 files exists on your directory: `changelog-md.tpl` and `releasenotes-md.tpl`.
 
 ```bash
 .sv4git
@@ -147,22 +148,22 @@ Everything inside `.sv4git/templates` will be loaded, so it's possible to add mo
 
 ##### Variables
 
-To execute the template the `releasenotes-md.tpl` will receive a single ReleaseNote and `changelog-md.tpl` will receive a list of **ReleaseNote** as variables.
+To execute the template the `releasenotes-md.tpl` will receive a single **ReleaseNote** and `changelog-md.tpl` will receive a list of **ReleaseNote** as variables.
 
-Each **ReleaseNoteSection** will be configured according with `release-notes.section` from config file. The order for each section will be maintained and the SectionType is defined according with `section-type` attribute as described on the table below.
+Each **ReleaseNoteSection** will be configured according with `release-notes.section` from config file. The order for each section will be maintained and the **SectionType** is defined according with `section-type` attribute as described on the table below.
 
 | section-type | ReleaseNoteSection |
 | -- | -- |
 | commits | ReleaseNoteCommitsSection |
 | breaking-changes | ReleaseNoteBreakingChangeSection |
 
-> warning: currently only `commits` and `breaking-changes` are supported as `section-types`, using a different value for this field will make the section to be removed from the template variables.
+> :warning: currently only `commits` and `breaking-changes` are supported as `section-types`, using a different value for this field will make the section to be removed from the template variables.
 
 Check below the variables available:
 
 ```go
 ReleaseNote
-  Release     string // If has a version, it will be used, if not use tag instead.
+  Release     string // 'v' followed by version if present, if not tag will be used instead.
   Tag         string // Current tag, if available.
   Version     *Version // Version from tag or next version according with semver.
   Date        time.Time
