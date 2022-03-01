@@ -1,7 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+)
 
 func warnf(format string, values ...interface{}) {
-	fmt.Printf("WARN: "+format+"\n", values...)
+	fmt.Fprintf(os.Stderr, "WARN: "+format+"\n", values...)
 }

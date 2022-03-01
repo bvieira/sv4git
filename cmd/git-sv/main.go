@@ -1,6 +1,8 @@
 package main
 
 import (
+	"embed"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
@@ -15,17 +17,36 @@ var Version = "source"
 const (
 	configFilename     = "config.yml"
 	repoConfigFilename = ".sv4git.yml"
+	configDir          = ".sv4git"
 )
+
+var (
+	//go:embed resources/templates/*.tpl
+	defaultTemplatesFS embed.FS
+)
+
+func templateFS(filepath string) fs.FS {
+	if _, err := os.Stat(filepath); err != nil {
+		defaultTemplatesFS, _ := fs.Sub(defaultTemplatesFS, "resources/templates")
+		return defaultTemplatesFS
+	}
+	return os.DirFS(filepath)
+}
 
 func main() {
 	log.SetFlags(0)
 
-	cfg := loadCfg()
+	repoPath, rerr := getRepoPath()
+	if rerr != nil {
+		log.Fatal("failed to discovery repository top level, error: ", rerr)
+	}
+
+	cfg := loadCfg(repoPath)
 	messageProcessor := sv.NewMessageProcessor(cfg.CommitMessage, cfg.Branches)
 	git := sv.NewGit(messageProcessor, cfg.Tag)
 	semverProcessor := sv.NewSemVerCommitsProcessor(cfg.Versioning, cfg.CommitMessage)
 	releasenotesProcessor := sv.NewReleaseNoteProcessor(cfg.ReleaseNotes)
-	outputFormatter := sv.NewOutputFormatter()
+	outputFormatter := sv.NewOutputFormatter(templateFS(filepath.Join(repoPath, configDir, "templates")))
 
 	app := cli.NewApp()
 	app.Name = "sv"
@@ -145,26 +166,22 @@ func main() {
 	}
 }
 
-func loadCfg() Config {
-	envCfg := loadEnvConfig()
-
+func loadCfg(repoPath string) Config {
 	cfg := defaultConfig()
 
+	envCfg := loadEnvConfig()
 	if envCfg.Home != "" {
-		if homeCfg, err := readConfig(filepath.Join(envCfg.Home, configFilename)); err == nil {
-			if merr := merge(&cfg, homeCfg); merr != nil {
+		homeCfgFilepath := filepath.Join(envCfg.Home, configFilename)
+		if homeCfg, err := readConfig(homeCfgFilepath); err == nil {
+			if merr := merge(&cfg, migrateConfig(homeCfg, homeCfgFilepath)); merr != nil {
 				log.Fatal("failed to merge user config, error: ", merr)
 			}
 		}
 	}
 
-	repoPath, rerr := getRepoPath()
-	if rerr != nil {
-		log.Fatal("failed to get repository path, error: ", rerr)
-	}
-
-	if repoCfg, err := readConfig(filepath.Join(repoPath, repoConfigFilename)); err == nil {
-		if merr := merge(&cfg, repoCfg); merr != nil {
+	repoCfgFilepath := filepath.Join(repoPath, repoConfigFilename)
+	if repoCfg, err := readConfig(repoCfgFilepath); err == nil {
+		if merr := merge(&cfg, migrateConfig(repoCfg, repoCfgFilepath)); merr != nil {
 			log.Fatal("failed to merge repo config, error: ", merr)
 		}
 		if len(repoCfg.ReleaseNotes.Headers) > 0 { // mergo is merging maps, headers will be overwritten
