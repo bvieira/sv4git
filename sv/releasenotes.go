@@ -132,3 +132,8 @@ func (ReleaseNoteCommitsSection) SectionType() string {
 func (s ReleaseNoteCommitsSection) SectionName() string {
 	return s.Name
 }
+
+// HasMultipleTypes return true if has more than one commit type.
+func (s ReleaseNoteCommitsSection) HasMultipleTypes() bool {
+	return len(s.Types) > 1
+}
