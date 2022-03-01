@@ -33,7 +33,8 @@ type OutputFormatterImpl struct {
 // NewOutputFormatter TemplateProcessor constructor.
 func NewOutputFormatter(templatesFS fs.FS) *OutputFormatterImpl {
 	templateFNs := map[string]interface{}{
-		"timefmt": timeFormat,
+		"timefmt":    timeFormat,
+		"getSection": getSection,
 	}
 	tpls := template.Must(template.New("templates").Funcs(templateFNs).ParseFS(templatesFS, "*"))
 	return &OutputFormatterImpl{templates: tpls}
@@ -93,4 +94,13 @@ func timeFormat(t time.Time, format string) string {
 		return ""
 	}
 	return t.Format(format)
+}
+
+func getSection(sections []ReleaseNoteSection, name string) ReleaseNoteSection {
+	for _, section := range sections {
+		if section.SectionName() == name {
+			return section
+		}
+	}
+	return nil
 }
