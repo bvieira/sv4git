@@ -5,6 +5,7 @@ package sv
 // CommitMessageConfig config a commit message.
 type CommitMessageConfig struct {
 	Types  []string                             `yaml:"types,flow"`
+	MessageSelector string                      `yaml:"selector"`
 	Scope  CommitMessageScopeConfig             `yaml:"scope"`
 	Footer map[string]CommitMessageFooterConfig `yaml:"footer"`
 	Issue  CommitMessageIssueConfig             `yaml:"issue"`
