@@ -202,7 +202,6 @@ func (p MessageProcessorImpl) Format(msg CommitMessage) (string, string, string)
 
 // Parse a commit message.
 func (p MessageProcessorImpl) Parse(subject, body string) CommitMessage {
-	
 	filteredSubject := subject
 	if p.messageCfg.MessageSelector != "" {
 		subjectRegex := regexp.MustCompile(p.messageCfg.MessageSelector)
