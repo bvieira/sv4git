@@ -202,7 +202,17 @@ func (p MessageProcessorImpl) Format(msg CommitMessage) (string, string, string)
 
 // Parse a commit message.
 func (p MessageProcessorImpl) Parse(subject, body string) CommitMessage {
-	commitType, scope, description, hasBreakingChange := parseSubjectMessage(subject)
+	
+	filteredSubject := subject
+	if p.messageCfg.MessageSelector != "" {
+		subjectRegex := regexp.MustCompile(p.messageCfg.MessageSelector)
+		subjectMessageIndex := regex.SubexpIndex("message")
+		subjectMatch := regex.FindStringSubmatch(subject)
+		
+		filteredSubject = subjectMatch[subjectMessageIndex]
+	}
+	
+	commitType, scope, description, hasBreakingChange := parseSubjectMessage(filteredSubject)
 
 	metadata := make(map[string]string)
 	for key, mdCfg := range p.messageCfg.Footer {
