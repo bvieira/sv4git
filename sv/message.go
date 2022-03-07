@@ -11,6 +11,7 @@ const (
 	breakingChangeFooterKey   = "BREAKING CHANGE"
 	breakingChangeMetadataKey = "breaking-change"
 	issueMetadataKey          = "issue"
+	messageRegexGroupName     = "message"
 )
 
 // CommitMessage is a message using conventional commits.
@@ -205,8 +206,8 @@ func (p MessageProcessorImpl) Parse(subject, body string) CommitMessage {
 	filteredSubject := subject
 	if p.messageCfg.MessageSelector != "" {
 		subjectRegex := regexp.MustCompile(p.messageCfg.MessageSelector)
-		subjectMessageIndex := regex.SubexpIndex("message")
-		subjectMatch := regex.FindStringSubmatch(subject)
+		subjectMessageIndex := subjectRegex.SubexpIndex(messageRegexGroupName)
+		subjectMatch := subjectRegex.FindStringSubmatch(subject)
 		
 		filteredSubject = subjectMatch[subjectMessageIndex]
 	}
