@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	logSeparator = "##"
-	endLine      = "~~"
+	logSeparator = "###"
+	endLine      = "~~~"
 )
 
 // Git commands.
@@ -144,7 +144,7 @@ func (g GitImpl) Tag(version semver.Version) (string, error) {
 
 // Tags list repository tags.
 func (g GitImpl) Tags() ([]GitTag, error) {
-	cmd := exec.Command("git", "for-each-ref", "--sort", "creatordate", "--format", "%(creatordate:iso8601)#%(refname:short)", "refs/tags")
+	cmd := exec.Command("git", "for-each-ref", "--sort", "creatordate", "--format", "%(creatordate:iso8601)#%(refname:short)", "refs/tags/" + g.tagCfg.Filter)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return nil, combinedOutputErr(err, out)

@@ -89,6 +89,7 @@ versioning: # versioning bump
 
 tag:
     pattern: '%d.%d.%d' # Pattern used to create git tag.
+    filter: '' # Enables you to filter for considerable tags using git pattern syntax
 
 release-notes:
     # Deprecated!!! please use 'sections' instead!

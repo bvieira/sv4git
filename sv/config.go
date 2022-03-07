@@ -63,6 +63,7 @@ type VersioningConfig struct {
 // TagConfig tag preferences.
 type TagConfig struct {
 	Pattern string `yaml:"pattern"`
+	Filter  string `yaml:"filter"`
 }
 
 // ==== Release Notes ====
