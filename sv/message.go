@@ -11,7 +11,7 @@ const (
 	breakingChangeFooterKey   = "BREAKING CHANGE"
 	breakingChangeMetadataKey = "breaking-change"
 	issueMetadataKey          = "issue"
-	messageRegexGroupName     = "message"
+	messageRegexGroupName     = "header"
 )
 
 // CommitMessage is a message using conventional commits.
@@ -203,16 +203,13 @@ func (p MessageProcessorImpl) Format(msg CommitMessage) (string, string, string)
 
 // Parse a commit message.
 func (p MessageProcessorImpl) Parse(subject, body string) CommitMessage {
-	filteredSubject := subject
-	if p.messageCfg.MessageSelector != "" {
-		subjectRegex := regexp.MustCompile(p.messageCfg.MessageSelector)
-		subjectMessageIndex := subjectRegex.SubexpIndex(messageRegexGroupName)
-		subjectMatch := subjectRegex.FindStringSubmatch(subject)
-		
-		filteredSubject = subjectMatch[subjectMessageIndex]
+	preparedSubject, prepError := p.prepareHeader(subject)
+
+	if prepError != nil {
+	    fmt.Println(prepError)
 	}
 	
-	commitType, scope, description, hasBreakingChange := parseSubjectMessage(filteredSubject)
+	commitType, scope, description, hasBreakingChange := parseSubjectMessage(preparedSubject)
 
 	metadata := make(map[string]string)
 	for key, mdCfg := range p.messageCfg.Footer {
@@ -239,6 +236,30 @@ func (p MessageProcessorImpl) Parse(subject, body string) CommitMessage {
 		IsBreakingChange: hasBreakingChange,
 		Metadata:         metadata,
 	}
+}
+
+func (p MessageProcessorImpl) prepareHeader(header string) (string, error) {
+	if p.messageCfg.HeaderSelector == "" {
+		return header, nil
+	}
+
+	regex, err := regexp.Compile(p.messageCfg.HeaderSelector)
+	if err != nil {
+		return "", fmt.Errorf("invalid regex on header-selector %s, error: %s", p.messageCfg.HeaderSelector, err.Error())
+	}
+
+	index := regex.SubexpIndex(messageRegexGroupName)
+	if index < 0 {
+		return "", fmt.Errorf("could not find %s regex group on header-selector regex", messageRegexGroupName)
+	}
+
+	match := regex.FindStringSubmatch(header)
+
+	if match == nil || len(match) < index {
+		return "", fmt.Errorf("could not find %s regex group in match result for '%s'", messageRegexGroupName, header)
+	}
+
+	return match[index], nil
 }
 
 func parseSubjectMessage(message string) (string, string, string, bool) {
