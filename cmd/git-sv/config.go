@@ -77,7 +77,10 @@ func defaultConfig() Config {
 			UpdatePatch:   []string{"build", "ci", "chore", "docs", "fix", "perf", "refactor", "style", "test"},
 			IgnoreUnknown: false,
 		},
-		Tag: sv.TagConfig{Pattern: "%d.%d.%d"},
+		Tag: sv.TagConfig{
+			Pattern: "%d.%d.%d",
+			Filter: "",
+		},
 		ReleaseNotes: sv.ReleaseNotesConfig{
 			Sections: []sv.ReleaseNotesSectionConfig{
 				{Name: "Features", SectionType: sv.ReleaseNotesSectionTypeCommits, CommitTypes: []string{"feat"}},
@@ -99,6 +102,7 @@ func defaultConfig() Config {
 				"issue": {Key: "jira", KeySynonyms: []string{"Jira", "JIRA"}},
 			},
 			Issue: sv.CommitMessageIssueConfig{Regex: "[A-Z]+-[0-9]+"},
+			HeaderSelector: "",
 		},
 	}
 }
