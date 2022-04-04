@@ -56,7 +56,7 @@ type MessageProcessor interface {
 	Enhance(branch string, message string) (string, error)
 	IssueID(branch string) (string, error)
 	Format(msg CommitMessage) (string, string, string)
-	Parse(subject, body string) CommitMessage
+	Parse(subject, body string) (CommitMessage, error)
 }
 
 // NewMessageProcessor MessageProcessorImpl constructor.
@@ -81,7 +81,7 @@ func (p MessageProcessorImpl) SkipBranch(branch string, detached bool) bool {
 // Validate commit message.
 func (p MessageProcessorImpl) Validate(message string) error {
 	subject, body := splitCommitMessageContent(message)
-	msg := p.Parse(subject, body)
+	msg, _ := p.Parse(subject, body)
 
 	if !regexp.MustCompile(`^[a-z+]+(\(.+\))?!?: .+$`).MatchString(subject) {
 		return fmt.Errorf("subject [%s] should be valid according with conventional commits", subject)
@@ -202,11 +202,11 @@ func (p MessageProcessorImpl) Format(msg CommitMessage) (string, string, string)
 }
 
 // Parse a commit message.
-func (p MessageProcessorImpl) Parse(subject, body string) CommitMessage {
-	preparedSubject, prepError := p.prepareHeader(subject)
+func (p MessageProcessorImpl) Parse(subject, body string) (CommitMessage, error) {
+	preparedSubject, err := p.prepareHeader(subject)
 
-	if prepError != nil {
-	    fmt.Println(prepError)
+	if err != nil {
+		return CommitMessage{}, err
 	}
 	
 	commitType, scope, description, hasBreakingChange := parseSubjectMessage(preparedSubject)
@@ -235,7 +235,7 @@ func (p MessageProcessorImpl) Parse(subject, body string) CommitMessage {
 		Body:             body,
 		IsBreakingChange: hasBreakingChange,
 		Metadata:         metadata,
-	}
+	}, nil
 }
 
 func (p MessageProcessorImpl) prepareHeader(header string) (string, error) {
@@ -256,7 +256,7 @@ func (p MessageProcessorImpl) prepareHeader(header string) (string, error) {
 	match := regex.FindStringSubmatch(header)
 
 	if match == nil || len(match) < index {
-		return "", fmt.Errorf("could not find %s regex group in match result for '%s'", messageRegexGroupName, header)
+		return header, nil
 	}
 
 	return match[index], nil

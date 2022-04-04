@@ -194,23 +194,33 @@ func parseLogOutput(messageProcessor MessageProcessor, log string) []GitCommitLo
 	var logs []GitCommitLog
 	for scanner.Scan() {
 		if text := strings.TrimSpace(strings.Trim(scanner.Text(), "\"")); text != "" {
-			logs = append(logs, parseCommitLog(messageProcessor, text))
+			log, err := parseCommitLog(messageProcessor, text)
+			// Ignore errors occuring during parsing
+			if err == nil {
+				logs = append(logs, log)
+			}
 		}
 	}
 	return logs
 }
 
-func parseCommitLog(messageProcessor MessageProcessor, commit string) GitCommitLog {
+func parseCommitLog(messageProcessor MessageProcessor, commit string) (GitCommitLog, error) {
 	content := strings.Split(strings.Trim(commit, "\""), logSeparator)
 
 	timestamp, _ := strconv.Atoi(content[1])
+	message, err := messageProcessor.Parse(content[4], content[5])
+
+	if err != nil {
+		return GitCommitLog{}, err
+	}
+	
 	return GitCommitLog{
 		Date:       content[0],
 		Timestamp:  timestamp,
 		AuthorName: content[2],
 		Hash:       content[3],
-		Message:    messageProcessor.Parse(content[4], content[5]),
-	}
+		Message:    message,
+	}, nil
 }
 
 func splitAt(b []byte) func(data []byte, atEOF bool) (advance int, token []byte, err error) {
