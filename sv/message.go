@@ -256,7 +256,7 @@ func (p MessageProcessorImpl) prepareHeader(header string) (string, error) {
 	match := regex.FindStringSubmatch(header)
 
 	if match == nil || len(match) < index {
-		return header, nil
+		return "", fmt.Errorf("could not find %s regex group in match result for '%s'", messageRegexGroupName, header)
 	}
 
 	return match[index], nil

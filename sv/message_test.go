@@ -534,7 +534,7 @@ func Test_prepareHeader(t *testing.T) {
 		{"matching conventional with selector with group", "Merged PR (\\d+): (?P<header>.*)", "Merged PR 123: feat: something", "feat: something", false},
 		{"matching non-conventional with selector with group", "Merged PR (\\d+): (?P<header>.*)", "Merged PR 123: something", "something", false},
 		{"matching non-conventional with selector without group", "Merged PR (\\d+): (.*)", "Merged PR 123: something", "", true},
-		{"non-matching non-conventional with selector with group", "Merged PR (\\d+): (?P<header>.*)", "something", "something", false},
+		{"non-matching non-conventional with selector with group", "Merged PR (\\d+): (?P<header>.*)", "something", "", true},
 		{"matching non-conventional with invalid regex", "Merged PR (\\d+): (?<header>.*)", "Merged PR 123: something", "", true},
 	}
 	for _, tt := range tests {
