@@ -9,6 +9,7 @@ type CommitMessageConfig struct {
 	Scope  CommitMessageScopeConfig             `yaml:"scope"`
 	Footer map[string]CommitMessageFooterConfig `yaml:"footer"`
 	Issue  CommitMessageIssueConfig             `yaml:"issue"`
+	SkipUnconventional bool                     `yaml:"skip-unconventional"`
 }
 
 // IssueFooterConfig config for issue.

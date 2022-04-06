@@ -121,6 +121,7 @@ branches: # Git branches config.
 commit-message:
     types: [build, ci, chore, docs, feat, fix, perf, refactor, revert, style, test] # Supported commit types.
     header-selector: '' # You can put in a regex here to select only a certain part of the commit message. Please define a regex group 'header'.
+    skip-unconventional: false # Allows to skip commits that do not comply with conventional commits. Otherwise those will cause errors.
     scope:
         # Define supported scopes, if blank, scope will not be validated, if not, only scope listed will be valid.
         # Don't forget to add "" on your list if you need to define scopes and keep it optional.
