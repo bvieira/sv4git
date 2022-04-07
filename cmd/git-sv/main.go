@@ -43,7 +43,7 @@ func main() {
 
 	cfg := loadCfg(repoPath)
 	messageProcessor := sv.NewMessageProcessor(cfg.CommitMessage, cfg.Branches)
-	git := sv.NewGit(messageProcessor, cfg.Tag, cfg.CommitMessage)
+	git := sv.NewGit(messageProcessor, cfg.Tag)
 	semverProcessor := sv.NewSemVerCommitsProcessor(cfg.Versioning, cfg.CommitMessage)
 	releasenotesProcessor := sv.NewReleaseNoteProcessor(cfg.ReleaseNotes)
 	outputFormatter := sv.NewOutputFormatter(templateFS(filepath.Join(repoPath, configDir, "templates")))

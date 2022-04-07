@@ -71,15 +71,13 @@ func NewLogRange(t LogRangeType, start, end string) LogRange {
 type GitImpl struct {
 	messageProcessor MessageProcessor
 	tagCfg           TagConfig
-	messageCfg       CommitMessageConfig
 }
 
 // NewGit constructor.
-func NewGit(messageProcessor MessageProcessor, tagCfg TagConfig, messageCfg CommitMessageConfig) *GitImpl {
+func NewGit(messageProcessor MessageProcessor, cfg TagConfig) *GitImpl {
 	return &GitImpl{
 		messageProcessor: messageProcessor,
-		tagCfg:           tagCfg,
-		messageCfg:       messageCfg,
+		tagCfg:           cfg,
 	}
 }
 
@@ -116,13 +114,10 @@ func (g GitImpl) Log(lr LogRange) ([]GitCommitLog, error) {
 	if err != nil {
 		return nil, combinedOutputErr(err, out)
 	}
-
-	logs, parseErr := g.parseLogOutput(g.messageProcessor, string(out))
-
+	logs, parseErr := parseLogOutput(g.messageProcessor, string(out))
 	if parseErr != nil {
 		return nil, parseErr
 	}
-
 	return logs, nil
 }
 
@@ -197,18 +192,17 @@ func parseTagsOutput(input string) ([]GitTag, error) {
 	return result, nil
 }
 
-func (g GitImpl) parseLogOutput(messageProcessor MessageProcessor, log string) ([]GitCommitLog, error) {
+func parseLogOutput(messageProcessor MessageProcessor, log string) ([]GitCommitLog, error) {
 	scanner := bufio.NewScanner(strings.NewReader(log))
 	scanner.Split(splitAt([]byte(endLine)))
 	var logs []GitCommitLog
 	for scanner.Scan() {
 		if text := strings.TrimSpace(strings.Trim(scanner.Text(), "\"")); text != "" {
 			log, err := parseCommitLog(messageProcessor, text)
-			if err == nil {
-				logs = append(logs, log)
-			} else if !g.messageCfg.SkipUnconventional {
-				return logs, err
+			if err != nil {
+				return nil, err
 			}
+			logs = append(logs, log)
 		}
 	}
 	return logs, nil

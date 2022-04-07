@@ -103,7 +103,6 @@ func defaultConfig() Config {
 			},
 			Issue: sv.CommitMessageIssueConfig{Regex: "[A-Z]+-[0-9]+"},
 			HeaderSelector: "",
-			SkipUnconventional: false,
 		},
 	}
 }
