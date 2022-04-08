@@ -62,6 +62,19 @@ func newBranchCfg(skipDetached bool) BranchesConfig {
 	}
 }
 
+func newCommitMessageCfg(headerSelector string) CommitMessageConfig {
+	return CommitMessageConfig{
+		Types: []string{"feat", "fix"},
+		Scope: CommitMessageScopeConfig{Values: []string{"", "scope"}},
+		Footer: map[string]CommitMessageFooterConfig{
+			"issue": {Key: "jira", KeySynonyms: []string{"Jira"}},
+			"refs":  {Key: "Refs", UseHash: true},
+		},
+		Issue: CommitMessageIssueConfig{Regex: "[A-Z]+-[0-9]+"},
+		HeaderSelector: headerSelector,
+	}
+}
+
 // messages samples start.
 var fullMessage = `fix: correct minor typos in code
 
@@ -398,7 +411,7 @@ func TestMessageProcessorImpl_Parse(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewMessageProcessor(tt.cfg, newBranchCfg(false)).Parse(tt.subject, tt.body); !reflect.DeepEqual(got, tt.want) {
+			if got, err := NewMessageProcessor(tt.cfg, newBranchCfg(false)).Parse(tt.subject, tt.body); !reflect.DeepEqual(got, tt.want) && err == nil {
 				t.Errorf("MessageProcessorImpl.Parse() = %v, want %v", got, tt.want)
 			}
 		})
@@ -502,6 +515,38 @@ func Test_parseSubjectMessage(t *testing.T) {
 			}
 			if hasBreakingChange != tt.wantHasBreakingChange {
 				t.Errorf("parseSubjectMessage() hasBreakingChange got = %v, want %v", hasBreakingChange, tt.wantHasBreakingChange)
+			}
+		})
+	}
+}
+
+func Test_prepareHeader(t *testing.T) {
+	tests := []struct {
+		name                  string
+		headerSelector        string
+		commitHeader          string
+		wantHeader            string
+		wantError             bool
+	}{
+		{"conventional without selector", "", "feat: something", "feat: something", false},
+		{"conventional with scope without selector", "", "feat(scope): something", "feat(scope): something", false},
+		{"non-conventional without selector", "", "something", "something", false},
+		{"matching conventional with selector with group", "Merged PR (\\d+): (?P<header>.*)", "Merged PR 123: feat: something", "feat: something", false},
+		{"matching non-conventional with selector with group", "Merged PR (\\d+): (?P<header>.*)", "Merged PR 123: something", "something", false},
+		{"matching non-conventional with selector without group", "Merged PR (\\d+): (.*)", "Merged PR 123: something", "", true},
+		{"non-matching non-conventional with selector with group", "Merged PR (\\d+): (?P<header>.*)", "something", "", true},
+		{"matching non-conventional with invalid regex", "Merged PR (\\d+): (?<header>.*)", "Merged PR 123: something", "", true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			msgProcessor := NewMessageProcessor(newCommitMessageCfg(tt.headerSelector), newBranchCfg(false))
+			header, err := msgProcessor.prepareHeader(tt.commitHeader)
+
+			if tt.wantError && err == nil {
+				t.Errorf("prepareHeader() err got = %v, want not nil", err)
+			}
+			if header != tt.wantHeader {
+				t.Errorf("prepareHeader() header got = %v, want %v", header, tt.wantHeader)
 			}
 		})
 	}

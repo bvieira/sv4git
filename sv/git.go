@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	logSeparator = "##"
-	endLine      = "~~"
+	logSeparator = "###"
+	endLine      = "~~~"
 )
 
 // Git commands.
@@ -82,8 +82,8 @@ func NewGit(messageProcessor MessageProcessor, cfg TagConfig) *GitImpl {
 }
 
 // LastTag get last tag, if no tag found, return empty.
-func (GitImpl) LastTag() string {
-	cmd := exec.Command("git", "for-each-ref", "refs/tags", "--sort", "-creatordate", "--format", "%(refname:short)", "--count", "1")
+func (g GitImpl) LastTag() string {
+	cmd := exec.Command("git", "for-each-ref", "refs/tags/" + g.tagCfg.Filter, "--sort", "-creatordate", "--format", "%(refname:short)", "--count", "1")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return ""
@@ -114,7 +114,11 @@ func (g GitImpl) Log(lr LogRange) ([]GitCommitLog, error) {
 	if err != nil {
 		return nil, combinedOutputErr(err, out)
 	}
-	return parseLogOutput(g.messageProcessor, string(out)), nil
+	logs, parseErr := parseLogOutput(g.messageProcessor, string(out))
+	if parseErr != nil {
+		return nil, parseErr
+	}
+	return logs, nil
 }
 
 // Commit runs git commit.
@@ -144,7 +148,7 @@ func (g GitImpl) Tag(version semver.Version) (string, error) {
 
 // Tags list repository tags.
 func (g GitImpl) Tags() ([]GitTag, error) {
-	cmd := exec.Command("git", "for-each-ref", "--sort", "creatordate", "--format", "%(creatordate:iso8601)#%(refname:short)", "refs/tags")
+	cmd := exec.Command("git", "for-each-ref", "--sort", "creatordate", "--format", "%(creatordate:iso8601)#%(refname:short)", "refs/tags/" + g.tagCfg.Filter)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return nil, combinedOutputErr(err, out)
@@ -188,29 +192,39 @@ func parseTagsOutput(input string) ([]GitTag, error) {
 	return result, nil
 }
 
-func parseLogOutput(messageProcessor MessageProcessor, log string) []GitCommitLog {
+func parseLogOutput(messageProcessor MessageProcessor, log string) ([]GitCommitLog, error) {
 	scanner := bufio.NewScanner(strings.NewReader(log))
 	scanner.Split(splitAt([]byte(endLine)))
 	var logs []GitCommitLog
 	for scanner.Scan() {
 		if text := strings.TrimSpace(strings.Trim(scanner.Text(), "\"")); text != "" {
-			logs = append(logs, parseCommitLog(messageProcessor, text))
+			log, err := parseCommitLog(messageProcessor, text)
+			if err != nil {
+				return nil, err
+			}
+			logs = append(logs, log)
 		}
 	}
-	return logs
+	return logs, nil
 }
 
-func parseCommitLog(messageProcessor MessageProcessor, commit string) GitCommitLog {
+func parseCommitLog(messageProcessor MessageProcessor, commit string) (GitCommitLog, error) {
 	content := strings.Split(strings.Trim(commit, "\""), logSeparator)
 
 	timestamp, _ := strconv.Atoi(content[1])
+	message, err := messageProcessor.Parse(content[4], content[5])
+
+	if err != nil {
+		return GitCommitLog{}, err
+	}
+	
 	return GitCommitLog{
 		Date:       content[0],
 		Timestamp:  timestamp,
 		AuthorName: content[2],
 		Hash:       content[3],
-		Message:    messageProcessor.Parse(content[4], content[5]),
-	}
+		Message:    message,
+	}, nil
 }
 
 func splitAt(b []byte) func(data []byte, atEOF bool) (advance int, token []byte, err error) {

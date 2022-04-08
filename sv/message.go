@@ -11,6 +11,7 @@ const (
 	breakingChangeFooterKey   = "BREAKING CHANGE"
 	breakingChangeMetadataKey = "breaking-change"
 	issueMetadataKey          = "issue"
+	messageRegexGroupName     = "header"
 )
 
 // CommitMessage is a message using conventional commits.
@@ -55,7 +56,7 @@ type MessageProcessor interface {
 	Enhance(branch string, message string) (string, error)
 	IssueID(branch string) (string, error)
 	Format(msg CommitMessage) (string, string, string)
-	Parse(subject, body string) CommitMessage
+	Parse(subject, body string) (CommitMessage, error)
 }
 
 // NewMessageProcessor MessageProcessorImpl constructor.
@@ -80,7 +81,11 @@ func (p MessageProcessorImpl) SkipBranch(branch string, detached bool) bool {
 // Validate commit message.
 func (p MessageProcessorImpl) Validate(message string) error {
 	subject, body := splitCommitMessageContent(message)
-	msg := p.Parse(subject, body)
+	msg, parseErr := p.Parse(subject, body)
+
+	if (parseErr != nil) {
+		return parseErr
+	}
 
 	if !regexp.MustCompile(`^[a-z+]+(\(.+\))?!?: .+$`).MatchString(subject) {
 		return fmt.Errorf("subject [%s] should be valid according with conventional commits", subject)
@@ -201,8 +206,14 @@ func (p MessageProcessorImpl) Format(msg CommitMessage) (string, string, string)
 }
 
 // Parse a commit message.
-func (p MessageProcessorImpl) Parse(subject, body string) CommitMessage {
-	commitType, scope, description, hasBreakingChange := parseSubjectMessage(subject)
+func (p MessageProcessorImpl) Parse(subject, body string) (CommitMessage, error) {
+	preparedSubject, err := p.prepareHeader(subject)
+
+	if err != nil {
+		return CommitMessage{}, err
+	}
+	
+	commitType, scope, description, hasBreakingChange := parseSubjectMessage(preparedSubject)
 
 	metadata := make(map[string]string)
 	for key, mdCfg := range p.messageCfg.Footer {
@@ -228,7 +239,31 @@ func (p MessageProcessorImpl) Parse(subject, body string) CommitMessage {
 		Body:             body,
 		IsBreakingChange: hasBreakingChange,
 		Metadata:         metadata,
+	}, nil
+}
+
+func (p MessageProcessorImpl) prepareHeader(header string) (string, error) {
+	if p.messageCfg.HeaderSelector == "" {
+		return header, nil
 	}
+
+	regex, err := regexp.Compile(p.messageCfg.HeaderSelector)
+	if err != nil {
+		return "", fmt.Errorf("invalid regex on header-selector %s, error: %s", p.messageCfg.HeaderSelector, err.Error())
+	}
+
+	index := regex.SubexpIndex(messageRegexGroupName)
+	if index < 0 {
+		return "", fmt.Errorf("could not find %s regex group on header-selector regex", messageRegexGroupName)
+	}
+
+	match := regex.FindStringSubmatch(header)
+
+	if match == nil || len(match) < index {
+		return "", fmt.Errorf("could not find %s regex group in match result for '%s'", messageRegexGroupName, header)
+	}
+
+	return match[index], nil
 }
 
 func parseSubjectMessage(message string) (string, string, string, bool) {

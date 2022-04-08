@@ -91,6 +91,7 @@ versioning: # versioning bump
 
 tag:
     pattern: '%d.%d.%d' # Pattern used to create git tag.
+    filter: '' # Enables you to filter for considerable tags using git pattern syntax
 
 release-notes:
     # Deprecated!!! please use 'sections' instead!
@@ -121,6 +122,7 @@ branches: # Git branches config.
 
 commit-message:
     types: [build, ci, chore, docs, feat, fix, perf, refactor, revert, style, test] # Supported commit types.
+    header-selector: '' # You can put in a regex here to select only a certain part of the commit message. Please define a regex group 'header'.
     scope:
         # Define supported scopes, if blank, scope will not be validated, if not, only scope listed will be valid.
         # Don't forget to add "" on your list if you need to define scopes and keep it optional.
