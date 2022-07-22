@@ -2,16 +2,8 @@ version: "1.1"
 
 versioning:
     update-major: []
-    update-minor:
-        - feat
-    update-patch:
-        - build
-        - ci
-        - chore
-        - fix
-        - perf
-        - refactor
-        - test
+    update-minor: [feat]
+    update-patch: [build, ci, chore, fix, perf, refactor, test]
 
 tag:
     pattern: "v%d.%d.%d"
