@@ -14,12 +14,26 @@ versioning:
         - test
 
 tag:
-    pattern: 'v%d.%d.%d'
+    pattern: "v%d.%d.%d"
+
+release-notes:
+    sections:
+        - name: Features
+          section-type: commits
+          commit-types: [feat]
+        - name: Bug Fixes
+          section-type: commits
+          commit-types: [fix]
+        - name: Misc
+          section-type: commits
+          commit-types: [build]
+        - name: Breaking Changes
+          section-type: breaking-changes
 
 commit-message:
     footer:
         issue:
             key: issue
-            add-value-prefix: '#'
+            add-value-prefix: "#"
     issue:
-        regex: '#?[0-9]+'
+        regex: "#?[0-9]+"
