@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"os/exec"
 	"reflect"
 	"strings"
@@ -53,7 +53,7 @@ func combinedOutputErr(err error, out []byte) error {
 }
 
 func readConfig(filepath string) (Config, error) {
-	content, rerr := ioutil.ReadFile(filepath)
+	content, rerr := os.ReadFile(filepath)
 	if rerr != nil {
 		return Config{}, rerr
 	}
@@ -79,7 +79,7 @@ func defaultConfig() Config {
 		},
 		Tag: sv.TagConfig{
 			Pattern: "%d.%d.%d",
-			Filter: "",
+			Filter:  "",
 		},
 		ReleaseNotes: sv.ReleaseNotesConfig{
 			Sections: []sv.ReleaseNotesSectionConfig{
@@ -101,7 +101,7 @@ func defaultConfig() Config {
 			Footer: map[string]sv.CommitMessageFooterConfig{
 				"issue": {Key: "jira", KeySynonyms: []string{"Jira", "JIRA"}},
 			},
-			Issue: sv.CommitMessageIssueConfig{Regex: "[A-Z]+-[0-9]+"},
+			Issue:          sv.CommitMessageIssueConfig{Regex: "[A-Z]+-[0-9]+"},
 			HeaderSelector: "",
 		},
 	}
