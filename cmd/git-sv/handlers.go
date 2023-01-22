@@ -209,7 +209,7 @@ func getTags(git sv.Git, tag string) (string, sv.GitTag, error) {
 
 	index := find(tag, tags)
 	if index < 0 {
-		return "", sv.GitTag{}, fmt.Errorf("tag: %s not found", tag)
+		return "", sv.GitTag{}, fmt.Errorf("tag: %s not found, check tag filter", tag)
 	}
 
 	previousTag := ""
