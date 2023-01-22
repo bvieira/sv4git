@@ -83,7 +83,7 @@ func NewGit(messageProcessor MessageProcessor, cfg TagConfig) *GitImpl {
 
 // LastTag get last tag, if no tag found, return empty.
 func (g GitImpl) LastTag() string {
-	cmd := exec.Command("git", "for-each-ref", "refs/tags/"+g.tagCfg.Filter, "--sort", "-creatordate", "--format", "%(refname:short)", "--count", "1")
+	cmd := exec.Command("git", "for-each-ref", "refs/tags/"+*g.tagCfg.Filter, "--sort", "-creatordate", "--format", "%(refname:short)", "--count", "1")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return ""
@@ -131,7 +131,7 @@ func (g GitImpl) Commit(header, body, footer string) error {
 
 // Tag create a git tag.
 func (g GitImpl) Tag(version semver.Version) (string, error) {
-	tag := fmt.Sprintf(g.tagCfg.Pattern, version.Major(), version.Minor(), version.Patch())
+	tag := fmt.Sprintf(*g.tagCfg.Pattern, version.Major(), version.Minor(), version.Patch())
 	tagMsg := fmt.Sprintf("Version %d.%d.%d", version.Major(), version.Minor(), version.Patch())
 
 	tagCommand := exec.Command("git", "tag", "-a", tag, "-m", tagMsg)
@@ -148,7 +148,7 @@ func (g GitImpl) Tag(version semver.Version) (string, error) {
 
 // Tags list repository tags.
 func (g GitImpl) Tags() ([]GitTag, error) {
-	cmd := exec.Command("git", "for-each-ref", "--sort", "creatordate", "--format", "%(creatordate:iso8601)#%(refname:short)", "refs/tags/"+g.tagCfg.Filter)
+	cmd := exec.Command("git", "for-each-ref", "--sort", "creatordate", "--format", "%(creatordate:iso8601)#%(refname:short)", "refs/tags/"+*g.tagCfg.Filter)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return nil, combinedOutputErr(err, out)

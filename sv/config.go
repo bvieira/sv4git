@@ -4,11 +4,11 @@ package sv
 
 // CommitMessageConfig config a commit message.
 type CommitMessageConfig struct {
-	Types  []string                             `yaml:"types,flow"`
-	HeaderSelector string                       `yaml:"header-selector"`
-	Scope  CommitMessageScopeConfig             `yaml:"scope"`
-	Footer map[string]CommitMessageFooterConfig `yaml:"footer"`
-	Issue  CommitMessageIssueConfig             `yaml:"issue"`
+	Types          []string                             `yaml:"types,flow"`
+	HeaderSelector string                               `yaml:"header-selector"`
+	Scope          CommitMessageScopeConfig             `yaml:"scope"`
+	Footer         map[string]CommitMessageFooterConfig `yaml:"footer"`
+	Issue          CommitMessageIssueConfig             `yaml:"issue"`
 }
 
 // IssueFooterConfig config for issue.
@@ -62,8 +62,8 @@ type VersioningConfig struct {
 
 // TagConfig tag preferences.
 type TagConfig struct {
-	Pattern string `yaml:"pattern"`
-	Filter  string `yaml:"filter"`
+	Pattern *string `yaml:"pattern"`
+	Filter  *string `yaml:"filter"`
 }
 
 // ==== Release Notes ====

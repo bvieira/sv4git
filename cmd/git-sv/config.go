@@ -69,6 +69,8 @@ func readConfig(filepath string) (Config, error) {
 
 func defaultConfig() Config {
 	skipDetached := false
+	pattern := "%d.%d.%d"
+	filter := ""
 	return Config{
 		Version: "1.1",
 		Versioning: sv.VersioningConfig{
@@ -78,8 +80,8 @@ func defaultConfig() Config {
 			IgnoreUnknown: false,
 		},
 		Tag: sv.TagConfig{
-			Pattern: "%d.%d.%d",
-			Filter:  "",
+			Pattern: &pattern,
+			Filter:  &filter,
 		},
 		ReleaseNotes: sv.ReleaseNotesConfig{
 			Sections: []sv.ReleaseNotesSectionConfig{
