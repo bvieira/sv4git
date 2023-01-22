@@ -70,7 +70,7 @@ func newCommitMessageCfg(headerSelector string) CommitMessageConfig {
 			"issue": {Key: "jira", KeySynonyms: []string{"Jira"}},
 			"refs":  {Key: "Refs", UseHash: true},
 		},
-		Issue: CommitMessageIssueConfig{Regex: "[A-Z]+-[0-9]+"},
+		Issue:          CommitMessageIssueConfig{Regex: "[A-Z]+-[0-9]+"},
 		HeaderSelector: headerSelector,
 	}
 }
@@ -378,6 +378,9 @@ var completeBody = `some descriptions
 jira: JIRA-123
 BREAKING CHANGE: this change breaks everything`
 
+var bodyWithCarriage = "some description\r\nmore description\r\n\r\njira: JIRA-123\r"
+var expectedBodyWithCarriage = "some description\nmore description\n\njira: JIRA-123"
+
 var issueOnlyBody = `some descriptions
 
 jira: JIRA-456`
@@ -408,11 +411,12 @@ func TestMessageProcessorImpl_Parse(t *testing.T) {
 		{"breaking change with exclamation mark", ccfg, "feat!: something new", "", CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: "", IsBreakingChange: true, Metadata: map[string]string{}}},
 		{"hash metadata", ccfg, "feat: something new", hashMetadataBody, CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: hashMetadataBody, IsBreakingChange: false, Metadata: map[string]string{issueMetadataKey: "JIRA-999", "refs": "#123"}}},
 		{"empty issue cfg", ccfgEmptyIssue, "feat: something new", hashMetadataBody, CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: hashMetadataBody, IsBreakingChange: false, Metadata: map[string]string{}}},
+		{"carriage return on body", ccfg, "feat: something new", bodyWithCarriage, CommitMessage{Type: "feat", Scope: "", Description: "something new", Body: expectedBodyWithCarriage, IsBreakingChange: false, Metadata: map[string]string{issueMetadataKey: "JIRA-123"}}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got, err := NewMessageProcessor(tt.cfg, newBranchCfg(false)).Parse(tt.subject, tt.body); !reflect.DeepEqual(got, tt.want) && err == nil {
-				t.Errorf("MessageProcessorImpl.Parse() = %v, want %v", got, tt.want)
+				t.Errorf("MessageProcessorImpl.Parse() = [%+v], want [%+v]", got, tt.want)
 			}
 		})
 	}
@@ -522,11 +526,11 @@ func Test_parseSubjectMessage(t *testing.T) {
 
 func Test_prepareHeader(t *testing.T) {
 	tests := []struct {
-		name                  string
-		headerSelector        string
-		commitHeader          string
-		wantHeader            string
-		wantError             bool
+		name           string
+		headerSelector string
+		commitHeader   string
+		wantHeader     string
+		wantError      bool
 	}{
 		{"conventional without selector", "", "feat: something", "feat: something", false},
 		{"conventional with scope without selector", "", "feat(scope): something", "feat(scope): something", false},
@@ -547,6 +551,25 @@ func Test_prepareHeader(t *testing.T) {
 			}
 			if header != tt.wantHeader {
 				t.Errorf("prepareHeader() header got = %v, want %v", header, tt.wantHeader)
+			}
+		})
+	}
+}
+
+func Test_removeCarriage(t *testing.T) {
+	tests := []struct {
+		name   string
+		commit string
+		want   string
+	}{
+		{"normal string", "normal string", "normal string"},
+		{"break line", "normal\nstring", "normal\nstring"},
+		{"carriage return", "normal\r\nstring", "normal\nstring"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := removeCarriage(tt.commit); got != tt.want {
+				t.Errorf("removeCarriage() = %v, want %v", got, tt.want)
 			}
 		})
 	}
