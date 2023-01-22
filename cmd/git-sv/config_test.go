@@ -10,6 +10,8 @@ import (
 func Test_merge(t *testing.T) {
 	boolFalse := false
 	boolTrue := true
+	emptyStr := ""
+	nonEmptyStr := "something"
 
 	tests := []struct {
 		name    string
@@ -34,6 +36,8 @@ func Test_merge(t *testing.T) {
 		{"merge empty maps", Config{CommitMessage: sv.CommitMessageConfig{Footer: map[string]sv.CommitMessageFooterConfig{"issue": {Key: "jira"}}}}, Config{CommitMessage: sv.CommitMessageConfig{Footer: map[string]sv.CommitMessageFooterConfig{}}}, Config{CommitMessage: sv.CommitMessageConfig{Footer: map[string]sv.CommitMessageFooterConfig{"issue": {Key: "jira"}}}}, false},
 
 		{"overwrite release notes header", Config{ReleaseNotes: sv.ReleaseNotesConfig{Headers: map[string]string{"a": "aa"}}}, Config{ReleaseNotes: sv.ReleaseNotesConfig{Headers: map[string]string{"b": "bb"}}}, Config{ReleaseNotes: sv.ReleaseNotesConfig{Headers: map[string]string{"b": "bb"}}}, false},
+
+		{"overwrite tag config", Config{Version: "a", Tag: sv.TagConfig{Pattern: &nonEmptyStr, Filter: &nonEmptyStr}}, Config{Version: "", Tag: sv.TagConfig{Pattern: &emptyStr, Filter: &emptyStr}}, Config{Version: "a", Tag: sv.TagConfig{Pattern: &emptyStr, Filter: &emptyStr}}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
