@@ -83,7 +83,7 @@ func (p MessageProcessorImpl) Validate(message string) error {
 	subject, body := splitCommitMessageContent(message)
 	msg, parseErr := p.Parse(subject, body)
 
-	if (parseErr != nil) {
+	if parseErr != nil {
 		return parseErr
 	}
 
@@ -205,14 +205,19 @@ func (p MessageProcessorImpl) Format(msg CommitMessage) (string, string, string)
 	return header.String(), msg.Body, footer.String()
 }
 
+func removeCarriage(commit string) string {
+	return regexp.MustCompile(`\r`).ReplaceAllString(commit, "")
+}
+
 // Parse a commit message.
 func (p MessageProcessorImpl) Parse(subject, body string) (CommitMessage, error) {
 	preparedSubject, err := p.prepareHeader(subject)
+	commitBody := removeCarriage(body)
 
 	if err != nil {
 		return CommitMessage{}, err
 	}
-	
+
 	commitType, scope, description, hasBreakingChange := parseSubjectMessage(preparedSubject)
 
 	metadata := make(map[string]string)
@@ -220,14 +225,14 @@ func (p MessageProcessorImpl) Parse(subject, body string) (CommitMessage, error)
 		if mdCfg.Key != "" {
 			prefixes := append([]string{mdCfg.Key}, mdCfg.KeySynonyms...)
 			for _, prefix := range prefixes {
-				if tagValue := extractFooterMetadata(prefix, body, mdCfg.UseHash); tagValue != "" {
+				if tagValue := extractFooterMetadata(prefix, commitBody, mdCfg.UseHash); tagValue != "" {
 					metadata[key] = tagValue
 					break
 				}
 			}
 		}
 	}
-	if tagValue := extractFooterMetadata(breakingChangeFooterKey, body, false); tagValue != "" {
+	if tagValue := extractFooterMetadata(breakingChangeFooterKey, commitBody, false); tagValue != "" {
 		metadata[breakingChangeMetadataKey] = tagValue
 		hasBreakingChange = true
 	}
@@ -236,7 +241,7 @@ func (p MessageProcessorImpl) Parse(subject, body string) (CommitMessage, error)
 		Type:             commitType,
 		Scope:            scope,
 		Description:      description,
-		Body:             body,
+		Body:             commitBody,
 		IsBreakingChange: hasBreakingChange,
 		Metadata:         metadata,
 	}, nil
