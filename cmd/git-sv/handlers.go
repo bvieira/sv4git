@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -500,7 +499,7 @@ func validateCommitMessageHandler(git sv.Git, messageProcessor sv.MessageProcess
 }
 
 func readFile(filepath string) (string, error) {
-	f, err := ioutil.ReadFile(filepath)
+	f, err := os.ReadFile(filepath)
 	if err != nil {
 		return "", err
 	}
