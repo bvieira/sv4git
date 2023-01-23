@@ -3,6 +3,7 @@ package sv
 import (
 	"bytes"
 	"io/fs"
+	"os"
 	"sort"
 	"text/template"
 	"time"
@@ -35,6 +36,7 @@ func NewOutputFormatter(templatesFS fs.FS) *OutputFormatterImpl {
 	templateFNs := map[string]interface{}{
 		"timefmt":    timeFormat,
 		"getsection": getSection,
+		"getenv":     os.Getenv,
 	}
 	tpls := template.Must(template.New("templates").Funcs(templateFNs).ParseFS(templatesFS, "*"))
 	return &OutputFormatterImpl{templates: tpls}
