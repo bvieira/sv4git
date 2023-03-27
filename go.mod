@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/Masterminds/semver/v3 v3.2.0
-	github.com/imdario/mergo v0.3.13
+	github.com/imdario/mergo v0.3.15
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/manifoldco/promptui v0.9.0
 	github.com/urfave/cli/v2 v2.24.1
