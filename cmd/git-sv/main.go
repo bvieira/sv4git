@@ -112,7 +112,10 @@ func main() {
 			Aliases: []string{"rn"},
 			Usage:   "generate release notes",
 			Action:  releaseNotesHandler(git, semverProcessor, releasenotesProcessor, outputFormatter),
-			Flags:   []cli.Flag{&cli.StringFlag{Name: "t", Aliases: []string{"tag"}, Usage: "get release note from tag"}},
+			Flags: []cli.Flag{
+				&cli.StringFlag{Name: "t", Aliases: []string{"tag"}, Usage: "get release note from tag"},
+				&cli.StringFlag{Name: "p", Aliases: []string{"previous"}, Usage: "previous tag to use"},
+			},
 		},
 		{
 			Name:    "changelog",

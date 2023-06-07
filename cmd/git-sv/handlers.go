@@ -163,9 +163,10 @@ func releaseNotesHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, 
 		var tag string
 		var date time.Time
 		var err error
+		previous := c.String("p")
 
 		if tag = c.String("t"); tag != "" {
-			rnVersion, date, commits, err = getTagVersionInfo(git, tag)
+			rnVersion, date, commits, err = getTagVersionInfo(git, tag, previous)
 		} else {
 			// TODO: should generate release notes if version was not updated?
 			rnVersion, _, date, commits, err = getNextVersionInfo(git, semverProcessor)
@@ -185,12 +186,16 @@ func releaseNotesHandler(git sv.Git, semverProcessor sv.SemVerCommitsProcessor, 
 	}
 }
 
-func getTagVersionInfo(git sv.Git, tag string) (*semver.Version, time.Time, []sv.GitCommitLog, error) {
+func getTagVersionInfo(git sv.Git, tag string, explicitPreviousTag string) (*semver.Version, time.Time, []sv.GitCommitLog, error) {
 	tagVersion, _ := sv.ToVersion(tag)
 
 	previousTag, currentTag, err := getTags(git, tag)
 	if err != nil {
 		return nil, time.Time{}, nil, fmt.Errorf("error listing tags, message: %v", err)
+	}
+
+	if explicitPreviousTag != "" {
+		previousTag = explicitPreviousTag
 	}
 
 	commits, err := git.Log(sv.NewLogRange(sv.TagRange, previousTag, tag))
