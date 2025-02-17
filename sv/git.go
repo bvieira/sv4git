@@ -83,11 +83,24 @@ func NewGit(messageProcessor MessageProcessor, cfg TagConfig) *GitImpl {
 
 // LastTag get last tag, if no tag found, return empty.
 func (g GitImpl) LastTag() string {
-	cmd := exec.Command("git", "for-each-ref", "refs/tags/"+*g.tagCfg.Filter, "--sort", "-creatordate", "--format", "%(refname:short)", "--count", "1")
+	cmd := exec.Command(
+		"git",
+		"for-each-ref",
+		"refs/tags/"+*g.tagCfg.Filter,
+		"--sort",
+		"-version:refname",
+		"--sort",
+		"-creatordate",
+		"--format",
+		"%(refname:short)",
+		"--count",
+		"1",
+	)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return ""
 	}
+
 	return strings.TrimSpace(strings.Trim(string(out), "\n"))
 }
 
@@ -148,7 +161,15 @@ func (g GitImpl) Tag(version semver.Version) (string, error) {
 
 // Tags list repository tags.
 func (g GitImpl) Tags() ([]GitTag, error) {
-	cmd := exec.Command("git", "for-each-ref", "--sort", "creatordate", "--format", "%(creatordate:iso8601)#%(refname:short)", "refs/tags/"+*g.tagCfg.Filter)
+	cmd := exec.Command(
+		"git",
+		"for-each-ref",
+		"--sort",
+		"creatordate",
+		"--format",
+		"%(creatordate:iso8601)#%(refname:short)",
+		"refs/tags/"+*g.tagCfg.Filter,
+	)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return nil, combinedOutputErr(err, out)
@@ -170,7 +191,7 @@ func (GitImpl) Branch() string {
 func (GitImpl) IsDetached() (bool, error) {
 	cmd := exec.Command("git", "symbolic-ref", "-q", "HEAD")
 	out, err := cmd.CombinedOutput()
-	if output := string(out); err != nil { //-q: do not issue an error message if the <name> is not a symbolic ref, but a detached HEAD; instead exit with non-zero status silently.
+	if output := string(out); err != nil { // -q: do not issue an error message if the <name> is not a symbolic ref, but a detached HEAD; instead exit with non-zero status silently.
 		if output == "" {
 			return true, nil
 		}
